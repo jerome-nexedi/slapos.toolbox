@@ -1,0 +1,8 @@
+[KdmGreeterTheme]
+Encoding=UTF-8
+Greeter=studio.xml
+Name=SlapOs
+Description=Theme for SlapOs
+Author=<author>Romain Courteaud</author> using SUSE Studio
+Copyright=(c) 2011 Novell, Inc.
+Screenshot=preview.png

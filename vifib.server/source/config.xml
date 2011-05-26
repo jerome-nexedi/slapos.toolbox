@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- For kiwi 4.43-117.1 and above -->
+<image name='SlapOs' displayname='SlapOs' schemeversion='2.4'>
+  <description type='system'>
+    <author>Romain Courteaud</author>
+    <contact>studio-devel@suse.de</contact>
+    <specification>A text-only base</specification>
+  </description>
+  <preferences>
+    <oem-swapsize>1024</oem-swapsize>
+    <oem-home>no</oem-home>
+    <oem-boot-title>SlapOs</oem-boot-title>
+    <type filesystem='ext3' checkprebuilt='true' fsnocheck='true' boot='oemboot/suse-11.3'>oem</type>
+    <version>0.0.5</version>
+    <packagemanager>zypper</packagemanager>
+    <rpm-check-signatures>False</rpm-check-signatures>
+    <rpm-force>False</rpm-force>
+  </preferences>
+  <users group='root'>
+    <user name='root' shell='/bin/bash' pwd='$1$wKxkG2BA$dlftO16KMQqDqaRJzKcGH/' home='/root'/>
+  </users>
+  <packages patternType='onlyRequired' type='image' patternPackageType='onlyRequired'>
+    <opensusePattern name='base'/>
+    <package name='nano'/>
+    <package name='vim'/>
+    <package name='memtest86+'/>
+    <package name='pwgen'/>
+    <package name='patch'/>
+    <package name='mtr'/>
+    <package name='zlib'/>
+    <package name='gcc-c++'/>
+    <package name='yast2-firstboot'/>
+    <package name='mdadm'/>
+    <package name='yast2-ncurses'/>
+    <package name='yast2'/>
+    <package name='less'/>
+    <package name='zypper'/>
+    <package name='kernel-default'/>
+    <package name='syslog-ng'/>
+    <package name='bootsplash-branding-openSUSE'/>
+    <package name='python'/>
+    <package name='bridge-utils'/>
+    <package name='tunctl'/>
+    <package name='man'/>
+    <package name='iputils'/>
+    <package name='sudo'/>
+    <package name='perl'/>
+    <package name='wget'/>
+    <package name='ntp'/>
+    <package name='lsof'/>
+    <package name='strace'/>
+    <package name='htop'/>
+    <package name='iotop'/>
+    <package name='dhcp-client'/>
+    <package name='perl-XML-Twig'/>
+    <package name='gcc'/>
+    <package name='make'/>
+    <package name='rpm'/>
+  </packages>
+  <packages type='bootstrap'>
+    <package name='filesystem'/>
+    <package name='glibc-locale'/>
+  </packages>
+  <repository type='yast2'>
+    <source path='http://download.opensuse.org/distribution/11.3/repo/oss'/>
+  </repository>
+  <repository type='rpm-md'>
+    <source path='http://download.opensuse.org/update/11.3'/>
+  </repository>
+</image>
