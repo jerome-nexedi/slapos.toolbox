@@ -1,0 +1,31 @@
+<!doctype html>
+<title>Buildout runner</title>
+<div class=menu>
+<a href="{{ url_for('home') }}">Home</a> |
+Software:
+<a href="{{ url_for('editSoftwareProfile') }}">Edit</a>
+<a href="{{ url_for('runSoftwareProfile') }}">Run</a>
+<a href="{{ url_for('viewSoftwareLog') }}">Build log</a>
+<a href="{{ url_for('inspectSoftware') }}">Inspect</a>
+<a href="{{ url_for('removeSoftware') }}">Remove</a>
+|
+Instance
+<a href="{{ url_for('editInstanceProfile') }}">Edit</a>
+<a href="{{ url_for('runInstanceProfile') }}">Run</a>
+<a href="{{ url_for('viewInstanceLog') }}">Build log</a>
+<a href="{{ url_for('inspectInstance') }}">Inspect</a>
+<a href="{{ url_for('stopAllPartition') }}">Stop all</a>
+<a href="{{ url_for('removeInstance') }}">Remove</a>
+</div>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+<div class=page>
+  {% block body %}{% endblock %}
+</div>

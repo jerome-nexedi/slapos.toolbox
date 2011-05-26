@@ -1,0 +1,14 @@
+0.0.2 (2011-04-14)
+------------------
+
+ - Remove useless directory
+    [Romain Courteaud]
+
+0.0.1 (2010-11-09)
+------------------
+
+ - Add logging facility
+ - Add a secret key to validate upload
+ - Initial version.
+    [Romain Courteaud]
+

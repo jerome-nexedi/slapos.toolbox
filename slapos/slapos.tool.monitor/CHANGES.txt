@@ -1,0 +1,35 @@
+0.0.6dev (unreleased)
+---------------------
+  - Used psutil for evaluating cpu time
+    [Davide TAMMARO]
+  - New XML features
+    [Davide TAMMARO]
+  - New class for getting CPU informations
+    [Davide TAMMARO]
+  - New lib used ---> psutil
+    [Davide TAMMARO]
+
+0.0.5 (2010-07-12)
+------------------
+ - Invert - slap_monitor will run by subprocess.
+    [Lukasz Nowak]
+
+0.0.4 (2010-07-12)
+------------------
+ - Removed numpy as not needed.
+    [Lukasz Nowak]
+
+0.0.3 (2010-07-12)
+------------------
+ - Define dependencies.
+    [Lukasz Nowak]
+
+0.0.2 (2010-07-12)
+------------------
+ - Expose entry point accepting command line arguments.
+    [Lukasz Nowak]
+
+0.0.1 (2010-07-05)
+------------------
+ - Initial version.
+    [VILLETTE Charles]

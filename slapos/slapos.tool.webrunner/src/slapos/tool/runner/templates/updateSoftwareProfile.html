@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block body %}
+<form action="{{ url_for('updateSoftwareProfile') }}" method=post class=add-entry>
+      <dl>
+        <dt>Note: Url of instance.cfg is <tt>{{ instance_url }}</tt>
+        <dt>Software Profile:
+        <dd><textarea name=content rows=20 cols=100>{{ profile }}</textarea>
+        <dd><input type=submit value=Update>
+      </dl>
+    </form>
+{% endblock %}
+

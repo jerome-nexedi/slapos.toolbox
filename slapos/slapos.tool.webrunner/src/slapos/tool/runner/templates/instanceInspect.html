@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block body %}
+Instance inspection<br>
+Supervisor:<br>
+<textarea cols=100 rows=10 readonly>{{ supervisor }}</textarea><br>
+SLAP:<br>
+{% for item in slap_status %}
+<b>{{ item[0 ]}}</b><br>
+<textarea cols=100 rows=5 readonly>{{ item[1] }}</textarea><br>
+{% endfor %}
+File content:<br>
+<textarea cols=100 rows=40 readonly>{{ file_content }}</textarea><br>
+{% endblock %}

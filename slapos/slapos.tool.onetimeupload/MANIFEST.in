@@ -1,0 +1,3 @@
+include CHANGES.txt
+recursive-include src/slapos/tool/onetimeupload/templates *.html
+recursive-include src/slapos/tool/onetimeupload/static *

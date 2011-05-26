@@ -1,0 +1,4 @@
+include CHANGES.txt
+recursive-include src/slapos/tool/builder/templates *.in
+include src/slapos/tool/builder/scripts/slapos
+include src/slapos/tool/builder/scripts/slapos_firstboot

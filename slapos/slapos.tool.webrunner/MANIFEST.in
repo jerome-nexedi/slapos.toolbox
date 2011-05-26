@@ -1,0 +1,1 @@
+recursive-include src/slapos/tool/runner/templates *.html
