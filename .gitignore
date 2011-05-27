@@ -1,0 +1,4 @@
+*pyc
+build
+dist
+slapos.toolbox.egg-info
