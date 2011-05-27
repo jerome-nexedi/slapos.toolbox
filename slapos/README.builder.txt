@@ -1,4 +1,4 @@
-slapbuilder
-===========
+builder
+=======
 
-slapbuilder is a program to install a slapos image.
+builder is a program to install a slapos image.
