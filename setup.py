@@ -10,14 +10,6 @@ long_description = open("README.txt").read() + "\n" + \
 for f in sorted(glob.glob(os.path.join('slapos', 'README.*.txt'))):
   long_description += '\n' + open(f).read() + '\n'
 
-additional_install_requires = []
-# Even if argparse is available in python2.7, some python2.7 installations
-# do not have it, so checking python version is dangerous
-try:
-  import argparse
-except ImportError:
-  additional_install_requires.append('argparse')
-
 setup(name=name,
       version=version,
       description="SlapOS toolbox.",
@@ -39,7 +31,7 @@ setup(name=name,
         'setuptools', # namespaces
         'slapos.core', # as it provides library for slap
         'xml_marshaller', # needed to dump information
-      ] + additional_install_requires,
+      ],
       zip_safe=False, # proxy depends on Flask, which has issues with
                       # accessing templates
       entry_points={
