@@ -1,0 +1,6 @@
+0.1 (2011-05-27)
+================
+
+ * Created slapos.toolbox from slapos.tool.builder, slapos.tool.runner,
+   slapos.tool.cloudmgr, slapos.tool.ontimeupload and slapos.tool.networkcache.
+   [Łukasz Nowak]
