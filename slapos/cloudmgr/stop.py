@@ -1,6 +1,6 @@
 from getprivatekey import getprivatekey
 from libcloud.types import NodeState
-from slapos.tool.cloudmgr.lib import getDriverInstance, getSSHConnection, getNode
+from slapos.cloudmgr.lib import getDriverInstance, getSSHConnection, getNode
 from paramiko import SSHException
 import sys
 

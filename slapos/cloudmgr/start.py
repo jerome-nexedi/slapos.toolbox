@@ -1,4 +1,4 @@
-from slapos.tool.cloudmgr.lib import getDriverInstance, getNode
+from slapos.cloudmgr.lib import getDriverInstance, getNode
 import sys
 def start(key, secret, service, node_uuid):
   """Starts node"""

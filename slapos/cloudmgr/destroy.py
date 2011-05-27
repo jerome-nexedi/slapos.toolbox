@@ -1,4 +1,4 @@
-from slapos.tool.cloudmgr.lib import getDriverInstance, getNode
+from slapos.cloudmgr.lib import getDriverInstance, getNode
 from libcloud.types import NodeState
 import sys
 def destroy(key, secret, service, node_uuid):

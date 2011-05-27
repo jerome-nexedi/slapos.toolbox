@@ -1,4 +1,4 @@
-from slapos.tool.cloudmgr.lib import getDriverInstance
+from slapos.cloudmgr.lib import getDriverInstance
 import sys
 import uuid
 from libcloud.types import NodeState

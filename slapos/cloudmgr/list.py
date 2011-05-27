@@ -1,6 +1,6 @@
 # Original work by Cedric de Saint Martin, adapted by Lukasz Nowak
 import sys
-from slapos.tool.cloudmgr.lib import getDriverInstance
+from slapos.cloudmgr.lib import getDriverInstance
 
 def nodelist(key, secret, service):
   driver = getDriverInstance(service, key, secret)
