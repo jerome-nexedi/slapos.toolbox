@@ -1,4 +1,8 @@
 *pyc
-build
-dist
-slapos.toolbox.egg-info
+*swp
+/bin/
+/build/
+/dist/
+/eggs/
+/parts/
+/slapos.toolbox.egg-info/
