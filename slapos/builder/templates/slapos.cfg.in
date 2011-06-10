@@ -9,7 +9,7 @@ certificate_repository_path = %(certificate_repository_path)s
 
 [slapformat]
 computer_xml = /opt/slapos/slapos.xml
-partition_amount = 200
+partition_amount = 100
 bridge_name = br0
 partition_base_name = slappart
 user_base_name = slapuser
