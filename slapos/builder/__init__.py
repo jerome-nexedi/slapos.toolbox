@@ -174,7 +174,7 @@ def run(config):
       if not dry_run:
         open(slap_configuration_file, 'w').write(
           pkg_resources.resource_stream(__name__,
-            'templates/slapos.cfg.in').read() % dict(
+            'template/slapos.cfg.in').read() % dict(
               computer_id=config.computer_id, master_url=config.master_url,
               key_file=key_file, cert_file=cert_file,
               certificate_repository_path=certificate_repository_path
@@ -193,7 +193,7 @@ def run(config):
       if not dry_run:
         open(host_path, 'w').write(
           pkg_resources.resource_stream(__name__,
-            'templates/hosts.in').read() % dict(
+            'template/hosts.in').read() % dict(
               computer_id=config.computer_id))
 
       # Creating safe sshd_config
@@ -203,7 +203,7 @@ def run(config):
       if not dry_run:
         open(sshd_path, 'w').write(
           pkg_resources.resource_stream(__name__,
-            'templates/sshd_config.in').read())
+            'template/sshd_config.in').read())
         os.chmod(sshd_path, 0600)
 
       # Creating default bridge config
@@ -213,7 +213,7 @@ def run(config):
       if not dry_run:
         open(br0_path, 'w').write(
           pkg_resources.resource_stream(__name__,
-            'templates/ifcfg-br0.in').read())
+            'template/ifcfg-br0.in').read())
 
       # Writing ssh key
 
@@ -258,7 +258,7 @@ def run(config):
         print "Creating %r" % path
         if not dry_run:
           open(path, 'w').write(pkg_resources.resource_stream(__name__,
-            'scripts/%s' % script).read())
+            'script/%s' % script).read())
           os.chmod(path, 0755)
     finally:
       _call(['umount', mount_dir_path], dry_run=dry_run)
