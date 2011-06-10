@@ -154,17 +154,9 @@ def run(config):
         if not dry_run:
           os.mkdir(slap_configuration_directory, 0711)
 
-      slap_key_repository = os.path.normpath('/'.join([mount_dir_path,
-                                              config.slapos_configuration,
-                                              'pki']))
-      if not os.path.exists(slap_key_repository):
-        print "Creating directory: %s" % slap_key_repository
-        if not dry_run:
-          os.mkdir(slap_key_repository, 0711)
-      certificate_repository_path = os.path.join(config.slapos_configuration,
-          'pki')
-      key_file = os.path.join(certificate_repository_path, 'computer.key')
-      cert_file = os.path.join(certificate_repository_path, 'computer.crt')
+      certificate_repository_path = os.path.join('/opt/slapos/pki')
+      key_file = os.path.join(config.slapos_configuration, 'computer.key')
+      cert_file = os.path.join(config.slapos_configuration, 'computer.crt')
       key_file_dest = os.path.normpath('/'.join([mount_dir_path,
                                               key_file]))
       cert_file_dest = os.path.normpath('/'.join([mount_dir_path,

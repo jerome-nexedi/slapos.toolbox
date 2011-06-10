@@ -63,6 +63,10 @@ if [ ! -f /opt/slapos/bin/slapformat ] ; then
   done
 fi
 
+# Create PKI repository
+repo=`egrep ^certificate_repository_path slapos.cfg.in | sed 's/^certificate_repository_path.*= *//'`
+mkdir -v -p -m 0755 $repo
+
 # software detected, ready to run
 # Set up cron
 echo """# BEWARE: This file will be automatically regenerated on each boot
