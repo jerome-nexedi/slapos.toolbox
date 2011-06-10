@@ -1,7 +1,8 @@
 0.2 (unreleased)
 ================
 
- * No changes yet.
+ * In slapbuilder: drop to 100 partitions by default, move out PKI from USB key
+   to real disk. [Łukasz Nowak]
 
 0.1 (2011-05-27)
 ================
