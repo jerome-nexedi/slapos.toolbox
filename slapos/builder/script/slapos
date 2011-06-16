@@ -79,6 +79,20 @@ MAILTO=root
 0 0 * * * root /opt/slapos/bin/slapgrid-ur --verbose --logfile=/opt/slapos/slapgrid-ur.log --pidfile=/opt/slapos/slapgrid-ur.pid /etc/slapos/slapos.cfg >> /opt/slapos/slapgrid-ur.log 2>&1
 """ > /etc/cron.d/slapos
 
+# Setup more server like network parameters in order to avoid
+#    "Neighbour table overflow."
+# Those machines are itself has a lot of interfaces and are in
+# heavily networked environment, so limit of ARP cache for IPv4
+# and IPv6 is 4x higher then default
+# More tuning can be applied from: http://www.enigma.id.au/linux_tuning.txt
+sysctl -w \
+  net.ipv4.neigh.default.gc_thresh1=512 \
+  net.ipv4.neigh.default.gc_thresh2=1024 \
+  net.ipv4.neigh.default.gc_thresh3=2048 \
+  net.ipv6.neigh.default.gc_thresh1=512 \
+  net.ipv6.neigh.default.gc_thresh2=1024 \
+  net.ipv6.neigh.default.gc_thresh3=2048
+
 # Execute slapformat
 echo -n "Running slapformat..."
 /opt/slapos/bin/slapformat --verbose --console /etc/slapos/slapos.cfg
