@@ -1,7 +1,9 @@
-0.3 (unreleased)
+0.3 (2011-06-27)
 ================
 
- * No changes yet.
+ * slapbuilder: use slapos provided networkcached buildout.
+ * slapbuilder: fix network issues on busy networks ("Neighbour table
+   overflow.")
 
 0.2 (2011-06-10)
 ================
