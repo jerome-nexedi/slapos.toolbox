@@ -6,6 +6,7 @@ computer_id = %(computer_id)s
 key_file = %(key_file)s
 cert_file = %(cert_file)s
 certificate_repository_path = %(certificate_repository_path)s
+buildout = %(buildout_path)
 
 [slapformat]
 computer_xml = /opt/slapos/slapos.xml
