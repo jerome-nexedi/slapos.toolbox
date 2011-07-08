@@ -1,7 +1,8 @@
 0.4 (unreleased)
 ================
 
- * No changes yet.
+ * Update slaprunner to run on newer slapos (requires at least 0.10
+   to work). [Cedric de Saint Martin]
 
 0.3 (2011-06-27)
 ================
