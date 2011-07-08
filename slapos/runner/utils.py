@@ -181,7 +181,7 @@ def getSlapStatus(config):
 
 
 def svcStopAll(config):
-  return Popen([config['supervisor'], '-c', config['supervisord_config'], 'shutdown']).communicate()[0]
+  return Popen([config['supervisor'], config['configuration_file_path'], 'shutdown']).communicate()[0]
 
 def getSvcStatus(config):
-  return Popen([config['supervisor'], '-c', config['supervisord_config'], 'status']).communicate()[0]
+  return Popen([config['supervisor'], config['configuration_file_path'], 'status']).communicate()[0]
