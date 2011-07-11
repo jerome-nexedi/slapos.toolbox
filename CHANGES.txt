@@ -1,4 +1,4 @@
-0.4 (unreleased)
+0.4 (1011-07-11)
 ================
 
  * Update slaprunner to run on newer slapos (requires at least 0.10
