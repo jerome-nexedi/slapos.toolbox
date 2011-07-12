@@ -177,9 +177,7 @@ def run(config):
             'template/slapos.cfg.in').read() % dict(
               computer_id=config.computer_id, master_url=config.master_url,
               key_file=key_file, cert_file=cert_file,
-              certificate_repository_path=certificate_repository_path,
-              buildout=os.path.join('/opt', 'slapos', 'bin',
-                'buildout_networkache')
+              certificate_repository_path=certificate_repository_path
             ))
 
       hostname_path = os.path.normpath('/'.join([mount_dir_path,
