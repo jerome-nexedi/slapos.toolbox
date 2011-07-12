@@ -1,3 +1,9 @@
+0.5 (2011-07-12)
+================
+
+ * slapbuilder: Do not play too much with buildout, SlapOS installation is
+   responsible for correctly featured zc.buildout [Łukasz Nowak]
+
 0.4 (1011-07-11)
 ================
 
