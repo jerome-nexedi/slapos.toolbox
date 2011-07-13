@@ -64,7 +64,7 @@ if [ ! -f /opt/slapos/bin/slapformat ] ; then
 fi
 
 # Create PKI repository
-repo=`egrep ^certificate_repository_path slapos.cfg.in | sed 's/^certificate_repository_path.*= *//'`
+repo=`egrep ^certificate_repository_path /etc/slapos/slapos.cfg | sed 's/^certificate_repository_path.*= *//'`
 mkdir -v -p -m 0755 $repo
 
 # software detected, ready to run
