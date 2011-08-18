@@ -17,7 +17,7 @@ import hashlib
 import os
 import sys
 import traceback
-from flask import Flask, request, helpers, abort
+from flask import Flask, request, helpers, abort, make_response
 from config import NetworkcacheConfiguration, NetworkcacheParser
 
 
@@ -42,7 +42,7 @@ def put():
     app.logger.info(traceback.format_exc())
     abort(500, "Faile to upload the file.")
 
-  return 'Success'
+  return make_response('Success', 201)
 
 
 @app.route('/<key>', methods=['GET'])
