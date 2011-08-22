@@ -24,11 +24,11 @@ from config import NetworkcacheConfiguration, NetworkcacheParser
 app = Flask(__name__)
 
 
-@app.route('/', methods=['PUT'])
-def put():
+@app.route('/', methods=['POST'])
+def post():
   """ Save the file on the cache server. """
   if getattr(request, 'data', None) is None:
-    abort(400, 'PUT requires data.')
+    abort(400, 'POST requires data.')
 
   cache_base_folder = app.config.get('CACHE_BASE_FOLDER')
   file_name = hashlib.sha512(request.data).hexdigest()
