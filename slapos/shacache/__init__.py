@@ -42,7 +42,7 @@ def post():
     app.logger.info(traceback.format_exc())
     abort(500, "Faile to upload the file.")
 
-  return make_response('Success', 201)
+  return make_response(file_name, 201)
 
 
 @app.route('/<key>', methods=['GET'])
