@@ -72,9 +72,12 @@ class GenerateXML(object):
     cursor.execute("SELECT * FROM data")
     for row in cursor:
       consumption_infos.append(row)
-    
-    consumption_summary = self._eval_consumption_summary (consumption_infos)  
-    self._write_xml_output(consumption_summary, self.path_xml)
+
+    #If the database is not empty
+    if consumption_infos != []:
+      consumption_summary = self._eval_consumption_summary (consumption_infos)
+      self._write_xml_output(consumption_summary, self.path_xml)
+
     #Once we got infos we delete the table 'data'
     cursor.execute("DELETE FROM data")
     conn.commit()
@@ -83,25 +86,48 @@ class GenerateXML(object):
 
   def _eval_consumption_summary(self, consumption_infos):
     """This function return a resources usage summary, for pricing purpose"""
-    cpu_percentage = []
     memory_percentage = []
     memory_space = []
+    cpu_time = []
+    total_cpu_time = 0.00
+    previous = 0.00
+    first_time = False
     
     #The total time that the cpu spent to work on it
-    cpu_time = consumption_infos[-1][1]
-    #start-end time and date
+    #Start-end time and date
     start_time = consumption_infos[0][5]
     end_time = consumption_infos[-1][5]
     start_date = consumption_infos[0][4]
     end_date = consumption_infos[-1][4]
     
     for item in consumption_infos:
-      cpu_percentage.append(item[0])
+      cpu_time.append(item[1])
       memory_percentage.append(item[2])
       memory_space.append(item[3])
   
+    #For all the samples, we calculate CPU consumption time
+    for indice,element in enumerate(cpu_time):
+      if indice == 0:
+        first_sample = float(element)
+        first_time = True
+      else:
+        #If the partition has been restarted...
+        if previous > float(element):
+          #If the partition has been restarted for the first time...
+          if first_time:
+            #We count the usage before the stop
+            previous = previous - first_sample
+            first_time = False
+          total_cpu_time = total_cpu_time + previous
+        previous = float(element)
+    #If the partition hasn't been restarted, we count only the difference between the last and the first sample
+    if first_time:
+      total_cpu_time = cpu_time[-1] - first_sample
+    #Else, we add the last sample to the total CPU consumption time
+    else:
+      total_cpu_time = total_cpu_time + cpu_time[-1] 
     
-    return [cpu_time, sum(memory_space) / float(len(memory_space)), end_date, end_time, end_time]
+    return [total_cpu_time, sum(memory_space) / float(len(memory_space)), start_time, end_time, start_date, end_date]
     #return [scipy.mean(cpu_percentage), cpu_time, scipy.mean(memory_percentage),
     #      scipy.mean(memory_space), start_time, end_time, start_date, end_date]
 
@@ -122,45 +148,48 @@ class GenerateXML(object):
 
     res_list = map(str, res_list)
 
-    cpu_list = ['Cpu consumption',
-                'Cpu consumption of the partition on %s at %s' % (res_list[2], res_list[3]),
+    cpu_list = ['CPU Consumption',
+                'CPU consumption of the partition on %s at %s' % (res_list[5], res_list[3]),
                 res_list[0], 
                 ]
 
     memory_list = ['Memory consumption', 
-                  'Memory consumption of the partition on %s at %s' % (res_list[2], res_list[3]),
+                  'Memory consumption of the partition on %s at %s' % (res_list[5], res_list[3]),
                   res_list[1],
                   ]
+
     root = ElementTree.Element("consumption")
-    #Now we'll add two movement elements, one for cpu
-    tree = self._add_nodes(root, cpu_list )
-    tree.write(storage_path)
+    #Then, we add two movement elements, one for cpu
+    tree = self._add_movement(root, cpu_list )
+    #And one for memory
+    tree = self._add_movement(root, memory_list)
 
-    #one for memory
-    tree = self._add_nodes(root, memory_list)
-    tree.write(storage_path)
+    #We add the XML header to the file to be valid
+    report = ElementTree.tostring(tree)
+    fd = open(storage_path, 'w')
+    fd.write("<?xml version='1.0' encoding='utf-8'?>%s" % report)
+    fd.close() 
   
-  def _add_nodes(self, root, single_resource_list):
+  def _add_movement(self, consumption, single_resource_list):
     
-    child_root = ElementTree.SubElement(root, "movement")
-    #child_root.set ('type', 'Sale Packing List')
-    
-    child_data_start_date = ElementTree.SubElement(child_root, "resource")
-    child_data_start_date.text = single_resource_list[0]
-    child_data_end_date = ElementTree.SubElement(child_root, "title")
-    child_data_end_date.text = single_resource_list[1]
-    child_data_end_date = ElementTree.SubElement(child_root, "reference")
-    child_data_end_date.text = ''
-    child_data_end_date = ElementTree.SubElement(child_root, "quantity")
-    child_data_end_date.text = single_resource_list[2]
-    child_data_end_date = ElementTree.SubElement(child_root, "price")
-    child_data_end_date.text = ''
-    child_data_end_date = ElementTree.SubElement(child_root, "VAT")
-    child_data_end_date.text = ''
-    child_data_end_date = ElementTree.SubElement(child_root, "category")
-    child_data_end_date.text = ''
+    child_consumption = ElementTree.SubElement(consumption, "movement")
 
-    tree = self.element_tree.ElementTree(root)
+    child_movement = ElementTree.SubElement(child_consumption, "resource")
+    child_movement.text = single_resource_list[0]
+    child_movement = ElementTree.SubElement(child_consumption, "title")
+    child_movement.text = single_resource_list[1]
+    child_movement = ElementTree.SubElement(child_consumption, "reference")
+    child_movement.text = ''
+    child_movement = ElementTree.SubElement(child_consumption, "quantity")
+    child_movement.text = single_resource_list[2]
+    child_movement = ElementTree.SubElement(child_consumption, "price")
+    child_movement.text = '0.00'
+    child_movement = ElementTree.SubElement(child_consumption, "VAT")
+    child_movement.text = ''
+    child_movement = ElementTree.SubElement(child_consumption, "category")
+    child_movement.text = ''
+
+    tree = self.element_tree.ElementTree(consumption)
     return tree
 
 
