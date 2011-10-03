@@ -88,6 +88,12 @@ def removeInstance():
     flash('Instantiation in progress, cannot remove')
   elif os.path.exists(app.config['instance_root']):
     svcStopAll(app.config)
+    for root, dirs, files in os.walk(app.config['instance_root']):
+      for fname in dirs:
+        fullPath = os.path.join(root, fname)
+        if not os.access(fullPath, os.W_OK) :
+          # Some directories may be read-only, preventing to remove files in it
+          os.chmod(fullPath, 0744)
     shutil.rmtree(app.config['instance_root'])
     flash('Instance removed')
   return redirect(url_for('inspectInstance'))
