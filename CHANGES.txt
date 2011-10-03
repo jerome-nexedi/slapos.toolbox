@@ -1,7 +1,8 @@
 0.7 (unreleased)
 ================
 
- * No changes yet.
+ * slaprunner: Avoid error when trying to remove instance directory containing
+   not writable directories. [Alain Takoudjou]
 
 0.6 (2011-07-13)
 ================
