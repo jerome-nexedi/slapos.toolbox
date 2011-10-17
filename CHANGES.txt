@@ -1,6 +1,7 @@
-0.7 (unreleased)
+0.7 (2011-10-17)
 ================
 
+ * generic: Added systool with killpidfromfile. [Łukasz Nowak]
  * slaprunner: Avoid error when trying to remove instance directory containing
    not writable directories. [Alain Takoudjou]
 
