@@ -49,6 +49,7 @@ setup(name=name,
           'slapmonitor = slapos.monitor:run_slapmonitor',
           'slapreport = slapos.monitor:run_slapreport',
           'slaprunner = slapos.runner:run',
+          'killpidfromfile = slapos.systool:killpidfromfile',
         ]
       },
     )
