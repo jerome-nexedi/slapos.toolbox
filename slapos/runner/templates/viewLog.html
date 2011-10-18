@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block body %}
-Currently running: {{ running }}<br>
-Notre: You can refresh this page from time to time to have updates.<br>
-Result for {{ type }}<br>
-<textarea cols=100 rows=40 readonly>{{ result }}</textarea>
+Currently running: <span class="message">{{ running }}</span><br>
+<strong>Note:</strong> You can refresh this page from time to time to have updates.<br>
+<h2>Result for {{ type }}</h2>
+<textarea cols=103 rows=40 readonly>{{ result }}</textarea>
 {% endblock %}

@@ -2,10 +2,10 @@
 {% block body %}
 <form action="{{ url_for('updateSoftwareProfile') }}" method=post class=add-entry>
       <dl>
-        <dt>Note: Url of instance.cfg is <tt>{{ instance_url }}</tt>
-        <dt>Software Profile:
-        <dd><textarea name=content rows=20 cols=100>{{ profile }}</textarea>
-        <dd><input type=submit value="Save">
+        <dt><strong>Note:</strong> Url of instance.cfg is <tt>{{ instance_url }}</tt>
+        <dt><h2>Software Profile:</h2>
+        <dd><textarea name=content rows=20 cols=103>{{ profile }}</textarea>
+        <dd><input type=submit value=Update class="button">
       </dl>
     </form>
 {% endblock %}

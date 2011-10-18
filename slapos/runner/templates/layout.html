@@ -1,31 +1,70 @@
 <!doctype html>
-<title>Buildout runner</title>
-<div class=menu>
-<a href="{{ url_for('home') }}">Home</a> |
-Software:
-<a href="{{ url_for('editSoftwareProfile') }}">Edit</a>
-<a href="{{ url_for('runSoftwareProfile') }}">Run</a>
-<a href="{{ url_for('viewSoftwareLog') }}">Build log</a>
-<a href="{{ url_for('inspectSoftware') }}">Inspect</a>
-<a href="{{ url_for('removeSoftware') }}">Remove</a>
-|
-Instance
-<a href="{{ url_for('editInstanceProfile') }}">Edit</a>
-<a href="{{ url_for('runInstanceProfile') }}">Run</a>
-<a href="{{ url_for('viewInstanceLog') }}">Build log</a>
-<a href="{{ url_for('inspectInstance') }}">Inspect</a>
-<a href="{{ url_for('stopAllPartition') }}">Stop all</a>
-<a href="{{ url_for('removeInstance') }}">Remove</a>
-</div>
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul class=flashes>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
-<div class=page>
-  {% block body %}{% endblock %}
-</div>
+
+<html>
+
+    <head>
+
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <title>Buildout runner</title>
+
+        <meta name="keywords" content="" />
+
+        <meta name="description" content="" />
+
+        <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet" type="text/css" media="screen" />
+
+    </head>
+<body>
+        <div id="page">
+	    <div id="logo">
+		<a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="" /></a>
+	    </div>
+            <div id="header">
+                <div class="block_header">
+                    <a href="{{ url_for('home') }}" style="float:left"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
+                    <h2 class="text"> Home</h2>
+                    <h2 class="info"></h2>
+                </div>
+                <div class="wmenu">
+                    <ul>
+                        <li><span class="title">Software</span></li>
+			<li><a href="{{ url_for('editSoftwareProfile') }}">Edit</a></li>
+			<li><a href="{{ url_for('runSoftwareProfile') }}">Run</a></li>
+			<li><a href="{{ url_for('viewSoftwareLog') }}">Build log</a></li>
+			<li><a href="{{ url_for('inspectSoftware') }}">Inspect</a></li>
+			<li><a href="{{ url_for('removeSoftware') }}">Remove</a></li>
+
+                        <li><span class="title">Instance</span></li>
+			<li><a href="{{ url_for('editInstanceProfile') }}">Edit</a></li>
+			<li><a href="{{ url_for('runInstanceProfile') }}">Run</a></li>
+			<li><a href="{{ url_for('viewInstanceLog') }}">Build log</a></li>
+			<li><a href="{{ url_for('inspectInstance') }}">Inspect</a></li>
+			<li><a href="{{ url_for('stopAllPartition') }}">Stop all</a></li>
+			<li><a href="{{ url_for('removeInstance') }}">Remove</a></li>
+                    </ul>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <div id="main">
+                <div class="flash">
+			{% with messages = get_flashed_messages() %}
+			  {% if messages %}
+			    <ul class=flashes>
+			    {% for message in messages %}
+			      <li>{{ message }}</li>
+			    {% endfor %}
+			    </ul>
+			  {% endif %}
+			{% endwith %}					
+		</div>
+		<div class="content">
+			{% block body %}{% endblock %}
+		</div>
+            </div>
+            <div id="footer">
+                &copy; Vifib SARL 2011 - All right reserved - Creative Commons Shared Alike Non Commercial
+            </div>
+        </div>
+    </body>
+</html>

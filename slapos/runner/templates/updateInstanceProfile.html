@@ -2,9 +2,9 @@
 {% block body %}
 <form action="{{ url_for('updateInstanceProfile') }}" method=post class=add-entry>
       <dl>
-        <dt>Instance Profile:
-        <dd><textarea name=content rows=20 cols=100>{{ profile }}</textarea>
-        <dd><input type=submit value="Save">
+        <dt><h2>Instance Profile:</h2>
+        <dd><textarea name=content rows=20 cols=103>{{ profile }}</textarea>
+        <dd><input type=submit value= Update class="button">
       </dl>
     </form>
 {% endblock %}
