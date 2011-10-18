@@ -1,7 +1,7 @@
 0.8 (unreleased)
 ================
 
- * No changes yet.
+ * Add new style to runner. [Alain Takoudjou]
 
 0.7 (2011-10-17)
 ================
