@@ -19,7 +19,7 @@ a:visited {
 }
 
 textarea {
-	width:742px;
+	width:762px;
 }
 
 body {
@@ -31,7 +31,7 @@ body {
 #page
 {
 	margin: 20px auto;
-	width: 825px;        
+	width: 847px;        
 }
 
 #logo{
@@ -41,7 +41,7 @@ body {
 #header{
     height: 92px;
     padding-top: 18px;
-    width: 825px;
+    width: 847px;
     background: url(images/head.png) no-repeat;
 }
 
@@ -80,23 +80,43 @@ body {
     height: 35px;
 }
 
+.space{
+    margin-left: 18px;
+}
+
 .wmenu li{
     float:left;
     background: url(images/sep.png) left center no-repeat;
 }
 
-.wmenu li .title{
+.wmenu li .title_software{
     float:left;
-    background: url(images/menu_dropdown.png) left center no-repeat;
+    background: url(images/software.png) left center no-repeat;
     font-size:14px;
     font-weight:bold;
     color:#0271BF;
     padding:8px;
-    padding-left: 18px;
+    padding-left: 20px;
     padding-right: 5px;
     margin-left:4px;
     height: 20px;
+    text-shadow:1px 1px 0 #F8F8F8;
 }
+
+.wmenu li .title_instance{
+    float:left;
+    background: url(images/settings2.png) left center no-repeat;
+    font-size:14px;
+    font-weight:bold;
+    color:#0271BF;
+    padding:8px;
+    padding-left: 20px;
+    padding-righclass="title_instance"t: 5px;
+    height: 20px;
+    margin-left:2px;
+    text-shadow:1px 1px 0 #F8F8F8;
+}
+
 
 .wmenu ul li a{
     display:block;    
@@ -120,7 +140,7 @@ body {
     padding:10px;
     padding-left: 40px;
     padding-right: 40px;
-    width: 745px;
+    width: 767px;
 }
 
 #main h2{
@@ -133,7 +153,7 @@ body {
 
 #footer{
     height: 40px;
-    width: 745px;
+    width: 767px;
     background: url(images/footer.png) no-repeat;
     padding-left: 40px;
     padding-right: 40px;

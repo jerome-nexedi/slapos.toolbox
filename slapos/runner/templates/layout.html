@@ -1,6 +1,6 @@
-<!doctype html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 
     <head>
 
@@ -28,14 +28,14 @@
                 </div>
                 <div class="wmenu">
                     <ul>
-                        <li><span class="title">Software</span></li>
+                        <li><span class="title_software">Software</span></li>
 			<li><a href="{{ url_for('editSoftwareProfile') }}">Edit</a></li>
 			<li><a href="{{ url_for('runSoftwareProfile') }}">Run</a></li>
 			<li><a href="{{ url_for('viewSoftwareLog') }}">Build log</a></li>
 			<li><a href="{{ url_for('inspectSoftware') }}">Inspect</a></li>
 			<li><a href="{{ url_for('removeSoftware') }}">Remove</a></li>
 
-                        <li><span class="title">Instance</span></li>
+                        <li class="space"><span class="title_instance">Instance</span></li>
 			<li><a href="{{ url_for('editInstanceProfile') }}">Edit</a></li>
 			<li><a href="{{ url_for('runInstanceProfile') }}">Run</a></li>
 			<li><a href="{{ url_for('viewInstanceLog') }}">Build log</a></li>
