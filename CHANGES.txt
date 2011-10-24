@@ -1,4 +1,4 @@
-0.8 (unreleased)
+0.8 (2011-10-24)
 ================
 
  * Add new style to runner. [Alain Takoudjou]
