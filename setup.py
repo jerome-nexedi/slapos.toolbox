@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import glob
 import os
 
-version = '0.9-dev'
+version = '0.8'
 name = 'slapos.toolbox'
 long_description = open("README.txt").read() + "\n" + \
     open("CHANGES.txt").read() + "\n"
@@ -32,6 +32,9 @@ setup(name=name,
         'slapos.core', # as it provides library for slap
         'xml_marshaller', # needed to dump information
       ],
+      extras_require = {
+        'lampconfigure':  ["mysql-python"] #needed for MySQL Database access
+      },
       zip_safe=False, # proxy depends on Flask, which has issues with
                       # accessing templates
       entry_points={
@@ -51,6 +54,7 @@ setup(name=name,
           'slapreport = slapos.monitor:run_slapreport',
           'slaprunner = slapos.runner:run',
           'killpidfromfile = slapos.systool:killpidfromfile',
+          'lampconfigure = slapos.lamp:run [lampconfigure]',
         ]
       },
     )
