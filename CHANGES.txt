@@ -1,7 +1,9 @@
-0.9 (Unreleased)
+0.9 (2011-10-29)
 ================
 
- * No change yet.
+ * Add LAMP tool to manage lamp instances. [Alain Takoudjou]
+ * Add onetimedownload : a simple script which download any http resource
+   and save it into a specified file_path. [Nicolas Delaby]
  
 0.8 (2011-10-24)
 ================
