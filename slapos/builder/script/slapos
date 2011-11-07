@@ -48,20 +48,22 @@ pwgen -sync 512 1 | passwd --stdin root
 
 SLAP_INSTALL_LOG=/opt/slapos/slapos-install.log
 
-if [ ! -f /opt/slapos/bin/slapformat ] ; then
-  while [ ! -f /opt/slapos/bin/slapformat ] ; do
-    echo -n "Installing SlapOS, log availble at ${SLAP_INSTALL_LOG}..."
-    # software not detected, force forever installation
-    mkdir -p /opt/slapos
-    (python -S -c \
-      'import urllib2;print urllib2.urlopen("http://svn.zope.org/*checkout*/zc.buildout/trunk/bootstrap/bootstrap.py").read()' \
-      | python -S - -c /etc/slapos/software.cfg buildout:directory=/opt/slapos \
-      >> ${SLAP_INSTALL_LOG} 2>&1 && /opt/slapos/bin/buildout -c \
-      /etc/slapos/software.cfg buildout:directory=/opt/slapos >> \
-      ${SLAP_INSTALL_LOG} 2>&1 ) && (echo "done.") || (echo \
-      "failed, retrying, the last error was:." ; tail -n 20 ${SLAP_INSTALL_LOG} ; rm -f /opt/slapos/bin/slapformat)
-  done
-fi
+while :; do
+  if [ -f /opt/slapos/bin/slapformat ] && [ -f /opt/slapos/bin/bang ]; then
+    # slapos tools available, nothing to do
+    break
+  fi
+  # software not detected, force forever installation
+  echo -n "Installing SlapOS, log availble at ${SLAP_INSTALL_LOG}..."
+  mkdir -p /opt/slapos
+  (python -S -c \
+    'import urllib2;print urllib2.urlopen("http://svn.zope.org/*checkout*/zc.buildout/trunk/bootstrap/bootstrap.py").read()' \
+    | python -S - -c /etc/slapos/software.cfg buildout:directory=/opt/slapos \
+    >> ${SLAP_INSTALL_LOG} 2>&1 && /opt/slapos/bin/buildout -c \
+    /etc/slapos/software.cfg buildout:directory=/opt/slapos >> \
+    ${SLAP_INSTALL_LOG} 2>&1 ) && (echo "done.") || (echo \
+    "failed, retrying, the last error was:." ; tail -n 20 ${SLAP_INSTALL_LOG} ; rm -f /opt/slapos/bin/slapformat)
+done
 
 # Create PKI repository
 repo=`egrep ^certificate_repository_path /etc/slapos/slapos.cfg | sed 's/^certificate_repository_path.*= *//'`
@@ -96,6 +98,9 @@ sysctl -w \
 # Execute slapformat
 echo -n "Running slapformat..."
 /opt/slapos/bin/slapformat --verbose --console /etc/slapos/slapos.cfg
+echo "done."
+echo -n "Banging..."
+/opt/slapos/bin/bang -m "Rebooted" /etc/slapos/slapos.cfg
 echo "done."
 
 # Set kvm up
