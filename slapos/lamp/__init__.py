@@ -33,14 +33,14 @@ def run():
   group.add_argument('-d', action='store', dest='token', default='appdb',
                      help="The condition is true when an entry is found in to database TOKEN")
   parser.add_argument('-H', action='store', default="localhost",
-                    dest='mysql_host', help='Speficify the MySQL host, if -d option is used')
+                    dest='mysql_host', help='Speficify the MySQL host')
   parser.add_argument('-u', action='store', default="root",
-                    dest='mysql_user', help='Speficify the MySQL user, if -d option is used')
+                    dest='mysql_user', help='Speficify the MySQL user')
   parser.add_argument('-P', action='store', default=3306,
                     dest='mysql_port', type=int,
-                    help='Speficify the MySQL port, if -d option is used')
+                    help='Speficify the MySQL port')
   parser.add_argument('-p', action='store', default="",
-                    dest='mysql_password', help='Speficify the MySQL password, if -d option is used')
+                    dest='mysql_password', help='Speficify the MySQL password')
   parser.add_argument('--target-directory', '-t', action='store', default="",
                     dest='target_directory', help='Specifie the target directory to be used')
   parser.add_argument('--table', '-s', action='store', default="**",
@@ -57,14 +57,14 @@ def run():
   rename_parser.add_argument('source', action='store', help='the source to be rename')
   rename_parser.add_argument('destination', action='store', help='the new name of SOURCE after rename')
   rename_parser.add_argument('--chmod', action='store', help='The Mode to apply after rename file or directory',
-                             type=int, default=None, dest='mode')
+                             default=None, dest='mode')
   # A python script command
   script_parser = subparsers.add_parser('run', help='Run python script')
   script_parser.add_argument('script', action='store', help='The path of python script to execute')
   script_parser.add_argument('-v', action='store', help='Other argument to pass to the script', nargs='+', dest='args')
   #A chmod command
   chmod_parser = subparsers.add_parser('chmod', help='Set the mode of file or directory')
-  chmod_parser.add_argument('mode', action='store', help='the mode to apply to TARGET', type=int)
+  chmod_parser.add_argument('mode', action='store', help='the mode to apply to TARGET')
   chmod_parser.add_argument('chmod_target', action='store', help='the file or directory to change mode', nargs='+')
 
   result = parser.parse_args()
@@ -140,7 +140,7 @@ def rename(arguments):
     return
   os.rename(source, destination)
   if arguments['mode'] != None:
-    os.chmod(destination, arguments['mode'])
+    os.chmod(destination, int(arguments['mode'], 8))
       
 def delete(arguments):
   for path in arguments['delete_target']:
@@ -174,4 +174,4 @@ def chmod(arguments):
     if not os.path.exists(path):
       print "Error when changing mode: '%s': no such file or directory" % path
       continue
-    os.chmod(path, arguments['mode'])
+    os.chmod(path, int(arguments['mode'], 8))
