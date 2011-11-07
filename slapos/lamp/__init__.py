@@ -130,7 +130,7 @@ def checkAction(arguments):
     else:
       return True
   else:
-    return os.path.exists(arguments['file_token'])
+    return os.path.exists(os.path.join(arguments['target_directory'], arguments['file_token']))
   
 def rename(arguments):
   source = os.path.join(arguments['target_directory'], arguments['source'])
