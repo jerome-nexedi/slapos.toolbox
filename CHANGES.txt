@@ -1,7 +1,7 @@
 0.11 (unreleased)
 =================
 
- * No change yet.
+ * equeue: Add execution queue server. [Antoine Catton]
 
 0.10 (2011-11-07)
 =================
