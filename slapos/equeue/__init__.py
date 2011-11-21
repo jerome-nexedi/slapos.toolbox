@@ -35,6 +35,7 @@ import logging
 import logging.handlers
 import signal
 import subprocess
+import argparse
 
 cleanup_data = {}
 
@@ -110,15 +111,31 @@ class TaskRunner(object):
       raise KeyError("No task is running.")
     return self._task.stdout.fileno()
 
-def main(args):
+def main():
   global cleanup_data
 
-  socketpath = args['socket']
-  level = logging._levelNames.get(str(args['loglevel']), logging.INFO)
+  parser = argparse.ArgumentParser(
+    description="Run a single threaded execution queue.")
+  parser.add_argument('--database', nargs=1, required=True,
+                      help="Path to the database where the last "
+                           "calls are stored")
+  parser.add_argument('--loglevel', nargs=1,
+                      default='INFO',
+                      choices=[i for i in logging._levelNames
+                               if isinstance(i, str)],
+                      required=False)
+  parser.add_argument('-l', '--logfile', nargs=1, required=True,
+                      help="Path to the log file.")
+  parser.add_argument('socket', help="Path to the unix socket")
+
+  args = parser.parse_args()
+
+  socketpath = args.socket
+  level = logging._levelNames.get(args.loglevel[0], logging.INFO)
 
   logger = logging.getLogger("EQueue")
   # Natively support logrotate
-  handler = logging.handlers.WatchedFileHandler(args['logfile'], mode='a')
+  handler = logging.handlers.WatchedFileHandler(args.logfile[0], mode='a')
   logger.setLevel(level)
   formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
   handler.setFormatter(formatter)
@@ -132,7 +149,7 @@ def main(args):
   logger.debug("Listen on socket")
   unixsocketfd = unixsocket.fileno()
 
-  db = gdbm.open(args['dbfile'], 'cs', 0700)
+  db = gdbm.open(args.database[0], 'cs', 0700)
 
   logger.debug("Open timestamp database")
 
@@ -212,3 +229,6 @@ def main(args):
 
   finally:
     cleanup()
+
+if __name__ == '__main__':
+  main()

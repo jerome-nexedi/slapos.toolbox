@@ -55,6 +55,7 @@ setup(name=name,
           'slaprunner = slapos.runner:run',
           'killpidfromfile = slapos.systool:killpidfromfile',
           'lampconfigure = slapos.lamp:run [lampconfigure]',
+          'equeue = slapos.equeue:main',
         ]
       },
     )
