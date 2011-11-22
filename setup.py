@@ -24,6 +24,8 @@ setup(name=name,
       include_package_data=True,
       install_requires=[
         'Flask', # needed by servers
+        'atomize', # needed by pubsub
+        'feedparser', # needed by pubsub
         'apache_libcloud>=0.4.0', # needed by cloudmgr
         'lxml', # needed for xml parsing
         'paramiko', # needed by cloudmgr
@@ -56,6 +58,8 @@ setup(name=name,
           'killpidfromfile = slapos.systool:killpidfromfile',
           'lampconfigure = slapos.lamp:run [lampconfigure]',
           'equeue = slapos.equeue:main',
+          'pubsubserver = slapos.pubsub:main',
+          'pubsubnotifier = slapos.pubsub.notifier:main',
         ]
       },
     )
