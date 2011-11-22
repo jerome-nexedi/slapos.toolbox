@@ -206,7 +206,7 @@ def main():
             logger.warning("%s finished with non zero status.",
                            previous_command)
           else:
-            logger.info("%s finish successfully.", previous_command)
+            logger.info("%s finished successfully.", previous_command)
           task_running.flush()
           db[previous_command] = str(task_running.get_previous_timestamp())
 
