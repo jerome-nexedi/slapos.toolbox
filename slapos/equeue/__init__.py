@@ -126,6 +126,8 @@ def main():
                       required=False)
   parser.add_argument('-l', '--logfile', nargs=1, required=True,
                       help="Path to the log file.")
+  parser.add_argument('-t', '--timeout', nargs=1, required=False,
+                      dest='timeout', type=int, default=3)
   parser.add_argument('socket', help="Path to the unix socket")
 
   args = parser.parse_args()
@@ -171,13 +173,16 @@ def main():
         conn, addr = unixsocket.accept()
         logger.debug("Connection with file descriptor %d", conn.fileno())
 
-        conn.setblocking(False)
+        conn.settimeout(args.timeout)
 
         request_string = StringIO()
         segment = None
-        while segment != '':
-          segment = conn.recv(1)
-          request_string.write(segment)
+        try:
+          while segment != '':
+            segment = conn.recv(1024)
+            request_string.write(segment)
+        except socket.timeout:
+          pass
 
         command = '127'
         try:
