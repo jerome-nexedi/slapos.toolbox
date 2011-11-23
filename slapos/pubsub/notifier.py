@@ -41,12 +41,15 @@ def main():
     command.stdin.close()
 
     if command.wait() != 0:
-      content = "Failed with returncode %d and stderr %r" % (
+      content = ("<p>Failed with returncode <em>%d</em>.</p>"
+                 "<p>Standard error output is :</p><pre>%s</pre>") % (
         command.poll(),
-        command.stderr.read(),
+        command.stderr.read().replace('&', '&amp;')\
+                             .replace('<', '&lt;')\
+                             .replace('>', '&gt;'),
       )
     else:
-      content = "Everything went well."
+      content = "<p>Everything went well.</p>"
 
   with open(args.logfile[0], 'a') as file_:
     cvsfile = csv.writer(file_)

@@ -48,7 +48,7 @@ def get_feed(feed):
       entries.append(Entry(title=title,
                            guid=guid,
                            updated=datetime.fromtimestamp(timestamp),
-                           content=Content(content),
+                           content=Content(content, content_type='html'),
                           ))
   feed = Feed(title=feed_title,
               updated=datetime.fromtimestamp(feed_updated),
