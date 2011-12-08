@@ -41,6 +41,43 @@ import sys
 cleanup_data = {}
 
 def cleanup(signum=None, frame=None):
+  """Clean up the application using cleanup_data.
+
+  It runs :
+    * .close method on cleanup_data['sockets'] items
+    * .terminate() method on cleanup_data['subprocesses'] items
+    * os.unlink() on cleanup_data['paths'] items
+
+  >>> import os
+  >>> def unlink(path): # Mock of unlink
+  ...   print "Unlinking %r" % path
+  >>> os.unlink = unlink
+
+  >>> class mock(str): # Mock objects having close and terminate method
+  ...   def close(self):
+  ...      print "Close %r" % self
+  ...   def terminate(self):
+  ...      print "Terminate %r" % self
+
+  >>> cleanup_data.update(dict(
+  ...   sockets=[mock('socket foo'), mock('socket bar')],
+  ...   subprocesses=[mock('process foo'), mock('process bar')],
+  ...   paths=[mock('path foo'), mock('path bar')],
+  ... ))
+
+  >>> try:
+  ...   cleanup()
+  ... except SystemExit:
+  ...   print 'Exiting...'
+  ...   pass
+  Unlinking 'path foo'
+  Unlinking 'path bar'
+  Close 'socket foo'
+  Close 'socket bar'
+  Terminate 'process foo'
+  Terminate 'process bar'
+  Exiting...
+  """
   global cleanup_data
   cleanup_functions = dict(
     sockets=lambda sock: sock.close(),
