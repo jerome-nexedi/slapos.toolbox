@@ -41,24 +41,18 @@ cleanup_data = {}
 
 def cleanup(signum=None, frame=None):
   global cleanup_data
-  # Swallow everything !
-  # XXX-Antoine: We can see a patern on this code
-  #              it should be factorized.
-  for sock in cleanup_data.get('sockets', []):
-    try:
-      sock.close()
-    except:
-      pass
-  for process in cleanup_data.get('subprocesses', []):
-    try:
-      process.terminate()
-    except:
-      pass
-  for filename in cleanup_data.get('paths', []):
-    try:
-      os.unlink(filename)
-    except:
-      pass
+  cleanup_functions = dict(
+    sockets=lambda sock: sock.close(),
+    subprocesses=lambda process: process.terminate(),
+    paths=lambda filename: os.unlink(filename),
+  )
+  for data, function in cleanup_functions.iteritems():
+    for item in cleanup_data.get(data, []):
+      # Swallow everything !
+      try:
+        function(item)
+      except:
+        pass
 
 signal.signal(signal.SIGTERM, cleanup)
 
