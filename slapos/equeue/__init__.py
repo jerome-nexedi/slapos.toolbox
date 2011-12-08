@@ -36,6 +36,7 @@ import logging.handlers
 import signal
 import subprocess
 import argparse
+import sys
 
 cleanup_data = {}
 
@@ -53,6 +54,7 @@ def cleanup(signum=None, frame=None):
         function(item)
       except:
         pass
+  sys.exit()
 
 signal.signal(signal.SIGTERM, cleanup)
 
