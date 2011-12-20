@@ -27,6 +27,7 @@ setup(name=name,
         'atomize', # needed by pubsub
         'feedparser', # needed by pubsub
         'apache_libcloud>=0.4.0', # needed by cloudmgr
+        'inotifyx', # needed by logfollower
         'lxml', # needed for xml parsing
         'paramiko', # needed by cloudmgr
         'psutil', # needed for playing with processes in portable way
@@ -60,6 +61,7 @@ setup(name=name,
           'equeue = slapos.equeue:main',
           'pubsubserver = slapos.pubsub:main',
           'pubsubnotifier = slapos.pubsub.notifier:main',
+          'logfollower = slapos.logfollower:run',
         ]
       },
     )
