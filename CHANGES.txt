@@ -1,4 +1,4 @@
-0.11 (unreleased)
+0.11 (2011-12-23)
 =================
 
  * equeue: Add execution queue server. [Antoine Catton]
