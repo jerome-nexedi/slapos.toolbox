@@ -2,6 +2,7 @@
 =================
 
  * equeue: Add execution queue server. [Antoine Catton]
+ * pubsub: Add pubsub server using pubsubhubbub for notifications. [Antoine Catton]
 
 0.10 (2011-11-07)
 =================
