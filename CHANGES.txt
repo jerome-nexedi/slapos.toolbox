@@ -1,7 +1,7 @@
-0.12 (2011-12-24)
+0.12 (2011-12-29)
 =================
 
- * No changes yet.
+ * builder: dynamic offset calculation [Romain Courteaud]
 
 0.11 (2011-12-23)
 =================

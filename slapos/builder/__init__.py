@@ -30,7 +30,7 @@ import sys
 from optparse import OptionParser, Option
 from subprocess import call as subprocessCall
 from stat import S_ISBLK, ST_MODE
-from tempfile import mkdtemp
+from tempfile import mkdtemp, mkstemp
 import shutil
 import pkg_resources
 
@@ -138,10 +138,23 @@ def run(config):
   print "Creating temp directory"
   if not dry_run:
     mount_dir_path = mkdtemp()
+    fdisk_output_path = mkstemp()
   else:
     mount_dir_path = "/tmp/a_generated_directory"
+    fdisk_output_path = "/tmp/a_generated_file"
   try:
-    _call(['mount', '-o', 'loop,offset=32256', config.system_path,
+    offset = 0
+    fdisk_output_file = open(fdisk_output_path, 'w')
+    _call(['sfdisk', '-d', '-uS', config.system_path], stdout=fdisk_output_file)
+    fdisk_output_file.close()
+    fdisk_output_file = open(fdisk_output_path, 'r')
+    for line in fdisk_output_file:
+      line = line.rstrip().replace(' ', '')
+      if line.endswith("bootable"):
+        offset = int(line.split(':')[1].split(',')[0].split('=')[1])
+    fdisk_output_file.close()
+    offset = offset * 512
+    _call(['mount', '-o', 'loop,offset=%i' % offset, config.system_path,
            mount_dir_path], dry_run=dry_run)
     try:
       # Create slapos configuration directory if needed
