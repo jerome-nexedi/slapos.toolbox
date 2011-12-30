@@ -1,7 +1,7 @@
-0.13 (2011-12-29)
+0.13 (2011-12-30)
 =================
 
-No changes yet.
+ * builder: fix usage of mkstemp [Romain Courteaud]
 
 0.12 (2011-12-29)
 =================
