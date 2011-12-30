@@ -33,6 +33,7 @@ setup(name=name,
         'psutil', # needed for playing with processes in portable way
         'setuptools', # namespaces
         'slapos.core', # as it provides library for slap
+        'SQLAlchemy', # needed by wordpress.ia
         'xml_marshaller', # needed to dump information
       ],
       extras_require = {
