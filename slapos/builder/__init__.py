@@ -280,6 +280,9 @@ def run(config):
     print "Deleting temp directory: %s" % mount_dir_path
     if not dry_run:
       shutil.rmtree(mount_dir_path)
+    print "Deleting temp file: %s" % fdisk_output_path
+    if not dry_run:
+      os.remove(fdisk_output_path)
 
   # Copying
   if not config.no_usb:
