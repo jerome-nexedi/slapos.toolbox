@@ -138,7 +138,7 @@ def run(config):
   print "Creating temp directory"
   if not dry_run:
     mount_dir_path = mkdtemp()
-    fdisk_output_path = mkstemp()
+    fdisk_output_path = mkstemp()[1]
   else:
     mount_dir_path = "/tmp/a_generated_directory"
     fdisk_output_path = "/tmp/a_generated_file"
