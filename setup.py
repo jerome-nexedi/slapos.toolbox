@@ -63,6 +63,7 @@ setup(name=name,
           'pubsubserver = slapos.pubsub:main',
           'pubsubnotifier = slapos.pubsub.notifier:main',
           'logfollower = slapos.logfollower:run',
+          'runafter = slapos.runafter:main',
         ]
       },
     )
