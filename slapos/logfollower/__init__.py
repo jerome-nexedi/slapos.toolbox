@@ -89,7 +89,7 @@ def follow_each_line(filepath, rotated):
   finally:
     os.close(follow_fd)
 
-def run():
+def main():
 
   parser = argparse.ArgumentParser(description="Log follower.")
   parser.add_argument('--callback', '-c', help="Executable to call once the "
@@ -163,4 +163,4 @@ def run():
 
 if __name__ == '__main__':
   import sys
-  sys.exit(run())
+  sys.exit(main())

@@ -62,7 +62,7 @@ setup(name=name,
           'equeue = slapos.equeue:main',
           'pubsubserver = slapos.pubsub:main',
           'pubsubnotifier = slapos.pubsub.notifier:main',
-          'logfollower = slapos.logfollower:run',
+          'logfollower = slapos.logfollower:main',
           'runafter = slapos.runafter:main',
         ]
       },
