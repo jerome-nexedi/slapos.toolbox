@@ -1,7 +1,7 @@
-0.14 (2011-12-30)
+0.14 (2012-01-09)
 =================
 
- * No change yet
+ * onetimeupload: SSL should be provided by an http frontend [Romain Courteaud]
 
 0.13 (2011-12-30)
 =================
