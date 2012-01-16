@@ -136,6 +136,9 @@ def usr1_handler(signum, frame):
   if PROCESS.restarting is False:
     PROCESS.restart()
 
+def term_handler(signum, frame):
+  raise SystemExit
+
 def main():
   global PROCESS
 
@@ -150,6 +153,8 @@ def main():
   parser.add_argument('argument', nargs='+', help='Command line argument')
 
   args = parser.parse_args()
+
+  signal.signal(signal.SIGTERM, term_handler)
 
   if args.pidfile is not None:
     with open(args.pidfile, 'w') as pid_file:
