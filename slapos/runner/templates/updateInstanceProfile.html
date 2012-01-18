@@ -1,11 +1,19 @@
 {% extends "layout.html" %}
+{% block title %}Update instance profile{% endblock %}
 {% block body %}
 <form action="{{ url_for('updateInstanceProfile') }}" method=post class=add-entry>
-      <dl>
-        <dt><h2>Instance Profile:</h2>
-        <dd><textarea name=content rows=20 cols=103>{{ profile }}</textarea>
-        <dd><input type=submit value= Update class="button">
-      </dl>
-    </form>
+    <dl>
+        <dd><h2>Instance Profile:</h2></dd>
+        <dd> <!--<textarea name=content rows=20 cols=103 id="editor">{{ profile }}</textarea>-->
+            <div class="main_content">
+                <pre id="editor">
+{{ profile }}
+                </pre>
+            </div>
+            <input type="hidden" name=content id="editor_content"/>
+        </dd>
+        <dd><input type=submit value=Update id="save" class="button"></dd>
+    </dl>
+</form>
 {% endblock %}
 

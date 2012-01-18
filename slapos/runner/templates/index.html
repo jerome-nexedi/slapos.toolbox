@@ -1,8 +1,30 @@
 {% extends "layout.html" %}
+{% block title %}SlapOs buildout web based runner {% endblock %}
 {% block body %}
-Welcome!<br>
-
-This is SlapOS buildout web based runner.
-
-SlapOS runner is web based development tool which uses slapgrid to install and instantiate the software.
+<div class="inner_box">
+<div class="lmenu">
+    <h2><a href="{{ url_for('configRepo')}}">Create a new Project from your repository</a></h2>
+    <p>Choose your online repository, SlapOS runner is web based development tool which uses slapgrid to install and instantiate the software.</p>
+    <img src="{{ url_for('static', filename='images/folder_html.png') }}" />
+    <div class="clear"></div>
+</div>
+<div class="smenu">
+    <h2><a href="{{ url_for('openProject', method='open')}}">Open Existing Project</a></h2>
+    <p>Choose your online repository, SlapOS runner is web based develop.</p>
+    <img src="{{ url_for('static', filename='images/mydocuments.png') }}" />
+    <div class="clear"></div>
+</div>
+<div class="sright_menu">
+    <h2><a href="{{ url_for('manageProject')}}">Manage your Project</a></h2>
+    <p>Choose your online repository, SlapOS runner is web based develop.</p>
+    <img src="{{ url_for('static', filename='images/manage_repo.png') }}" />
+</div>
+<div class="clear"></div>
+<div class="lmenu">
+    <h2><a href="{{ url_for('openProject', method='new')}}">Start with a new software release now</a></h2>
+    <p>Choose your online repository, SlapOS runner is web based development tool which uses slapgrid to install and instantiate the software.</p>
+    <img src="{{ url_for('static', filename='images/folder_blue.png') }}" />
+    <div class="clear"></div>
+</div>
+</div>
 {% endblock %}
