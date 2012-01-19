@@ -45,7 +45,7 @@ def gitStatus(config, project):
   try:
     repo = Repo(project)
     git = repo.git
-    json = git.status()
+    json = git.status().replace('#', '')
     branch = git.branch().replace(' ', '').split('\n')
     isdirty = repo.is_dirty(untracked_files=True)
     code = 1

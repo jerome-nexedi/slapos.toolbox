@@ -269,7 +269,7 @@ def getProjectList(folder):
     project.append(elt)
   return project
 
-def newSoftware(folder, config):
+def newSoftware(folder, config, session):
   json = ""
   code = 0
   runner_dir = config['runner_workdir']

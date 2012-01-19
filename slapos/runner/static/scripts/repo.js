@@ -48,7 +48,7 @@ $(document).ready( function() {
 				if(data.code == 1){
 					$("#branchlist").show();
 					$("#status").append("<h2>Your Repository status</h2>");					
-					message = data.result.split('#').join('<br/>');
+					message = data.result.split('\n').join('<br/>');
 					//alert(message);
 					$("#status").append("<p>" + message + "</p>");
 					loadBranch(data.branch);

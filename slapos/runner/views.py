@@ -200,7 +200,7 @@ def openFolder():
 
 @app.route('/createSoftware', methods=['POST'])
 def createSoftware():
-  return newSoftware(request.form['folder'], app.config)
+  return newSoftware(request.form['folder'], app.config, session)
 
 @app.route("/checkFolder", methods=['POST'])
 def checkFolder():
@@ -218,9 +218,43 @@ def setCurentProject():
 
 @app.route("/manageProject", methods=['GET'])
 def manageProject():
-  return render_template('manageProject.html', workDir=app.config['workspace'], 
+  return render_template('manageProject.html', workDir=app.config['workspace'],
                          project=getProjectList(app.config['workspace']))
 
 @app.route("/getProjectStatus", methods=['POST'])
 def getProjectStatus():
   return gitStatus(app.config, request.form['project'])
+
+@app.route("/curentSoftware")
+def curentSoftware():
+  project = os.path.join(app.config['runner_workdir'], ".project")
+  if os.path.exists(project):
+    return render_template('softwareFolder.html', workDir=app.config['workspace'],
+                           project=open(project).read())
+  return redirect(url_for('configRepo'))
+
+@app.route("/createFile", methods=['POST'])
+def createFile():
+  try:
+    if request.form['type'] == "file":
+      f = open(request.form['file'], 'w').write(" ")
+    else:
+      os.mkdir(request.form['file'])
+    return jsonify(code=1, result="")
+  except Exception, e:
+    return jsonify(code=0, result=str(e))
+
+@app.route("/getFileContent", methods=['POST'])
+def getFileContent():
+  if os.path.exists(request.form['file']):
+    return jsonify(code=1, result=open(request.form['file'], 'r').read())
+  else:
+    return jsonify(code=0, result="Error: No such file!")
+  
+@app.route("/saveFileContent", methods=['POST'])
+def saveFileContent():
+  if os.path.exists(request.form['file']):
+    open(request.form['file'], 'w').write(request.form['content'])
+    return jsonify(code=1, result="")
+  else:
+    return jsonify(code=0, result="Error: No such file!")  

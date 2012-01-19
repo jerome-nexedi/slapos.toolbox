@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %}Your current software folder{% endblock %}
+{% block head %}
+  {{ super() }}
+  <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='scripts/softwareFolder.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='ace/mode-buildout.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='ace/mode-python.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='ace/mode-php.js') }}" type="text/javascript" charset="utf-8"></script>
+{% endblock %}
+{% block body %}
+
+<form action="" method=post>
+<input type="hidden" name="project" id="project" value="{{project}}" />
+<input type="hidden" name="workdir" id="workdir" value="{{workDir}}" />
+<input type="hidden" name="subfolder" id="subfolder" value="" />
+<div id="file_navigation">
+	<h2>Current software file content</h2>
+	<div id="fileTree" class="file_tree_short"></div>	
+	<div class="box_software">	
+	    <h2>Add new file or folder</h2>
+	    <input type="text" name="file" id="file" size='25' value="Enter name here..." />
+	    &nbsp;&nbsp;<select name="type" id="type">
+	    <option value="file">file</option>
+	    <option value="folder">folder</option>
+	    </select>
+	    &nbsp;&nbsp;<input type="submit" name="add" id ="add" value="Add" class="button"/>
+	    <div id="file_info" class="file_info"><span id="info">Please select your file or folder into the box...</span></div>
+	</div>
+	<div class="clear"></div>
+	<div id="code" style="margin-top:10px">
+	<h2 id="edit_info">Edit your selected file</h2>
+	<div class="main_content">
+<pre id="editor">
+
+</pre>
+            </div>
+	    <input type=submit value=Update id="save" class="button">
+	</div>
+		
+</div>
+</form>
+{% endblock %}

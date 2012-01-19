@@ -1,14 +1,13 @@
 {% extends "layout.html" %}
 {% block title %}Manage your Project folder{% endblock %}
 {% block head %}
-  {{ super() }}
-  <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  {{ super() }}  
   <script src="{{ url_for('static', filename='jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='scripts/repo.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
 
-<form action="{{ url_for('updateInstanceProfile') }}" method=post>
+<form action="" method=post>
 <input type="hidden" name="workdir" id="workdir" value="{{workDir}}" />
 <input type="hidden" name="subfolder" id="subfolder" value="" />
 
@@ -16,7 +15,6 @@
 <h2>Manage your repository</h2>
 <label for='project'>Select your project into the list: </label>
 <select id="project" name="project">
-	<option value=""></option>
 	{% for folder in project%}
 	<option value="{{folder}}">{{folder}}</option>
 	{% endfor %}

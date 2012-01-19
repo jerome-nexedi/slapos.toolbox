@@ -17,7 +17,7 @@
         {% if request.path == '/editSoftwareProfile' or request.path == '/editInstanceProfile' %}
         <script src="{{ url_for('static', filename='ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
         <script src="{{ url_for('static', filename='ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ url_for('static', filename='ace/mode-buildout.js') }}" type="text/javascript" charset="utf-8"></script>        
+        <script src="{{ url_for('static', filename='ace/mode-buildout.js') }}" type="text/javascript" charset="utf-8"></script>
         
         <script type="text/javascript">
             $(document).ready(function() {
@@ -67,7 +67,9 @@
             </div>
             <div id="header">
                 <div class="block_header">
-                    <a href="{{ url_for('home') }}" style="float:left"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
+                    <a href="{{ url_for('home') }}" style="float:left;" title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
+		    <div class="line"></div>
+		    <a href="{{ url_for('curentSoftware') }}" style="float:left" title="Current Software Folder"><img alt="" src="{{ url_for('static', filename='images/project.png') }}" /></a>
                     <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
                 </div>
                 <div class="wmenu">
@@ -102,7 +104,7 @@
                     {% endif %}
                     {% endwith %}
                 </div>                
-                <div {% if request.path == '/' %} id="home_box" {%else%} id="content" {% endif %}>
+                <div {% if request.path == '/' %} class="home_content" {%else%} id="content" {% endif %}>
                     {% if request.path != '/' %}
                         <div class="main_head">
                         </div>

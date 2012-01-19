@@ -24,7 +24,7 @@ $(document).ready( function() {
 		$.ajax({
 			type: "POST",
 			url: $SCRIPT_ROOT + '/createSoftware',
-			data: "folder=" + workdir + $("input#subfolder").val() + $("input#software").val(),
+			data: "folder=" + $("input#subfolder").val() + $("input#software").val(),
 			success: function(data){
 				if(data.code == 1){
 					location.href = $SCRIPT_ROOT + '/editSoftwareProfile'
@@ -64,8 +64,8 @@ $(document).ready( function() {
 	function selectFile(file){
 		relativeFile = file.replace(workdir, "");
 		$("#info").empty();
-		$("#info").append("Selection: " + file);
-		$("input#subfolder").val(relativeFile);
+		$("#info").append("Selection: " + relativeFile);
+		$("input#subfolder").val(file);
 		path = "";
 		if(method == "open"){
 			checkFolder(file);
