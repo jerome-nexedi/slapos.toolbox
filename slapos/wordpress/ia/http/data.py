@@ -41,7 +41,7 @@ class Component(Base):
   __tablename__ = 'components'
 
   id = Column(Integer, primary_key=True)
-  title = Column(String, nullable=False)
+  title = Column(String, unique=True, nullable=False)
   entries = relationship('Entry', backref='component')
 
 class Entry(Base):
