@@ -20,7 +20,7 @@ class Popen(subprocess.Popen):
     self.stdin.close()
     self.stdin = None
   
-def cloneRepo(config, data):
+def cloneRepo(data):
   workDir = data['path']
   code = 0
   json = ""
@@ -39,7 +39,7 @@ def cloneRepo(config, data):
       shutil.rmtree(workDir)
   return jsonify(code=code, result=json)
 
-def gitStatus(config, project):
+def gitStatus(project):
   code = 0
   json = ""
   try:
@@ -51,5 +51,29 @@ def gitStatus(config, project):
     code = 1
   except Exception, e:
     json = str(e)
-  return jsonify(code=code, result=json, branch=branch, dirty=isdirty)  
-  
+  return jsonify(code=code, result=json, branch=branch, dirty=isdirty)
+
+def switchBranch(project, name):
+  code = 0
+  json = ""  
+  try:
+    repo = Repo(project)
+    branches = repo.branches
+    current_branch = repo.active_branch.name
+    if name == current_branch:
+      json = "This is already your active branch for this project"
+    else:
+      branch = none
+      for b in branches:
+        if b.name == name:
+          branch = b
+      if branch != none:
+        repo.heads.master.checkout()
+        repo.heads.branch.checkout()
+        code = 1
+      else:
+        code = 0
+        json = "Error: Can not found branch '" + name + "'"
+  except Exception, e:
+    json = str(e)
+  return jsonify(code=code, result=json)

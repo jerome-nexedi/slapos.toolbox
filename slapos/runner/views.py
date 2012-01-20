@@ -188,7 +188,7 @@ def cloneRepository():
           "email":request.form['email']}
   name = request.form['name']
   data['path'] = os.path.join(app.config['workspace'], name)
-  return cloneRepo(app.config, data)
+  return cloneRepo(data)
 
 @app.route('/readFolder', methods=['POST'])
 def readFolder():
@@ -223,7 +223,7 @@ def manageProject():
 
 @app.route("/getProjectStatus", methods=['POST'])
 def getProjectStatus():
-  return gitStatus(app.config, request.form['project'])
+  return gitStatus(request.form['project'])
 
 @app.route("/curentSoftware")
 def curentSoftware():

@@ -46,8 +46,8 @@ body {
 
 #page
 {
-	margin: 20px auto;
-	width: 847px;        
+	margin: 5px auto;
+	width: 841px;        
 }
 
 #logo{
@@ -55,8 +55,8 @@ body {
 }
 
 #header{
-    height: 76px;
-    padding-top: 18px;
+    height: 78px;
+    padding-top: 15px;
     width: 847px;
     background: url(../images/head.png) no-repeat;
 }
@@ -114,9 +114,10 @@ body {
 .wmenu ul{
     list-style:none;
     margin:0;
+    margin-top:1px;
     padding:0;
     margin-left:20px;
-    height: 35px;
+    height: 36px;
 }
 
 .space{
@@ -131,29 +132,31 @@ body {
 .wmenu li .title_software{
     float:left;
     background: url(../images/software.png) left center no-repeat;
-    font-size:14px;
+    font-size:15px;
     font-weight:bold;
-    color:#0271BF;
+    color:#678dad;
+    cursor: default;
     padding:8px;
     padding-left: 20px;
     padding-right: 5px;
     margin-left:4px;
     height: 20px;
-    text-shadow:1px 1px 0 #F8F8F8;
+    text-shadow:1px 1px 0 #E6EDF2;
 }
 
 .wmenu li .title_instance{
     float:left;
     background: url(../images/settings2.png) left center no-repeat;
-    font-size:14px;
+    font-size:15px;
     font-weight:bold;
-    color:#0271BF;
+    color:#678dad;
+    cursor: default;
     padding:8px;
     padding-left: 20px;
     padding-right: 5px;
     height: 20px;
     margin-left:2px;
-    text-shadow:1px 1px 0 #F8F8F8;
+    text-shadow:1px 1px 0 #E6EDF2;
 }
 
 
@@ -169,14 +172,14 @@ body {
 
 .wmenu ul li a:focus, .wmenu ul li a:hover, .wmenu ul li a.active{
     color:#0271BF;
-    background:url(../images/menu_hover.png) repeat-x;
+    background:url(../images/menu_hover.png) bottom repeat-x;
 }
 
 #main
 {    
     background: url(../images/main_bg_all.png) repeat-y;
-    padding-left: 28px;
-    padding-right: 25px;     
+    padding-left: 24px;
+    padding-right: 24px;     
     min-height: 400px;   
 }
 
@@ -201,7 +204,7 @@ body {
     padding: 15px;
     padding-top:0;
     padding-bottom:0;
-    min-height: 350px;
+    min-height: 400px;
 }
 
 .content h2{
@@ -217,11 +220,12 @@ body {
 }
 
 #footer{
-    height: 30px;
+    height: 35px;
     width: 767px;
     background: url(../images/footer_bg.png) no-repeat;
     padding-left: 40px;
     padding-right: 40px;
+    padding-top: 5px;
     text-align: center;
     color: #4c6172;
     text-shadow: 0px 1px 1px #fff;
@@ -335,7 +339,7 @@ body {
 .inner_box{
     background: none;
     margin: 0;
-    border: 1px solid #cad4dc;
+    border: 1px solid #CAD4DC;
     display: block;
     padding: 15px;
     height: 373px;
@@ -353,8 +357,7 @@ body {
     display: block;
     height: 80px;
     margin: 10px;
-    margin-left: 90px;
-    margin-right: 90px;
+    margin-left: 80px;
     padding: 15px;
     border: #678dad;
     width: 500px;
@@ -369,7 +372,7 @@ body {
 .smenu{
     display: block;
     height: 80px;
-    margin-left: 90px;
+    margin-left: 80px;
     margin-right: 10px;
     padding: 15px;
     border: #678dad;
@@ -484,7 +487,8 @@ body {
     width: 754px;
     background:#fff;
     margin-bottom: 10px;
-    color: #678dad;
+    color: #3A494F;
+    font-size:  12px;
 }
 
 .div{
