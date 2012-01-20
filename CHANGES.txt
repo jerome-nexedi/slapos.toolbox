@@ -1,7 +1,7 @@
-0.16 (Unreleased)
+0.16 (2012-01-20)
 =================
 
- * No change yet
+ * Fix MANIFEST.in [Cedric de Saint Martin]
 
 0.15 (2012-01-20)
 =================
