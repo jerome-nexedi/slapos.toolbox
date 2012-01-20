@@ -1,7 +1,7 @@
 0.15 (2012-01-09)
 =================
 
- * No change yet
+ * slaprunner: Adding project and git repository management [Alain Takoudjou]
 
 0.14 (2012-01-09)
 =================
