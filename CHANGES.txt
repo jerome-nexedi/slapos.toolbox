@@ -1,4 +1,4 @@
-0.15 (2012-01-09)
+0.15 (2012-01-20)
 =================
 
  * slaprunner: Adding project and git repository management [Alain Takoudjou]
