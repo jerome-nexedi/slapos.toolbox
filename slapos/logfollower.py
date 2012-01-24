@@ -46,7 +46,7 @@ def wait_for_creation(filepath):
     else:
       while True:
         events = inotifyx.get_events(creation_fd)
-        if filename in [e.name for e in events]:
+        if filename in (e.name for e in events):
           break
   finally:
     os.close(creation_fd)
