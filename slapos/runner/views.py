@@ -3,7 +3,8 @@ from flask import Flask, request, redirect, url_for, \
 from utils import *
 import os
 import shutil
-from gittools import cloneRepo, gitStatus
+from gittools import cloneRepo, gitStatus, switchBranch, createBranch, getDiff, \
+     gitPush
 
 app = Flask(__name__)
 
@@ -40,10 +41,9 @@ def inspectSoftware():
   if not os.path.exists(app.config['software_root']):
     result = ""
   else:
-    #process = Popen(['find'], cwd=app.config['software_root'])
     result = app.config['software_root']    
-  return render_template('runResult.html', type='Software',
-      result=result)
+  return render_template('runResult.html', softwareRoot=app.config['software_root'],
+                         softwares=loadSoftwareData(app.config['runner_workdir']))
 
 @app.route('/removeSoftware')
 def removeSoftware():
@@ -52,6 +52,7 @@ def removeSoftware():
   elif os.path.exists(app.config['software_root']):
     svcStopAll(app.config)
     shutil.rmtree(app.config['software_root'])
+    os.remove(os.path.join(config['runner_workdir'], ".softdata"))
     flash('Software removed')
   return redirect(url_for('inspectSoftware'))
 
@@ -244,6 +245,21 @@ def createFile():
   except Exception, e:
     return jsonify(code=0, result=str(e))
 
+@app.route("/removeFile", methods=['POST'])
+def removeFile():
+  try:
+    if request.form['type'] == "folder":
+      shutil.rmtree(request.form['path'])
+    else:
+      os.remove(request.form['path'])
+    return jsonify(code=1, result="")
+  except Exception, e:
+    return jsonify(code=0, result=str(e))
+  
+@app.route("/removeSoftwareDir", methods=['POST'])
+def removeSoftwareDir():
+  return removeSoftwareByName(app.config, request.form['name'])
+
 @app.route("/getFileContent", methods=['POST'])
 def getFileContent():
   if os.path.exists(request.form['file']):
@@ -257,4 +273,22 @@ def saveFileContent():
     open(request.form['file'], 'w').write(request.form['content'])
     return jsonify(code=1, result="")
   else:
-    return jsonify(code=0, result="Error: No such file!")  
+    return jsonify(code=0, result="Error: No such file!")
+
+@app.route("/changeBranch", methods=['POST'])
+def changeBranch():
+  return switchBranch(request.form['project'], request.form['name'])
+
+@app.route("/newBranch", methods=['POST'])
+def newBranch():
+  return createBranch(request.form['project'], request.form['name'])
+
+@app.route("/getProjectDiff/<project>", methods=['GET'])
+def getProjectDiff(project):
+  path = os.path.join(app.config['workspace'], project)
+  return render_template('projectDiff.html', project=project,
+                           diff=getDiff(path))
+
+@app.route("/pushProjectFiles", methods=['POST'])
+def pushProjectFiles():
+  return gitPush(request.form['project'], request.form['msg'], False)

@@ -133,6 +133,20 @@ def runSoftwareWithLock(config):
     slapgrid = Popen([config['slapgrid_sr'], '-vc', config['configuration_file_path']], stdout=logfile)
     writePid(slapgrid_pid, slapgrid.pid)
     slapgrid.wait()
+    #Saves the current compile software for re-use
+    data = loadSoftwareData(config['runner_workdir'])
+    md5 = ""    
+    for path in os.listdir(config['software_root']):
+      exist = False
+      for val in data:
+	if val['md5'] == path:	  
+	  exist = True
+      if not exist: #save this compile software folder
+	data.append({"title":getProjectTitle(config), "md5":path,
+	            "path": open(os.path.join(config['runner_workdir'],
+	                                      ".project"), 'r').read()})
+	writeSoftwareData(config['runner_workdir'], data)
+	break
     return True
   return False
 
@@ -222,7 +236,7 @@ def getSvcTailProcess(config, process):
                 "tail", process]).communicate()[0]
 
 def svcStartStopProcess(config, process, action):
-  cmd = {"RESTART":"restart", "STOPPED":"start", "RUNNING":"stop"}
+  cmd = {"RESTART":"restart", "STOPPED":"start", "RUNNING":"stop", "EXITED":"start", "STOP":"stop"}
   return Popen([config['supervisor'], config['configuration_file_path'], 
                 cmd[action], process]).communicate()[0]
 
@@ -315,5 +329,42 @@ def getProjectTitle(config):
     project = open(conf, "r").read().replace(config['workspace'] + "/", "").split("/")
     software = project[len(project) - 1]
     del project[len(project) - 1]
-    return software + "(" + string.join(project, '/') + ")"
-  return ""
+    return software + "(in " + string.join(project, '/') + ")"
+  return "No Profile"
+
+def loadSoftwareData(runner_dir):
+  import pickle
+  file_path = os.path.join(runner_dir, '.softdata')
+  if not os.path.exists(file_path):
+    return []
+  pkl_file = open(file_path, 'rb')
+  data = pickle.load(pkl_file)
+  pkl_file.close()
+  return data
+
+def writeSoftwareData(runner_dir, data):
+  import pickle
+  file_path = os.path.join(runner_dir, '.softdata')
+  pkl_file = open(file_path, 'wb')
+  # Pickle dictionary using protocol 0.
+  pickle.dump(data, pkl_file)
+  pkl_file.close()
+  
+def removeSoftwareByName(config, folderName):
+  if isSoftwareRunning(config) or isInstanceRunning(config):
+    return jsonify(code=0, result="Software installation or instantiation in progress, cannot remove")
+  path = os.path.join(config['software_root'], folderName)
+  if not os.path.exists(path):
+    return jsonify(code=0, result="Can not remove software: No such file or directory")
+  svcStopAll(config)
+  shutil.rmtree(path)
+  #update compiled software list
+  data = loadSoftwareData(config['runner_workdir'])
+  i = 0
+  for p in data:
+    if p['md5'] == folderName:
+      del data[i]
+      writeSoftwareData(config['runner_workdir'], data)
+      break
+    i = i+1
+  return jsonify(code=1, result=data)
