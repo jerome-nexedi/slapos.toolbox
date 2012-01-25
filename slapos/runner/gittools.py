@@ -55,7 +55,7 @@ def gitStatus(project):
 
 def switchBranch(project, name):
   code = 0
-  json = ""  
+  json = ""
   try:
     repo = Repo(project)
     branches = repo.branches
@@ -63,17 +63,69 @@ def switchBranch(project, name):
     if name == current_branch:
       json = "This is already your active branch for this project"
     else:
-      branch = none
+      i = 0
+      json = "Error: Can not found branch '" + name + "'"
+      repo.heads.master.checkout()
       for b in branches:
-        if b.name == name:
-          branch = b
-      if branch != none:
-        repo.heads.master.checkout()
-        repo.heads.branch.checkout()
-        code = 1
-      else:
-        code = 0
-        json = "Error: Can not found branch '" + name + "'"
+        if b.name == name:          
+          repo.heads[i].checkout()
+          code = 1
+          json = ""
+          break
+        i = i + 1      
   except Exception, e:
+    json = str(e)
+  return jsonify(code=code, result=json)
+
+def createBranch(project, name):
+  code = 0
+  json = ""
+  try:
+    repo = Repo(project)
+    b = repo.create_head(name)
+    code = 1
+  except Exception, e:
+    json = str(e)
+  return jsonify(code=code, result=json)
+
+def getDiff(project):
+  result = ""
+  try:
+    repo = Repo(project)
+    git = repo.git
+    current_branch = repo.active_branch.name
+    result = git.diff(current_branch)
+  except Exception, e:
+    result = str(e)
+  return result
+
+def gitPush(project, msg, fetch=False):
+  code = 0
+  json = ""
+  commit = False
+  try:
+    repo = Repo(project)
+    if repo.is_dirty:
+      git = repo.git
+      current_branch = repo.active_branch.name
+      #add file to be commited
+      files = repo.untracked_files
+      for f in files:
+        git.add(f)
+      #Commit all modified and untracked files
+      git.commit('-a', '-m', msg)
+      commit = True
+      if fetch:
+        git.fetch('--all')
+        git.rebase('origin/' + current_branch)          
+      #push changes to repo
+      git.push('origin', current_branch)
+      code = 1
+    else:
+      json = "Nothing to be commited"
+      code = 1
+  except Exception, e:
+    if commit:
+      git.reset("HEAD^1") #undo previous commit
     json = str(e)
   return jsonify(code=code, result=json)
