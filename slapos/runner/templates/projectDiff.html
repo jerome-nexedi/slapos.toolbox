@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block title %}Diff for '{{project}}'{% endblock %}
+{% block head %}
+  {{ super() }}  
+  <script src="{{ url_for('static', filename='ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script type="text/javascript">
+    $(document).ready( function() {
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/crimson_editor");
+    
+        var CurentMode = require("ace/mode/text").Mode;
+        editor.getSession().setMode(new CurentMode());
+        editor.getSession().setTabSize(2);
+        editor.getSession().setUseSoftTabs(true);
+        editor.renderer.setHScrollBarAlwaysVisible(false);
+        editor.setReadOnly(true);
+    });
+  </script>
+{% endblock %}
+{% block body %}
+<form action="{{ url_for('manageProject') }}" method=get>
+    <dl>
+        <dd><h2>Diff file for "{{project}}"</h2></dd>
+        <dd>
+            <div class="main_content">
+                <pre id="editor">
+{{ diff }}
+                </pre>
+            </div>
+        </dd>
+        <dd><input type=submit value="Back" class="button"></dd>
+    </dl>
+</form>
+{% endblock %}
+

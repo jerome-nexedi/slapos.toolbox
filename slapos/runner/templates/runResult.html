@@ -4,17 +4,23 @@
   {{ super() }}
   <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
   <script src="{{ url_for('static', filename='jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
-  {%if result != "" %}
-  <script type="text/javascript" charset="utf-8">
-    $(document).ready( function() {
-      $('#fileTree').fileTree({ root: "{{result}}", script: $SCRIPT_ROOT + "/readFolder", folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: false }, function(file) { 
-			alert(file);
-		});
-    });
-  </script>
-  {%endif%}
+  <script src="{{ url_for('static', filename='scripts/inspectSoftware.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
-<h2>Result for {{ type }}</h2>
+<h2>All compiled software</h2>
+<input type="hidden" name="runnerdir" id="runnerdir" value="{{softwareRoot}}" />
+<label for='softwarelist'>Select software: </label>
+<select name="softwarelist" id="softwarelist">
+{%for soft in softwares %}
+<option value="{{soft['md5']}}" title="{{soft['title']}}" rel="{{soft['path']}}">{{soft['title']}}</option>
+{%endfor%}
+</select>
+&nbsp;&nbsp;<button id ="delete" class="button" title="Remove this software">Remove</button>
+&nbsp;&nbsp;<button id ="open" class="button" title="Set this software as current software">Open</button>
+<br/><br/>
+<h2 id="softcontent">No content to displays</h2>
 <div id="fileTree" class="file_tree"></div>
+<div id="file_info" class="file_info">
+<span id="info">Please select your file or folder into the box...</span></div>
+<br/>
 {% endblock %}

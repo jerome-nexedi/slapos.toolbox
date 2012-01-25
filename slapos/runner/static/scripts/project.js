@@ -62,7 +62,7 @@ $(document).ready( function() {
 	});
 	
 	function selectFile(file){
-		relativeFile = file.replace(workdir, "");
+		var relativeFile = file.replace(workdir, "");
 		$("#info").empty();
 		$("#info").append("Selection: " + relativeFile);
 		$("input#subfolder").val(file);
