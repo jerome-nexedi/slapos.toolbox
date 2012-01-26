@@ -15,8 +15,10 @@ $(document).ready( function() {
 		}
 		$("#flash").fadeOut('normal');
 		$("#flash").empty();
-		$("#flash").fadeIn('normal');	
-		repo_url = $("input#repo").val();
+		$("#flash").fadeIn('normal');
+		var repo_url = $("input#repo").val();
+		var email = "";
+		var name = ""
 		/* /^(ht|f)tps?:\/\/[a-z0-9-\.]+\.[a-z]{2,4}\/?([^\s<>\#%"\,\{\}\\|\\\^\[\]`]+)?$/ */
 		if($("input#repo").val() == "" || !repo_url.match(/^[\w\d\.\/:~@_-]+$/)){			
 			$("#flash").append("<ul class='flashes'><li>Error: Invalid url for the repository</li></ul>");
@@ -26,23 +28,27 @@ $(document).ready( function() {
 			$("#flash").append("<ul class='flashes'><li>Error: Invalid project name</li></ul>");
 			return false;
 		}
-		if($("input#user").val() == "" || $("input#user").val() == "Enter your name..."){
-			$("#flash").append("<ul class='flashes'><li>Error: Please enter your name!</li></ul>");
-			return false;
+		if($("input#user").val() != "" && $("input#user").val() != "Enter your name..."){
+			//$("#flash").append("<ul class='flashes'><li>Error: Please enter your name!</li></ul>");
+			//return false;
+			name = $("input#user").val();
 		}
-		if($("input#email").val() == "" || !$("input#email").val().match(/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)){
-			$("#flash").append("<ul class='flashes'><li>Error: Please enter your email adress!</li></ul>");
-			return false;
+		if($("input#email").val() != "" && $("input#email").val() != "Enter your email adress..."){
+			if(!$("input#email").val().match(/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)){
+				$("#flash").append("<ul class='flashes'><li>Error: Please enter a valid email adress!</li></ul>");
+				return false;
+			}
+			email = $("input#email").val();
 		}
 		$("#imgwaitting").fadeIn('normal');
 		$("#clone").empty();
 		$("#clone").append("Stop");
-		send = true;
+		send = true;		
 		cloneRequest = $.ajax({
 			type: "POST",
 			url: $SCRIPT_ROOT + '/cloneRepository',
-			data: "repo=" + repo_url + "&name=" + $("input#name").val() + "&email=" + $("input#email").val() +
-				"&user=" + $("input#user").val(),
+			data: "repo=" + repo_url + "&name=" + $("input#name").val() + "&email=" + email +
+				"&user=" + name,
 			success: function(data){
 				if(data.code == 1){
 					$("#file_navigation").fadeIn('normal');

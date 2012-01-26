@@ -2,7 +2,7 @@ $(document).ready( function() {
 	var method = $("input#method").val();
 	var workdir = $("input#workdir").val();
 	if (method != "file"){
-		script = (method == "new") ? "/openFolder" : "/readFolder";
+		script = "/openFolder";
 		$('#fileTree').fileTree({ root: workdir, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function(file) { 
 			selectFile(file);
 		});
@@ -42,7 +42,7 @@ $(document).ready( function() {
 		$("#flash").empty();
 		$("#flash").fadeIn('normal');
 		if($("input#path").val() == ""){
-			$("#flash").append("<ul class='flashes'><li>Error: Select the folder of your software</li></ul>");
+			$("#flash").append("<ul class='flashes'><li>Error: Select a valid Software Release folder</li></ul>");
 			return false;
 		}
 		$.ajax({
@@ -63,12 +63,20 @@ $(document).ready( function() {
 	
 	function selectFile(file){
 		var relativeFile = file.replace(workdir, "");
-		$("#info").empty();
-		$("#info").append("Selection: " + relativeFile);
+		$("#info").empty();		
 		$("input#subfolder").val(file);
 		path = "";
 		if(method == "open"){
+			$("#info").append("Selection: " + relativeFile);
 			checkFolder(file);
+		}
+		else{
+			if($("input#software").val() != "" && $("input#software").val().match(/^[\w\d._-]+$/)){
+				$("#info").append("New Software in: " + relativeFile + $("input#software").val());
+			}
+			else{
+				$("#info").append("Selection: " + relativeFile);
+			}
 		}
 		return;
 	}

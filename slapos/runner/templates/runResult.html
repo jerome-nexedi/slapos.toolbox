@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Webrunner software content{% endblock %}
+{% block title %}Webrunner software Inspection{% endblock %}
 {% block head %}
   {{ super() }}
   <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
@@ -7,7 +7,7 @@
   <script src="{{ url_for('static', filename='scripts/inspectSoftware.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
-<h2>All compiled software</h2>
+<h2>Inspect software</h2>
 <input type="hidden" name="runnerdir" id="runnerdir" value="{{softwareRoot}}" />
 <label for='softwarelist'>Select software: </label>
 <select name="softwarelist" id="softwarelist">
@@ -18,6 +18,8 @@
 &nbsp;&nbsp;<button id ="delete" class="button" title="Remove this software">Remove</button>
 &nbsp;&nbsp;<button id ="open" class="button" title="Set this software as current software">Open</button>
 <br/><br/>
+<p><strong><u>Notes:</u> </strong> You can open any software release in the list by cliking on the "Open" button. Now compiling this software will take a very short time</p>
+<br/>
 <h2 id="softcontent">No content to displays</h2>
 <div id="fileTree" class="file_tree"></div>
 <div id="file_info" class="file_info">
