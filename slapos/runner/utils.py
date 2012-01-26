@@ -134,6 +134,7 @@ def runSoftwareWithLock(config):
     writePid(slapgrid_pid, slapgrid.pid)
     slapgrid.wait()
     #Saves the current compile software for re-use
+    #This uses the new software create by slapgrid (if not exits yet)
     data = loadSoftwareData(config['runner_workdir'])
     md5 = ""    
     for path in os.listdir(config['software_root']):
@@ -221,6 +222,17 @@ def svcStopAll(config):
   return Popen([config['supervisor'], config['configuration_file_path'], 
                 'shutdown']).communicate()[0]
 
+def removeInstanceRoot(config):
+  if os.path.exists(config['instance_root']):
+    svcStopAll(config)
+    for root, dirs, files in os.walk(config['instance_root']):
+      for fname in dirs:
+	fullPath = os.path.join(root, fname)
+	if not os.access(fullPath, os.W_OK) :
+	  # Some directories may be read-only, preventing to remove files in it
+	  os.chmod(fullPath, 0744)
+    shutil.rmtree(config['instance_root'])
+
 def getSvcStatus(config):
   result = Popen([config['supervisor'], config['configuration_file_path'], 
                   'status']).communicate()[0]
@@ -283,6 +295,17 @@ def getProjectList(folder):
     project.append(elt)
   return project
 
+def configNewSR(config, project):
+  if os.path.exists(project):
+    stopProxy(config)
+    removeProxyDb(config)
+    startProxy(config)
+    removeInstanceRoot(config)
+    open(os.path.join(config['runner_workdir'], ".project"), 'w').write(project)
+    return True
+  else:
+    return False
+
 def newSoftware(folder, config, session):
   json = ""
   code = 0
@@ -329,7 +352,7 @@ def getProjectTitle(config):
     project = open(conf, "r").read().replace(config['workspace'] + "/", "").split("/")
     software = project[len(project) - 1]
     del project[len(project) - 1]
-    return software + "(in " + string.join(project, '/') + ")"
+    return software + "(SR in /" + string.join(project, '/') + ")"
   return "No Profile"
 
 def loadSoftwareData(runner_dir):

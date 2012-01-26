@@ -8,13 +8,15 @@ from gittools import cloneRepo, gitStatus, switchBranch, createBranch, getDiff, 
 
 app = Flask(__name__)
 
+@app.before_request
+def before_request():
+  session['title'] = getProjectTitle(app.config)
+
 # general views
 @app.route('/')
 def home():
-  if not os.path.exists(app.config['workspace']) or len(os.listdir(app.config['workspace'])) == 0:
-    session['title'] = "No project"
-    return redirect(url_for('configRepo'))
-  session['title'] = getProjectTitle(app.config)
+  if not os.path.exists(app.config['workspace']) or len(os.listdir(app.config['workspace'])) == 0:  
+    return redirect(url_for('configRepo'))  
   return render_template('index.html')
 
 @app.route('/configRepo')
@@ -100,6 +102,8 @@ def inspectInstance():
   if os.path.exists(app.config['instance_root']):
     file_content = app.config['instance_root']
     result = getSvcStatus(app.config)
+    if len(result) == 0:
+      result = []
   return render_template('instanceInspect.html',
       file_path=file_content, supervisor=result, slap_status=getSlapStatus(app.config),
       supervisore=result)
@@ -108,15 +112,8 @@ def inspectInstance():
 def removeInstance():
   if isInstanceRunning(app.config):
     flash('Instantiation in progress, cannot remove')
-  elif os.path.exists(app.config['instance_root']):
-    svcStopAll(app.config)
-    for root, dirs, files in os.walk(app.config['instance_root']):
-      for fname in dirs:
-        fullPath = os.path.join(root, fname)
-        if not os.access(fullPath, os.W_OK) :
-          # Some directories may be read-only, preventing to remove files in it
-          os.chmod(fullPath, 0744)
-    shutil.rmtree(app.config['instance_root'])
+  else:
+    removeInstanceRoot(app.config)
     flash('Instance removed')
   return redirect(url_for('inspectInstance'))
 
@@ -210,12 +207,11 @@ def checkFolder():
 @app.route("/setCurentProject", methods=['POST'])
 def setCurentProject():
   folder = request.form['path']
-  if os.path.exists(folder):
-    open(os.path.join(app.config['runner_workdir'], ".project"), 'w').write(folder)
+  if configNewSR(app.config, folder):    
     session['title'] = getProjectTitle(app.config)
     return jsonify(code=1, result="")
   else:
-    return jsonify(code=0, result=("Can not open '" + folder + "'"))
+    return jsonify(code=0, result=("Can not setup this Software Release"))
 
 @app.route("/manageProject", methods=['GET'])
 def manageProject():

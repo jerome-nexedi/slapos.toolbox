@@ -30,8 +30,10 @@ def cloneRepo(data):
     repo = Repo.clone_from(data["repo"], workDir)
     config_writer = repo.config_writer()
     config_writer.add_section("user")
-    config_writer.set_value("user", "name", data["user"])
-    config_writer.set_value("user", "email", data["email"])
+    if data["user"] != "":
+      config_writer.set_value("user", "name", data["user"])
+    if data["email"] != "":
+      config_writer.set_value("user", "email", data["email"])
     code = 1
   except Exception, e:
     json = str(e)
