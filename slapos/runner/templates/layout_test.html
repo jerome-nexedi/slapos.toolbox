@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- Piwik --> 
+<script type="text/javascript">
+    var pkBaseURL = (("https:" == document.location.protocol) ? "https://[::1]:9080/piwik/" : "http://[::1]:9080/piwik/");
+    document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
+</script><script type="text/javascript">
+    try {
+        var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 1);
+        piwikTracker.trackPageView();
+        piwikTracker.enableLinkTracking();
+    } catch( err ) {}
+</script><noscript><p><img src="http://[::1]:9080/piwik/piwik.php?idsite=1" style="border:0" alt="" /></p></noscript>
+<!-- End Piwik Tracking Code -->
+<title>Buildout runner</title>
+<div class=menu>
+    <a href="{{ url_for('home') }}">Home</a> |
+    Software:
+    <a href="{{ url_for('editSoftwareProfile') }}">Edit</a>
+    <a href="{{ url_for('runSoftwareProfile') }}">Run</a>
+    <a href="{{ url_for('viewSoftwareLog') }}">Build log</a>
+    <a href="{{ url_for('inspectSoftware') }}">Inspect</a>
+    <a href="{{ url_for('removeSoftware') }}">Remove</a>
+    |
+    Instance
+    <a href="{{ url_for('editInstanceProfile') }}">Edit</a>
+    <a href="{{ url_for('runInstanceProfile') }}">Run</a>
+    <a href="{{ url_for('viewInstanceLog') }}">Build log</a>
+    <a href="{{ url_for('inspectInstance') }}">Inspect</a>
+    <a href="{{ url_for('stopAllPartition') }}">Stop all</a>
+    <a href="{{ url_for('removeInstance') }}">Remove</a>
+</div>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<ul class=flashes>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+<div class=page>
+    {% block body %}{% endblock %}
+</div>

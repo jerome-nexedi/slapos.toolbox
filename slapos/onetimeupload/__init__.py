@@ -104,7 +104,7 @@ def run(config):
       template = app.open_resource('templates/index.html')
       return template.read()
 
-  app.run(host=config.host, port=config.port, ssl_context='adhoc')
+  app.run(host=config.host, port=config.port)
 
 def main():
   "Run default configuration."

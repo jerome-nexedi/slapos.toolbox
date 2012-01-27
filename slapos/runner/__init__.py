@@ -4,6 +4,7 @@ import logging
 import logging.handlers
 import os
 import sys
+import subprocess
 
 class Parser(OptionParser):
   """
@@ -56,7 +57,8 @@ class Config:
     configuration_parser = ConfigParser.SafeConfigParser()
     configuration_parser.read(configuration_file_path)
     # Merges the arguments and configuration
-    for section in ("slaprunner", "slapos", "slapproxy", "slapformat"):
+    
+    for section in ("slaprunner", "slapos", "slapproxy", "slapformat", "sshkeys_authority", "gitclient"):
       configuration_dict = dict(configuration_parser.items(section))
       for key in configuration_dict:
         if not getattr(self, key, None):
@@ -81,6 +83,7 @@ class Config:
         self.logger.info('Configured logging to file %r' % self.log_file)
 
     self.logger.info("Started.")
+    self.logger.info(os.environ['PATH'])
     if self.verbose:
       self.logger.setLevel(logging.DEBUG)
       self.logger.debug("Verbose mode enabled.")
@@ -105,13 +108,17 @@ def run():
 
 def serve(config):
   from views import app
+  workdir = os.path.join(config.runner_workdir, 'project')
   app.config.update(**config.__dict__)
   app.config.update(
     software_log=config.software_root.rstrip('/') + '.log',
     instance_log=config.instance_root.rstrip('/') + '.log',
-    instance_profile=os.path.join(config.runner_workdir, 'instance.cfg'),
-    software_profile=os.path.join(config.runner_workdir, 'software.cfg'),
+    workspace = workdir,
+    instance_profile='instance.cfg',
+    software_profile='software.cfg',
     SECRET_KEY='123',
   )
+  if not os.path.exists(workdir):
+    os.mkdir(workdir)
   app.run(host=config.runner_host, port=int(config.runner_port),
       debug=config.debug, threaded=True)

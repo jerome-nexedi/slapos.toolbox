@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block title %}Manage your Project folder{% endblock %}
+{% block head %}
+  {{ super() }}  
+  <script src="{{ url_for('static', filename='jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='scripts/repo.js') }}" type="text/javascript" charset="utf-8"></script>
+{% endblock %}
+{% block body %}
+
+<form action="" method=post>
+<input type="hidden" name="workdir" id="workdir" value="{{workDir}}" />
+<input type="hidden" name="subfolder" id="subfolder" value="" />
+
+<div id="repoContent">
+<h2>Manage your repository</h2>
+<label for='project'>Select your project into the list: </label>
+<select id="project" name="project">
+	{% for folder in project%}
+	<option value="{{folder}}">{{folder}}</option>
+	{% endfor %}
+</select>
+<br/><br/>
+<div id="contentInfo">
+	<div id="status">
+		<h2>Please select one project...</h2>
+	</div>	
+	<div id="branchlist">
+	<div class="div"></div>
+	<h2>Your Repository Branch</h2>
+	<div style="margin-left:15px;">
+	<label for='activebranch'>Select the active Branch here: </label>
+	<select name="activebranch" id="activebranch">
+	</select>
+	&nbsp;&nbsp;&nbsp;<label for='branchname'>Branch Name: </label>
+	<input type="text" name="branchname" id="branchname" size='20' value="Enter the branch name..." />
+	<input type="submit" name="addbranch" id ="addbranch" value="Add" class="button"/>
+	</div>
+	</div>	
+	<div id="push">
+	<div class="div"></div>
+	<h2>Commit All your changes</h2>
+	<div style="margin-left:15px;">
+	<label for='commitmsg'>Enter your commit message here: </label>
+	<input type="text" name="commitmsg" id="commitmsg" size='40' value="Enter message..." />
+	<input type="submit" name="commit" id ="commit" value="Commit" class="button"/>
+	</div>	
+	</div>
+	<br/>
+</div>
+</div>
+</form>
+{% endblock %}

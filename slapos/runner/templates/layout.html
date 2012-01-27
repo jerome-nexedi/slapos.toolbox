@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 
     <head>
-
+	{% block head %}
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
         <title>Buildout runner</title>
@@ -12,58 +12,115 @@
 
         <meta name="description" content="" />
 
-        <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet" type="text/css" media="screen" />
+        <link href="{{ url_for('static', filename='css/styles.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+        <script src="{{ url_for('static', filename='jquery/jquery-1.6.2.min.js') }}" type="text/javascript" charset="utf-8"></script>
+        {% if request.path == '/editSoftwareProfile' or request.path == '/editInstanceProfile' %}
+        <script src="{{ url_for('static', filename='ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ url_for('static', filename='ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ url_for('static', filename='ace/mode-buildout.js') }}" type="text/javascript" charset="utf-8"></script>
+        
+        <script type="text/javascript">
+            $(document).ready(function() {
+                var editor = ace.edit("editor");
+                editor.setTheme("ace/theme/crimson_editor");
 
+                var CurentMode = require("ace/mode/buildout").Mode;
+                editor.getSession().setMode(new CurentMode());
+                editor.getSession().setTabSize(2);
+                editor.getSession().setUseSoftTabs(true);
+                editor.renderer.setHScrollBarAlwaysVisible(false);
+                $('#save').click(function(){
+                    $('#editor_content').val(editor.getSession().getValue());
+                });
+            });
+        </script>
+        {% endif %}
+        <script type=text/javascript>
+          $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        </script>
+        <script type="text/javascript">
+		$(document).ready(function() {
+			$('input[type="text"]').addClass("idleField");
+       		$('input[type="text"]').focus(function() {
+       			$(this).removeClass("idleField").addClass("focusField");
+    		    if (this.value == this.defaultValue){ 
+    		    	this.value = '';
+				}
+				if(this.value != this.defaultValue){
+	    			this.select();
+	    		}
+    		});
+    		$('input[type="text"]').blur(function() {
+    			$(this).removeClass("focusField").addClass("idleField");
+    		    if ($.trim(this.value) == ''){
+			    	this.value = (this.defaultValue ? this.defaultValue : '');
+				}
+    		});
+		});			
+	</script>
+	{% endblock %}
     </head>
-<body>
+    <body>
         <div id="page">
-	    <div id="logo">
-		<a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="" /></a>
-	    </div>
+            <div id="logo">
+                <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="" /></a>
+            </div>
             <div id="header">
                 <div class="block_header">
-                    <a href="{{ url_for('home') }}" style="float:left"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
-                    <h2 class="text"> Home</h2>
-                    <h2 class="info"></h2>
+                    <a href="{{ url_for('home') }}" style="float:left;" title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
+		    <div class="line"></div>
+		    <a href="{{ url_for('curentSoftware') }}" style="float:left" title="Current Software Folder"><img alt="" src="{{ url_for('static', filename='images/project.png') }}" /></a>
+		    <div class="line"></div>
+                    <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
                 </div>
                 <div class="wmenu">
                     <ul>
                         <li><span class="title_software">Software</span></li>
-			<li><a href="{{ url_for('editSoftwareProfile') }}">Edit</a></li>
-			<li><a href="{{ url_for('runSoftwareProfile') }}">Run</a></li>
-			<li><a href="{{ url_for('viewSoftwareLog') }}">Build log</a></li>
-			<li><a href="{{ url_for('inspectSoftware') }}">Inspect</a></li>
-			<li><a href="{{ url_for('removeSoftware') }}">Remove</a></li>
+                        <li><a href="{{ url_for('editSoftwareProfile') }}">Edit</a></li>
+                        <li><a href="{{ url_for('runSoftwareProfile') }}">Run</a></li>
+                        <li><a href="{{ url_for('viewSoftwareLog') }}">Build log</a></li>
+                        <li><a href="{{ url_for('inspectSoftware') }}">Inspect</a></li>
+                        <li><a href="{{ url_for('removeSoftware') }}">Remove</a></li>
 
                         <li class="space"><span class="title_instance">Instance</span></li>
-			<li><a href="{{ url_for('editInstanceProfile') }}">Edit</a></li>
-			<li><a href="{{ url_for('runInstanceProfile') }}">Run</a></li>
-			<li><a href="{{ url_for('viewInstanceLog') }}">Build log</a></li>
-			<li><a href="{{ url_for('inspectInstance') }}">Inspect</a></li>
-			<li><a href="{{ url_for('stopAllPartition') }}">Stop all</a></li>
-			<li><a href="{{ url_for('removeInstance') }}">Remove</a></li>
+                        <li><a href="{{ url_for('editInstanceProfile') }}">Edit</a></li>
+                        <li><a href="{{ url_for('runInstanceProfile') }}">Run</a></li>
+                        <li><a href="{{ url_for('viewInstanceLog') }}">Build log</a></li>
+                        <li><a href="{{ url_for('inspectInstance') }}">Inspect</a></li>
+                        <li><a href="{{ url_for('stopAllPartition') }}">Stop all</a></li>
+                        <li><a href="{{ url_for('removeInstance') }}">Remove</a></li>
                     </ul>
                 </div>
                 <div class="clear"></div>
-            </div>
-            <div id="main">
-                <div class="flash">
-			{% with messages = get_flashed_messages() %}
-			  {% if messages %}
-			    <ul class=flashes>
-			    {% for message in messages %}
-			      <li>{{ message }}</li>
-			    {% endfor %}
-			    </ul>
-			  {% endif %}
-			{% endwith %}					
-		</div>
-		<div class="content">
-			{% block body %}{% endblock %}
-		</div>
+            </div>            
+            <div id="main">                
+                <div class="flash" id="flash">
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    <ul class="flashes">
+                        {% for message in messages %}
+                        <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% endwith %}
+                </div>                
+                <div {% if request.path == '/' %} class="home_content" {%else%} id="content" {% endif %}>
+                    {% if request.path != '/' %}
+                        <div class="main_head">
+                        </div>
+                        <div class="content">
+                    {% endif %}
+                    {% block body %}{% endblock %}
+                    {% if request.path != '/' %}
+                        </div>
+                        <div class="main_foot">
+                        </div>
+                    {% endif %}
+                </div>
             </div>
             <div id="footer">
-                &copy; Vifib SARL 2011 - All right reserved - Creative Commons Shared Alike Non Commercial
+                SlapOs webrunner &copy; Vifib SARL 2011 - All right reserved - Creative Commons Shared Alike Non Commercial
             </div>
         </div>
     </body>

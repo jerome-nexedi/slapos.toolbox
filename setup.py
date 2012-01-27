@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import glob
 import os
 
-version = '0.11-dev'
+version = '0.17-dev'
 name = 'slapos.toolbox'
 long_description = open("README.txt").read() + "\n" + \
     open("CHANGES.txt").read() + "\n"
@@ -36,6 +36,7 @@ setup(name=name,
         'slapos.core', # as it provides library for slap
         'SQLAlchemy', # needed by wordpress.ia
         'xml_marshaller', # needed to dump information
+        'GitPython', #needed for git manipulation into slaprunner
       ],
       extras_require = {
         'lampconfigure':  ["mysql-python"] #needed for MySQL Database access

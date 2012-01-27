@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block title %}Adding new repository{% endblock %}
+{% block head %}
+  {{ super() }}
+  <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='scripts/folder.js') }}" type="text/javascript" charset="utf-8"></script>
+{% endblock %}
+{% block body %}
+
+<div id="repository">
+<h2>Clone your repository into the workspace</h2>
+<label for='name'>Project name: </label>
+<input type="text" name="name" id="name" size='20' value="Enter the project name..." />
+<label for='repo'>url: &nbsp;&nbsp;&nbsp;</label>
+<input type="text" name="repo" id="repo" size='25' value="Enter the url of your repository..." /><br/>
+<label for='user'>Your name: &nbsp;&nbsp;</label>
+<input type="text" name="user" id="user" size='20' value="Enter your name..." />
+<label for='email'>Email: </label>
+<input type="text" name="email" id="email" size='25' value="Enter your email adress..." />
+<input type="hidden" name="workdir" id="workdir" value="{{workDir}}" />
+<button class="button" id="clone">clone</button>
+<img class="waitting" id="imgwaitting" src="{{ url_for('static', filename='images/waiting.gif') }}" alt="" />
+<br/><br/>
+</div>
+<h2>You can use this public key for Git SSH</h2>
+<textarea class="public_key" readonly>
+{{public_key}}
+</textarea>
+<p>to use git with https, please enter your repository url like this 
+<strong><i>https://your_login:your_passeword@your_repository_url</i></strong></p><br/>
+<div id="file_navigation">
+	<h2>Your project folder</h2>
+	<div id="fileTree" class="file_tree"></div>
+</div>
+{% endblock %}

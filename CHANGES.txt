@@ -1,7 +1,38 @@
-0.11 (unreleased)
+0.17 (unreleased)
+=================
+
+ * No change yet.
+
+0.16 (2012-01-20)
+=================
+
+ * Fix MANIFEST.in [Cedric de Saint Martin]
+
+0.15 (2012-01-20)
+=================
+
+ * slaprunner: Adding project and git repository management [Alain Takoudjou]
+
+0.14 (2012-01-09)
+=================
+
+ * onetimeupload: SSL should be provided by an http frontend [Romain Courteaud]
+
+0.13 (2011-12-30)
+=================
+
+ * builder: fix usage of mkstemp [Romain Courteaud]
+
+0.12 (2011-12-29)
+=================
+
+ * builder: dynamic offset calculation [Romain Courteaud]
+
+0.11 (2011-12-23)
 =================
 
  * equeue: Add execution queue server. [Antoine Catton]
+ * pubsub: Add pubsub server using pubsubhubbub for notifications. [Antoine Catton]
 
 0.10 (2011-11-07)
 =================
