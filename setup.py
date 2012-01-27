@@ -66,6 +66,7 @@ setup(name=name,
           'pubsubnotifier = slapos.pubsub.notifier:main',
           'logfollower = slapos.logfollower:main',
           'runafter = slapos.runafter:main',
+          'wp-agent = slapos.wordpress.ia.http:main',
         ]
       },
     )
