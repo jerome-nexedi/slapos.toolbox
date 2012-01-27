@@ -39,10 +39,16 @@ from slapos.slap import slap
 
 def get_status(feed_content):
   feed = feedparser.parse(feed_content)
-  # Just for test purpose
-  # here should be the algorithm saying if we
-  # should rename or not the partition.
-  return False
+
+  error_amount = 0
+  for entry in feed.entries:
+    if 'FAIL' in entry.content:
+      error_amount += 1
+    # XXX: Hard coding maximum error amount
+    #      is 3.
+    if error_amount >= 3:
+      return False
+  return True
 
 def get_timestamp(minutes_ago):
   result = datetime.datetime.now()
@@ -120,10 +126,6 @@ class Server(Connector):
                          for url in json.loads(connector.GET('getPeers').read())])
       except:
         pass
-        # For debug purpose only.
-        # Need to be remove in the future in order to
-        # swallow everything
-        raise
 
   @staticmethod
   def _convert_uuid(id_):
@@ -141,10 +143,6 @@ class Server(Connector):
       type_ = value.GET('info/type').read()
     except:
         pass
-        # For debug purpose only.
-        # Need to be remove in the future in order to
-        # swallow everything
-        raise
     else:
       to_set_none = deque()
       # Look for peer having same type (type should be unique)
@@ -182,10 +180,6 @@ class Server(Connector):
           failed_list.append(peer)
     except:
       pass
-      # For debug purpose only.
-      # Need to be remove in the future in order to
-      # swallow everything
-      raise
     return self.get_peer_id(id_).geturl()
 
 
@@ -236,10 +230,6 @@ class Server(Connector):
               pass
       except:
         pass
-        # For debug purpose only.
-        # Need to be remove in the future in order to
-        # swallow everything
-        raise
 
   def get_type(self, type_):
     for peer_type, peer in self._peers.itervalues():
@@ -257,6 +247,8 @@ class Server(Connector):
   def down(self, connector):
     new_name = 'down_%s' % uuid.uuid4().hex
     self.rename(connector, new_name)
+    # XXX: EXTREMELY Dirty Workaround to avoid bug #20120127-6487F8
+    time.sleep(10)
     self.slaprequest(partition_reference=new_name,
                      software_type='down')
 

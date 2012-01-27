@@ -46,7 +46,8 @@ def main():
   while True:
     time.sleep(args.frequency)
     server.get_master()
-    server.think(1)
+    # XXX: Hard coding 5 minutes
+    server.think(5)
 
 
 
