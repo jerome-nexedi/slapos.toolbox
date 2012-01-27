@@ -67,6 +67,7 @@ setup(name=name,
           'logfollower = slapos.logfollower:main',
           'runafter = slapos.runafter:main',
           'wp-agent = slapos.wordpress.ia.http:main',
+          'wp-agent-notifier = slapos.wordpress.ia.notifier:main',
           'wp-watchdog = slapos.wordpress.ia.watchdog:main',
           'wp-logfollower = slapos.wordpress.ia.logfollower:main',
         ]
