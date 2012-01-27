@@ -29,6 +29,7 @@ setup(name=name,
         'apache_libcloud>=0.4.0', # needed by cloudmgr
         'inotifyx', # needed by logfollower
         'lxml', # needed for xml parsing
+        'mechanize', # needed for wordpress importer
         'paramiko', # needed by cloudmgr
         'psutil', # needed for playing with processes in portable way
         'setuptools', # namespaces
