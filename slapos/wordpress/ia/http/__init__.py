@@ -356,7 +356,7 @@ def get_id():
 
 
 
-def run():
+def main():
   global app
   parser = argparse.ArgumentParser(description="Wordpress Log Server")
   parser.add_argument('-d', '--debug', action='store_const',
@@ -371,4 +371,4 @@ def run():
   app.run(host=args.host, port=args.port, debug=args.debug)
 
 if __name__ == '__main__':
-  run()
+  main()
