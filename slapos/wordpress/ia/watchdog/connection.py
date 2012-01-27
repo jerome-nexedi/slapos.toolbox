@@ -42,7 +42,7 @@ def get_status(feed_content):
 
   error_amount = 0
   for entry in feed.entries:
-    if 'FAIL' in entry.content:
+    if 'FAIL' in entry.summary:
       error_amount += 1
     # XXX: Hard coding maximum error amount
     #      is 3.
@@ -217,7 +217,7 @@ class Server(Connector):
         log_list = json.loads(log_list_request.read())
         for item in log_list:
           status = get_status(
-            peer.GET('status/%s?min-date=%d' % (peer, get_timestamp(threshold), )
+            peer.GET('log/%s?min-date=%d' % (item, get_timestamp(threshold), )
                     ).read()
           )
           if not status:
