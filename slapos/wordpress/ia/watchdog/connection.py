@@ -194,10 +194,7 @@ class Server(Connector):
         self._master_url = self._url.geturl()
 
       else:
-        try:
-          self._master_url = master_url
-        except IndexError:
-          self._master_url = self.do_master_election()
+        self._master_url = master_url
     else:
       try:
         Server._conver_uuid(Connector(self._master_url).GET('id').read())
