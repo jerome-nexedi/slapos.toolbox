@@ -51,7 +51,7 @@ def wait_for_creation(filepath):
   finally:
     os.close(creation_fd)
 
-def follow_each_line(filepath, rotated):
+def follow_each_line(filepath, rotated, timeout=-1):
   mask = inotifyx.IN_MODIFY
   if rotated:
     mask |= inotifyx.IN_MOVE_SELF | inotifyx.IN_DELETE_SELF
@@ -62,8 +62,10 @@ def follow_each_line(filepath, rotated):
   try:
     inotifyx.add_watch(follow_fd, filepath, mask)
     while True:
-      events = inotifyx.get_events(follow_fd)
+      events = inotifyx.get_events(follow_fd, timeout)
+      empty = True
       for e in events:
+        empty = False
         # File has been moved
         if e.mask & inotifyx.IN_MOVE_SELF or e.mask & inotifyx.IN_DELETE_SELF:
           # Watch the new file when created.
@@ -86,6 +88,8 @@ def follow_each_line(filepath, rotated):
           queued_data.write(temp.pop(-1))
           for line in temp:
             yield line
+      if empty:
+        yield None
   finally:
     os.close(follow_fd)
 
