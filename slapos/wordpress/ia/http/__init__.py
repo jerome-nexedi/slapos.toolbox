@@ -366,6 +366,16 @@ def log_list():
 
   return response
 
+@app.route('/info/<name>')
+def info(name):
+  if name == 'computerId':
+    return app.config['COMPUTER_ID']
+  elif name == 'partitionId':
+    return app.config['PARTITION_ID']
+  elif name == 'type':
+    return app.config['AGENT_TYPE']
+  else:
+    abort(httplib.NOT_FOUND)
 
 def main():
   global app
