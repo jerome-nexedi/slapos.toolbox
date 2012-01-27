@@ -355,6 +355,17 @@ def get_id():
   return response
 
 
+@app.route('/logList')
+def log_list():
+  session = Session()
+
+  response = make_response(json.dumps(
+    [c.title for c in session.query(Component.title).all()]
+  ))
+  response.headers['Content-Type'] = 'application/json'
+
+  return response
+
 
 def main():
   global app
