@@ -219,6 +219,10 @@ def runBuildoutAnnotate(config):
   return False
 
 def svcStopAll(config):
+  #stop all process running in supervisord
+  request = Popen([config['supervisor'], config['configuration_file_path'], 
+                'stop', 'all'])
+  request.wait()
   return Popen([config['supervisor'], config['configuration_file_path'], 
                 'shutdown']).communicate()[0]
 
@@ -257,7 +261,8 @@ def getFolderContent(folder):
   try:
     r=['<ul class="jqueryFileTree" style="display: none;">']
     d=urllib.unquote(folder)
-    for f in os.listdir(d):
+    ldir = sorted(os.listdir(d), key=unicode.lower)
+    for f in ldir:
       if f.startswith('.'): #do not displays this file/folder
 	continue      
       ff=os.path.join(d,f)
@@ -275,9 +280,10 @@ def getFolderContent(folder):
 def getFolder(folder):
   r=['<ul class="jqueryFileTree" style="display: none;">']
   try:
-    r=['<ul class="jqueryFileTree" style="display: none;">']
+    r=['<ul class="jqueryFileTree" style="display: none;">']    
     d=urllib.unquote(folder)
-    for f in os.listdir(d):
+    ldir = sorted(os.listdir(d), key=unicode.lower)
+    for f in ldir:
       if f.startswith('.'): #do not display this file/folder
 	continue
       ff=os.path.join(d,f)
@@ -341,8 +347,7 @@ def checkSoftwareFolder(path, config):
   tmp = path.split('/')
   del tmp[len(tmp) - 1]
   path = string.join(tmp, '/')
-  if os.path.exists(os.path.join(path, config['software_profile'])) and \
-     os.path.exists(os.path.join(path, config['instance_profile'])):
+  if os.path.exists(os.path.join(path, config['software_profile'])):
     return jsonify(result=path)
   return jsonify(result="")
 
@@ -391,3 +396,30 @@ def removeSoftwareByName(config, folderName):
       break
     i = i+1
   return jsonify(code=1, result=data)
+
+def tail(f, lines=20):
+  """
+  Returns the last `lines` lines of file `f`. It is an implementation of tail -f n.
+  """
+  BUFSIZ = 1024
+  f.seek(0, 2)
+  bytes = f.tell()
+  size = lines + 1
+  block = -1
+  data = []
+  while size > 0 and bytes > 0:
+      if bytes - BUFSIZ > 0:
+	  # Seek back one whole BUFSIZ
+	  f.seek(block * BUFSIZ, 2)
+	  # read BUFFER
+	  data.insert(0, f.read(BUFSIZ))
+      else:
+	  # file too small, start from begining
+	  f.seek(0,0)
+	  # only read what was not read
+	  data.insert(0, f.read(bytes))
+      linesFound = data[0].count('\n')
+      size -= linesFound
+      bytes -= BUFSIZ
+      block -= 1
+  return string.join(''.join(data).splitlines()[-lines:], '\n')

@@ -69,7 +69,7 @@ def runSoftwareProfile():
 @app.route('/viewSoftwareLog', methods=['GET'])
 def viewSoftwareLog():
   if os.path.exists(app.config['software_log']):
-    result = open(app.config['software_log'], 'r').read()
+    result = tail(open(app.config['software_log'], 'r'), lines=1500)
   else:
     result = 'Not found yet'
   return render_template('viewLog.html', type='Software',
@@ -87,7 +87,7 @@ def updateSoftwareProfile():
 def editInstanceProfile():
   profile = getProfile(app.config['runner_workdir'], app.config['instance_profile'])
   if profile == "":
-    flash('Error: can not open profile, please select your project first') 
+    flash('Error: can not open instance profile for this Software Release') 
   return render_template('updateInstanceProfile.html',
       profile=profile)
 
