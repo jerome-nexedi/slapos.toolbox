@@ -9,6 +9,7 @@ $(document).ready( function() {
 	editor.renderer.setHScrollBarAlwaysVisible(false);
 	    
 	var script = "/readFolder";
+	var softwareDisplay = true;
 	var Mode = function(name, desc, clazz, extensions) {
 		this.name = name;
 		this.desc = desc;
@@ -24,14 +25,16 @@ $(document).ready( function() {
 		new Mode("buildout", "Python Buildout config", require("ace/mode/buildout").Mode, ["cfg"])
 	    ];
 	var projectDir = $("input#project").val();
-	var send = false;
-	var edit = false;
 	var workdir = $("input#workdir").val();
+	var currentProject = workdir + "/" + projectDir.replace(workdir, "").split('/')[1];
+	var send = false;
+	var edit = false;	
 	$('#fileTree').fileTree({ root: projectDir, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function(file) { 
 		selectFile(file);
 	});
-	$("#add").click(function(){		
-		var path = $("input#project").val();
+	setDetailBox();
+	$("#add").click(function(){
+		var path = (softwareDisplay)? projectDir:currentProject;
 		if (send) return false;
 		if($("input#file").val() == "" || 
 			$("input#file").val() == "Enter name here..."){
@@ -49,14 +52,12 @@ $(document).ready( function() {
 			data: "file=" + path + "&type=" + $("#type").val(),
 			success: function(data){				
 				if(data.code == 1){
-					$('#fileTree').fileTree({ root: projectDir, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function(file) { 
-					selectFile(file);
-					});
+					switchContent();
 					$("input#file").val("");
 					$("#flash").fadeOut('normal');
 					$("#flash").empty();
 					$("#info").empty();
-					$("#info").append("Please select your file or folder into the box...");
+					$("#info").append("Select parent directory or nothing for root...");
 					$("input#subfolder").val("");					
 				}
 				else{
@@ -92,6 +93,56 @@ $(document).ready( function() {
 		return false;
 	});
 	
+	$("#details_head").click(function(){
+	    setDetailBox();
+	});
+	
+	$("#switch").click(function(){
+	    softwareDisplay = !softwareDisplay;
+	    switchContent();
+	    return false;
+	});
+	
+	$("#clearselect").click(function(){
+	    $("#info").empty();
+	    $("#info").append("Select parent directory or nothing for root...");
+	    $("input#subfolder").val("");
+	    return false;
+	});
+	
+	function switchContent(){
+	    var root = projectDir;
+	    if(!softwareDisplay){
+		$("#switch").empty();
+		$("#switch").append("Switch to Software files");
+		root = currentProject;
+	    }
+	    else{
+		$("#switch").empty();
+		$("#switch").append("Switch to Project files");		
+	    }
+	    $('#fileTree').fileTree({ root: root, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function(file) { 
+	        selectFile(file);
+	    });
+	    $("#info").empty();
+	    $("#info").append("Select parent directory or nothing for root...");
+	    $("input#subfolder").val("");
+	}
+	
+	function setDetailBox(){
+	    var state = $("#details_box").css("display");
+	    if (state == "none"){
+		$("#details_box").slideDown("normal");
+		$("#details_head").removeClass("hide");
+		$("#details_head").addClass("show");
+	    }
+	    else{
+		$("#details_box").slideUp("normal");
+		$("#details_head").removeClass("show");
+		$("#details_head").addClass("hide");
+	    }
+	}
+	
 	function error(msg){
 		$("#flash").fadeOut('normal');
 		$("#flash").empty();
@@ -99,7 +150,7 @@ $(document).ready( function() {
 		$("#flash").append("<ul class='flashes'><li>" + msg + "</li></ul>");
 	}
 	function selectFile(file){
-		relativeFile = file.replace(projectDir, "");
+		relativeFile = file.replace(workdir, "");
 		$("#info").empty();
 		$("#info").append(relativeFile);
 		$("input#subfolder").val(file);
@@ -117,8 +168,8 @@ $(document).ready( function() {
 					$("#flash").empty();
 					$("#edit_info").empty();
 					var name = file.split('/');
-					$("#edit_info").append("Edit selected file (" +
-						name[name.length - 1] + ")");
+					$("#edit_info").append("Edit selected file: " +
+						relativeFile);
 					editor.getSession().setValue(data.result);
 					setEditMode(name[name.length - 1]);
 					edit = true;
