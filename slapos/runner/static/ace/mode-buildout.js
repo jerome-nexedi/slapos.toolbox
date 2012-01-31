@@ -98,40 +98,13 @@ define('ace/mode/buildout', function(require, exports, module) {
 
             return indent;
         };
-        var outdents = {
-            "\r\n": 1,
-            "\r": 1,
-            "\n": 1
-        };
 
         this.checkOutdent = function(state, line, input) {
-            if (input !== "\r\n" && input !== "\r" && input !== "\n")
-                return false;
-
-            var tokens = this.$tokenizer.getLineTokens(line.trim(), state).tokens;
-        
-            if (!tokens)
-                return false;
-        
-            // ignore trailing comments
-            do {
-                var last = tokens.pop();
-            } while (last && (last.type == "comment" || (last.type == "text" && last.value.match(/^\s+$/))));
-        
-            if (!last)
-                return false;
-            return (last.type == "keyword" && outdents[last.value]);
+            
         };
 
         this.autoOutdent = function(state, doc, row) {
-            // outdenting in python is slightly different because it always applies
-            // to the next line and only of a new line is inserted
-        
-            row += 1;
-            var indent = this.$getIndent(doc.getLine(row));
-            var tab = doc.getTabString();
-            if (indent.slice(-tab.length) == tab)
-                doc.remove(new Range(row, indent.length-tab.length, row, indent.length));
+            
         };
 
     }).call(Mode.prototype);
@@ -148,11 +121,8 @@ define('ace/mode/buildout_highlight_rules', function(require, exports, module) {
 
     var BuildoutHighlightRules = function() {
 
-        var keywords = lang.arrayToMap(
-            ("parts|develop|versions|extends|depends|find-links|allow-hosts").split("|")
-            );
         var buildinConstants = lang.arrayToMap(
-            ("null|true|false").split("|")
+            ("null|true|false|None").split("|")
             );        
         var strPre = "(?:r|u|ur|R|U|UR|Ur|uR)?";
         var decimalInteger = "(?:(?:[1-9]\\d*)|(?:0))";
@@ -167,6 +137,7 @@ define('ace/mode/buildout_highlight_rules', function(require, exports, module) {
         var pointFloat = "(?:(?:" + intPart + "?" + fraction + ")|(?:" + intPart + "\\.))";
         var exponentFloat = "(?:(?:" + pointFloat + "|" +  intPart + ")" + exponent + ")";
         var floatNumber = "(?:" + exponentFloat + "|" + pointFloat + ")";
+        var pythonVariable = "%\\([\\w-_:][\\w\\d-_:\\.]*\\)s";
     
         // regexp must not have capturing parentheses. Use (?:) instead.
         // regexps are ordered -> the first match is used
@@ -175,7 +146,10 @@ define('ace/mode/buildout_highlight_rules', function(require, exports, module) {
             "start" : [                
             {
                 token : "keyword", // begin buildout part
-                regex : "^\\[[a-zA-Z-_][a-zA-Z0-9-_]*\\]"
+                regex : "^\\[[\\w\\d_][\\w\\d-_\\.]*\\]"
+            },{
+                token : "keyword", //begin buildout part with variable
+                regex : "^\\[" + pythonVariable + "\\]"
             }, {
                 token : "comment",
                 regex : "#.*$"
@@ -218,20 +192,20 @@ define('ace/mode/buildout_highlight_rules', function(require, exports, module) {
                 regex: "^[\\w\\d-_\\.]+\\s*\\+?="
             }, {
                 token : function(value) {
-                    if (keywords.hasOwnProperty(value.toLowerCase())) {
-                        return "support.function";
-                    }
-                    else if (buildinConstants.hasOwnProperty(value.toLowerCase())) {
+                    if (buildinConstants.hasOwnProperty(value.toLowerCase())) {
                         return "support.constant";
                     }
                     else {
                         return "text";
                     }
                 },
-                regex : "\\-?[a-zA-Z_][a-zA-Z0-9_\\-]*"
+                regex : "\\-?[\\w_][\\w\\d\\._-]*"
             }, {
                 token : "variable",
-                regex : "\\$\\{[a-zA-Z-_:\\.][a-zA-Z0-9-_:\\.]*\\}"
+                regex : "\\$\\{[\\w-_:][\\w\\d-_:\\.]*\\}"
+            }, {
+                token : "variable",
+                regex : pythonVariable
             }, {
                 token: "string",
                 regex: '\\s(?:ht|f)tps?:\\/\\/[a-z0-9-\\._:]+\\.[a-z]{2,4}\\/?(?:[^\\s<>\\#%"\\,\\{\\}\\\\|\\\\\\^\\[\\]`]+)?\\s*$'
@@ -313,7 +287,7 @@ define('ace/mode/buildout_highlight_rules', function(require, exports, module) {
                 token : "string",
                 merge : true,
                 regex : '.+'
-            }
+            }            
             ]
         };
     };
