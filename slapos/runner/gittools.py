@@ -65,16 +65,9 @@ def switchBranch(project, name):
     if name == current_branch:
       json = "This is already your active branch for this project"
     else:
-      i = 0
       json = "Error: Can not found branch '" + name + "'"
-      repo.heads.master.checkout()
-      for b in branches:
-        if b.name == name:          
-          repo.heads[i].checkout()
-          code = 1
-          json = ""
-          break
-        i = i + 1      
+      git  = repo.git
+      git.checkout(name)
   except Exception, e:
     json = str(e)
   return jsonify(code=code, result=json)
@@ -84,7 +77,8 @@ def createBranch(project, name):
   json = ""
   try:
     repo = Repo(project)
-    b = repo.create_head(name)
+    git  = repo.git
+    git.checkout('-b', name)
     code = 1
   except Exception, e:
     json = str(e)
@@ -101,25 +95,22 @@ def getDiff(project):
     result = str(e)
   return result
 
-def gitPush(project, msg, fetch=False):
+def gitPush(project, msg):
   code = 0
   json = ""
-  commit = False
+  undo_commit = False
   try:
     repo = Repo(project)
     if repo.is_dirty:
       git = repo.git
-      current_branch = repo.active_branch.name
+      current_branch = repo.active_branch.name      
       #add file to be commited
       files = repo.untracked_files
       for f in files:
         git.add(f)
       #Commit all modified and untracked files
       git.commit('-a', '-m', msg)
-      commit = True
-      if fetch:
-        git.fetch('--all')
-        git.rebase('origin/' + current_branch)          
+      undo_commit = True
       #push changes to repo
       git.push('origin', current_branch)
       code = 1
@@ -127,7 +118,20 @@ def gitPush(project, msg, fetch=False):
       json = "Nothing to be commited"
       code = 1
   except Exception, e:
-    if commit:
+    if undo_commit:
       git.reset("HEAD^1") #undo previous commit
     json = str(e)
   return jsonify(code=code, result=json)
+
+def gitPull(project):
+  result = ""
+  code = 0
+  try:
+    repo = Repo(project)
+    git = repo.git
+    current_branch = repo.active_branch.name
+    git.pull()
+    code = 1
+  except Exception, e:
+    result = str(e)
+  return jsonify(code=code, result=result)

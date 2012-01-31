@@ -78,7 +78,7 @@ $(document).ready( function() {
 		$.ajax({
 			type: "POST",
 			url: $SCRIPT_ROOT + '/saveFileContent',
-			data: "file=" + $("input#subfolder").val() + "&content=" + editor.getSession().getValue(),
+			data: {file: $("input#subfolder").val(), content: editor.getSession().getValue()},
 			success: function(data){				
 				if(data.code == 1){
 					$("#flash").fadeOut('normal');

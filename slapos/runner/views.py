@@ -31,8 +31,7 @@ def editSoftwareProfile():
   if profile == "":
     flash('Error: can not open profile, please select your project first')
   return render_template('updateSoftwareProfile.html',
-      profile=profile, 
-      instance_url=url_for('getInstance', _external=True))
+      profile=profile)
 
 @app.route('/software.cfg', methods=['GET', 'POST'])
 def getSoftware():

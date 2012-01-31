@@ -67,7 +67,7 @@ $(document).ready( function() {
 		$.ajax({
 			type: "POST",
 			url: $SCRIPT_ROOT + '/pushProjectFiles',
-			data: "project=" + $("input#workdir").val() + "/" + project + "&msg=" + $("input#commitmsg").val(),
+			data: {project: $("input#workdir").val() + "/" + project, msg: $("input#commitmsg").val()},
 			success: function(data){
 				if(data.code == 1){
 					if (data.result != ""){
@@ -88,6 +88,40 @@ $(document).ready( function() {
 		});
 		return false;
 	});
+	/*
+	$("#pullbranch").click(function(){
+		if (send){ 
+			return false;
+		}
+		send = true;
+		var project = $("#project").val();
+		$("#pullimgwaitting").fadeIn('normal');
+		$("#pullbranch").empty();
+		$("#pullbranch").attr("value", "Wait...");
+		$.ajax({
+			type: "POST",
+			url: $SCRIPT_ROOT + '/pullProjectFiles',
+			data: "project=" + $("input#workdir").val() + "/" + project,
+			success: function(data){
+				if(data.code == 1){
+					if (data.result != ""){
+						error(data.result);
+					}
+					else
+						error("Pull done!");
+					gitStatus();
+				}
+				else{
+					error(data.result);
+				}
+				$("#pullimgwaitting").hide()
+				$("#pullbranch").empty();
+				$("#pullbranch").attr("value", "Git Pull");
+				send = false;
+			}
+		});
+		return false;
+	});*/
 	function gitStatus(){
 		var project = $("#project").val();
 		$("#status").empty();			

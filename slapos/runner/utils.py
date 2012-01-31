@@ -185,7 +185,7 @@ def getProfile(peojectDir, profileName):
   if os.path.exists(profile):
     return open(profile).read()
   else:
-    return ''
+    return None
 
 def getProfilePath(peojectDir, profile):
   if not os.path.exists(os.path.join(peojectDir, ".project")):
@@ -297,7 +297,8 @@ def getFolder(folder):
 
 def getProjectList(folder):
   project = []
-  for elt in os.listdir(folder):
+  project_list = sorted(os.listdir(folder), key=str.lower)
+  for elt in project_list:
     project.append(elt)
   return project
 
