@@ -13,28 +13,7 @@
         <meta name="description" content="" />
 
         <link href="{{ url_for('static', filename='css/styles.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-        <script src="{{ url_for('static', filename='jquery/jquery-1.6.2.min.js') }}" type="text/javascript" charset="utf-8"></script>
-        {% if request.path == '/editSoftwareProfile' or request.path == '/editInstanceProfile' %}
-        <script src="{{ url_for('static', filename='ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ url_for('static', filename='ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ url_for('static', filename='ace/mode-buildout.js') }}" type="text/javascript" charset="utf-8"></script>
-        
-        <script type="text/javascript">
-            $(document).ready(function() {
-                var editor = ace.edit("editor");
-                editor.setTheme("ace/theme/crimson_editor");
-
-                var CurentMode = require("ace/mode/buildout").Mode;
-                editor.getSession().setMode(new CurentMode());
-                editor.getSession().setTabSize(2);
-                editor.getSession().setUseSoftTabs(true);
-                editor.renderer.setHScrollBarAlwaysVisible(false);
-                $('#save').click(function(){
-                    $('#editor_content').val(editor.getSession().getValue());
-                });
-            });
-        </script>
-        {% endif %}
+        <script src="{{ url_for('static', filename='jquery/jquery-1.6.2.min.js') }}" type="text/javascript" charset="utf-8"></script>        
         <script type=text/javascript>
           $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
         </script>

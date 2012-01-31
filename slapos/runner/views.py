@@ -4,7 +4,7 @@ from utils import *
 import os
 import shutil
 from gittools import cloneRepo, gitStatus, switchBranch, createBranch, getDiff, \
-     gitPush
+     gitPush, gitPull
 
 app = Flask(__name__)
 
@@ -27,7 +27,7 @@ def configRepo():
 # software views
 @app.route('/editSoftwareProfile')
 def editSoftwareProfile():
-  profile = getProfile(app.config['runner_workdir'], app.config['software_profile'])
+  profile = getProfilePath(app.config['runner_workdir'], app.config['software_profile'])
   if profile == "":
     flash('Error: can not open profile, please select your project first')
   return render_template('updateSoftwareProfile.html',
@@ -75,17 +75,10 @@ def viewSoftwareLog():
   return render_template('viewLog.html', type='Software',
       result=result, running=isSoftwareRunning(app.config))
 
-@app.route('/updateSoftwareProfile', methods=['POST'])
-def updateSoftwareProfile():
-  profile = getProfilePath(app.config['runner_workdir'], app.config['software_profile'])
-  if profile != "":
-    open(profile, 'w').write(request.form['content'])
-  return redirect(url_for('editSoftwareProfile'))
-
 # instance views
 @app.route('/editInstanceProfile')
 def editInstanceProfile():
-  profile = getProfile(app.config['runner_workdir'], app.config['instance_profile'])
+  profile = getProfilePath(app.config['runner_workdir'], app.config['instance_profile'])
   if profile == "":
     flash('Error: can not open instance profile for this Software Release') 
   return render_template('updateInstanceProfile.html',
@@ -135,13 +128,6 @@ def viewInstanceLog():
     result = 'Not found yet'
   return render_template('viewLog.html', type='Instance',
       result=result, running=isInstanceRunning(app.config))
-
-@app.route('/updateInstanceProfile', methods=['POST'])
-def updateInstanceProfile():
-  profile = getProfilePath(app.config['runner_workdir'], app.config['instance_profile'])
-  if profile != "":  
-    open(profile, 'w').write(request.form['content'])
-  return redirect(url_for('editInstanceProfile'))
 
 @app.route('/stopAllPartition', methods=['GET'])
 def stopAllPartition():
@@ -287,4 +273,8 @@ def getProjectDiff(project):
 
 @app.route("/pushProjectFiles", methods=['POST'])
 def pushProjectFiles():
-  return gitPush(request.form['project'], request.form['msg'], False)
+  return gitPush(request.form['project'], request.form['msg'])
+
+@app.route("/pullProjectFiles", methods=['POST'])
+def pullProjectFiles():
+  return gitPull(request.form['project'])

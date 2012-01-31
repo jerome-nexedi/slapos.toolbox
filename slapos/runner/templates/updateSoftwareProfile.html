@@ -1,17 +1,22 @@
 {% extends "layout.html" %}
 {% block title %}Update software profile{% endblock %}
+{% block head %}
+  {{ super() }}
+    <script src="{{ url_for('static', filename='ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='ace/mode-buildout.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='scripts/editor.js') }}" type="text/javascript" charset="utf-8"></script>
+{% endblock %}
 {% block body %}
-<form action="{{ url_for('updateSoftwareProfile') }}" method=post class=add-entry>
+<form method=post class=add-entry>
     <dl>
         <dt><strong>Note:</strong> Url of instance.cfg is <tt>{{ instance_url }}</tt></dt>
         <dd><h2>Software Profile:</h2></dd>
-        <dd> <!--<textarea name=content rows=20 cols=103 id="editor">{{ profile }}</textarea>-->
+        <dd>
            <div class="main_content">
-<pre id="editor">
-{{ profile }}
-</pre>
+<pre id="editor"></pre>
             </div>
-            <input type="hidden" value="{{ profile }}" name=content id="editor_content"/>
+            <input type="hidden" name="profile" id="profile" value="{{ profile|safe }}" />
         </dd>
         <dd><input type=submit value=Update id="save" class="button"></dd>
     </dl>
