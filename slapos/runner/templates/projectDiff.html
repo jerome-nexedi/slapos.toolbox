@@ -2,8 +2,8 @@
 {% block title %}Diff for '{{project}}'{% endblock %}
 {% block head %}
   {{ super() }}  
-  <script src="{{ url_for('static', filename='ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('static', filename='ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
   <script type="text/javascript">
     $(document).ready( function() {
         var editor = ace.edit("editor");

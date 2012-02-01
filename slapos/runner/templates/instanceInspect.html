@@ -3,20 +3,18 @@
 {% block head %}
   {{ super() }}
   <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
   <link href="{{ url_for('static', filename='css/jqueryTabs.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='jquery/jqueryTabs.js') }}" type="text/javascript" charset="utf-8"></script>
-  {%if file_path != "" %}
-  <script type="text/javascript" charset="utf-8">
-    $(document).ready( function() {
-      $('#fileTree').fileTree({ root: "{{file_path}}", script: $SCRIPT_ROOT + "/readFolder", folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: false }, function(file) { 
-			
-		});
-    });
-  </script>
-  {%endif%}
+  <script src="{{ url_for('static', filename='js/jquery/jqueryTabs.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
+  <link href="{{ url_for('static', filename='css/colorbox.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='js/jquery/jquery.colorbox-min.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/scripts/inspectInstance.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
+<input type='hidden' name='root' id='root' value='{%if file_path != "" %}{{file_path}}{%endif%}' />
+<input type='hidden' name='basedir' id='basedir' value='{{base_dir}}' />
 <h2>Instance inspection</h2><br/>
 <div id="tabContaier">
     <ul>
@@ -56,5 +54,12 @@
 	    <div id="fileTree" class="file_tree_tabs"></div>
         </div><!-- end tab3 -->
     </div>
+</div>
+<!-- This contains the hidden content for inline calls -->
+<a class='inline' style='display:none' href="#inline_content">Inline HTML</a>
+<div style='display:none'>
+<div id='inline_content' style='padding:10px; background:#fff;'>
+
+</div>
 </div>
 {% endblock %}

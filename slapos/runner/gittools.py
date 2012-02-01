@@ -119,7 +119,7 @@ def gitPush(project, msg):
       code = 1
   except Exception, e:
     if undo_commit:
-      git.reset("HEAD^1") #undo previous commit
+      git.reset("HEAD~") #undo previous commit
     json = str(e)
   return jsonify(code=code, result=json)
 

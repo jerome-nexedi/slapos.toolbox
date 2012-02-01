@@ -424,3 +424,14 @@ def tail(f, lines=20):
       bytes -= BUFSIZ
       block -= 1
   return string.join(''.join(data).splitlines()[-lines:], '\n')
+
+def isText(file):
+  """Return True if the mimetype of file is Text"""
+  if not os.path.exists(file):
+    return False
+  text_range = ''.join(map(chr, [7,8,9,10,12,13,27] + range(0x20, 0x100)))
+  is_binary_string = lambda bytes: bool(bytes.translate(None, text_range))
+  try:
+    return not is_binary_string(open(file).read(1024))
+  except:
+    return False

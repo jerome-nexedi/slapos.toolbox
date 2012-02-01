@@ -560,7 +560,7 @@ select {
   white-space: nowrap;}
 
 a.lshare{
-    background: #D9D9D9;
+    background: #fff url(../images/button_highlight.png) repeat-x;
     padding: 4px 7px 4px 7px;
     height: 18px;
     font-size: 15px;
@@ -569,10 +569,11 @@ a.lshare{
     margin-right: 10px;
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
+    text-shadow: 0px 1px #F0F1F2;
 }
 
 a.lshare:hover{
-    background:#EFF5FF;
+    background:#D9D9D9 url(../images/button_highlight.png) 50% repeat-x;
     color: #000;
     border:solid 1px #73A6FF;
 }

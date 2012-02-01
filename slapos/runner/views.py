@@ -98,7 +98,7 @@ def inspectInstance():
       result = []
   return render_template('instanceInspect.html',
       file_path=file_content, supervisor=result, slap_status=getSlapStatus(app.config),
-      supervisore=result)
+      supervisore=result, base_dir=app.config['runner_workdir'])
 
 @app.route('/removeInstance')
 def removeInstance():
@@ -244,7 +244,11 @@ def removeSoftwareDir():
 @app.route("/getFileContent", methods=['POST'])
 def getFileContent():
   if os.path.exists(request.form['file']):
-    return jsonify(code=1, result=open(request.form['file'], 'r').read())
+    if not request.form.has_key('truncate'):
+      return jsonify(code=1, result=open(request.form['file'], 'r').read())
+    else:
+      content = tail(open(request.form['file'], 'r'), int(request.form['truncate']))
+      return jsonify(code=1, result=content)
   else:
     return jsonify(code=0, result="Error: No such file!")
   
@@ -277,3 +281,11 @@ def pushProjectFiles():
 @app.route("/pullProjectFiles", methods=['POST'])
 def pullProjectFiles():
   return gitPull(request.form['project'])
+
+@app.route("/checkFileType", methods=['POST'])
+def checkFileType():
+  path = request.form['path']
+  if isText(path):
+    return jsonify(code=1, result="text")
+  else:
+    return jsonify(code=0, result="You can only open text files!")
