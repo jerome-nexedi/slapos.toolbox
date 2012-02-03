@@ -39,7 +39,7 @@ $(document).ready( function() {
 					location.href = $SCRIPT_ROOT + '/editSoftwareProfile'
 				}
 				else{
-					error(data.result);
+					$("#error").Popup(data.result, {type:'error'});
 				}
 			}
 		});
@@ -62,8 +62,6 @@ $(document).ready( function() {
 					setupFileTree(runnerDir);
 					}, function(file){ viewFile(file)});
 					$("input#file").val("");
-					$("#flash").fadeOut('normal');
-					$("#flash").empty();
 					$("#info").empty();
 					$("#info").append("Please select your file or folder into the box...");
 					$("#softwarelist").empty();
@@ -72,9 +70,10 @@ $(document).ready( function() {
 							'" title="' + data.result[i]["title"] +'" rel="' + 
 							data.result[i]["path"] +'">' + data.result[i]["title"] + '</option>');
 					}
+					$("#error").Popup("Operation complete, Selected Software Release has been delete!", {type:'confirm', duration:5000});
 				}
 				else{
-					error(data.result);
+					$("#error").Popup(data.result, {type:'error'});
 				}
 				send = false;
 			}
@@ -102,7 +101,6 @@ $(document).ready( function() {
 			data: {file:file, truncate:1500},
 			success: function(data){	
 				if(data.code == 1){
-					$("#flash").empty();
 					$("#inline_content").empty();
 					$("#inline_content").append('<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">Inspect Software Content: ' +
 						filename +'</h2>');
@@ -114,18 +112,18 @@ $(document).ready( function() {
 					$(".inline").click();
 				}
 				else{
-					error("Error: Can not load your file, please make sure that you have selected a Software Release");
+					$("#error").Popup("Can not load your file, please make sure that you have selected a Software Release", {type:'alert', duration:5000});
 				}
 			    }
 			});
 		      }
 		      else{
 			//Can not displays binary file
-			error(data.result);
+			$("#error").Popup(data.result, {type:'alert', duration:5000});
 		      }
 		    }
 		    else{
-		      error(data.result);
+		      $("#error").Popup(data.result, {type:'alert', duration:5000});
 		    }
 		  }
 	      });
@@ -141,12 +139,5 @@ $(document).ready( function() {
 		editor.getSession().setUseSoftTabs(true);
 		editor.renderer.setHScrollBarAlwaysVisible(false);
 		editor.setReadOnly(true);
-	}
-	
-	function error(msg){
-		$("#flash").fadeOut('normal');
-		$("#flash").empty();
-		$("#flash").fadeIn('normal');
-		$("#flash").append("<ul class='flashes'><li>" + msg + "</li></ul>");
 	}
 });

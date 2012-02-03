@@ -21,7 +21,7 @@ $(document).ready( function() {
 					gitStatus();
 				}
 				else{
-					error(data.result);
+					$("#error").Popup(data.result, {type:'error', duration:5000});
 				}
 			}
 		});
@@ -29,7 +29,7 @@ $(document).ready( function() {
 	$("#addbranch").click(function(){
 		if($("input#branchname").val() == "" || 
 			$("input#branchname").val() == "Enter the branch name..."){
-			error("Error: Please Enter your branch name");
+			$("#error").Popup("Please Enter your branch name", {type:'alert', duration:3000});
 			return false;
 		}
 		var project = $("#project").val();
@@ -44,7 +44,7 @@ $(document).ready( function() {
 					gitStatus();
 				}
 				else{
-					error(data.result);
+					$("#error").Popup(data.result, {type:'error'});
 				}
 			}
 		});
@@ -53,7 +53,7 @@ $(document).ready( function() {
 	$("#commit").click(function(){
 		if($("input#commitmsg").val() == "" ||
 			$("input#commitmsg").val() == "Enter message..."){
-			error("Error: Please Enter the commit message");
+			$("#error").Popup("Please Enter the commit message", {type:'alert', duration:3000});
 			return false;
 		}
 		if (send){ 
@@ -71,14 +71,14 @@ $(document).ready( function() {
 			success: function(data){
 				if(data.code == 1){
 					if (data.result != ""){
-						error(data.result);
+						$("#error").Popup(data.result, {type:'error', duration:5000});
 					}
 					else
-						error("Commit done!");
+						$("#error").Popup("Commit done!", {type:'confirm', duration:3000});
 					gitStatus();
 				}
 				else{
-					error(data.result);
+					$("#error").Popup(data.result, {type:'error', duration:5000});
 				}
 				$("#imgwaitting").hide()
 				$("#commit").empty();
@@ -155,7 +155,7 @@ $(document).ready( function() {
 					loadBranch(data.branch);
 				}
 				else{
-					error(data.result);
+					$("#error").Popup(data.result, {type:'error', duration:5000});
 				}
 				send = false;
 			}
@@ -168,12 +168,5 @@ $(document).ready( function() {
 			$("#activebranch").append("<option value='" + branch[i] +
 				"' " + selected + ">" + branch[i] + "</option>");
 		}
-	}
-	
-	function error(msg){
-		$("#flash").fadeOut('normal');
-		$("#flash").empty();
-		$("#flash").fadeIn('normal');
-		$("#flash").append("<ul class='flashes'><li>" + msg + "</li></ul>");
 	}
 });

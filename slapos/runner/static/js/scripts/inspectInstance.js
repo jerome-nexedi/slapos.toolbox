@@ -35,30 +35,29 @@ $(document).ready( function() {
 	      data: {file:file, truncate:1500},
 	      success: function(data){	
 		      if(data.code == 1){
-			      $("#flash").empty();
-			      $("#inline_content").empty();
-			      $("#inline_content").append('<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">Inspect Software Content: ' +
-				      filename +'</h2>');
-			      $("#inline_content").append('<br/><div class="main_content"><pre id="editor"></pre></div>');
-			      setupEditor();
-			      $(".inline").colorbox({inline:true, width: "847px", onComplete:function(){						
-				      editor.getSession().setValue(data.result);
-			      }});
-			      $(".inline").click();
+			$("#inline_content").empty();
+			$("#inline_content").append('<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">Inspect Software Content: ' +
+				filename +'</h2>');
+			$("#inline_content").append('<br/><div class="main_content"><pre id="editor"></pre></div>');
+			setupEditor();
+			$(".inline").colorbox({inline:true, width: "847px", onComplete:function(){						
+				editor.getSession().setValue(data.result);
+			}});
+			$(".inline").click();
 		      }
 		      else{
-			      error("Error: Can not load your file, please make sure that you have selected a Software Release");
+			$("#error").Popup("Can not load your file, please make sure that you have selected a Software Release", {type:'alert', duration:5000});
 		      }
 		  }
 	      });
 	    }
 	    else{
 	      //Can not displays binary file
-	      error(data.result);
+	      $("#error").Popup(data.result, {type:'alert', duration:5000});
 	    }
 	  }
 	  else{
-	    error(data.result);
+	    $("#error").Popup(data.result, {type:'alert', duration:5000});
 	  }
 	}
     });
@@ -74,12 +73,5 @@ $(document).ready( function() {
     editor.getSession().setUseSoftTabs(true);
     editor.renderer.setHScrollBarAlwaysVisible(false);
     editor.setReadOnly(true);
-  }
-	
-  function error(msg){
-    $("#flash").fadeOut('normal');
-    $("#flash").empty();
-    $("#flash").fadeIn('normal');
-    $("#flash").append("<ul class='flashes'><li>" + msg + "</li></ul>");
   }
 });

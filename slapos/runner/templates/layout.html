@@ -13,7 +13,8 @@
         <meta name="description" content="" />
 
         <link href="{{ url_for('static', filename='css/styles.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-        <script src="{{ url_for('static', filename='js/jquery/jquery-1.6.2.min.js') }}" type="text/javascript" charset="utf-8"></script>        
+        <script src="{{ url_for('static', filename='js/jquery/jquery-1.6.2.min.js') }}" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ url_for('static', filename='js/jquery/popup.js') }}" type="text/javascript" charset="utf-8"></script>
         <script type=text/javascript>
           $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
         </script>
@@ -34,13 +35,18 @@
     		    if ($.trim(this.value) == ''){
 			    	this.value = (this.defaultValue ? this.defaultValue : '');
 				}
-    		});
-		});			
+    		});		
+		if($("input#fmsg").val() != ""){
+		   $("#error").Popup($("input#fmsg").val(), {type:'info', duration:10000, load:true});
+		}
+		});		
 	</script>
 	{% endblock %}
     </head>
     <body>
-        <div id="page">
+	<div id="error"></div>
+        <div id="page">	    
+	    <input type="hidden" name="fmsg" value="{{ get_flashed_messages()[0] }}" id="fmsg" />
             <div id="logo">
                 <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="" /></a>
             </div>
@@ -72,18 +78,7 @@
                 </div>
                 <div class="clear"></div>
             </div>            
-            <div id="main">                
-                <div class="flash" id="flash">
-                    {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                    <ul class="flashes">
-                        {% for message in messages %}
-                        <li>{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                    {% endwith %}
-                </div>                
+            <div id="main">
                 <div {% if request.path == '/' %} class="home_content" {%else%} id="content" {% endif %}>
                     {% if request.path != '/' %}
                         <div class="main_head">

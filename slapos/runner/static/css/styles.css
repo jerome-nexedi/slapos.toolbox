@@ -584,3 +584,56 @@ a.lshare:focus{
 a.lshare img{
     margin: 5px;
 }
+
+#error{        
+    padding: 0px;
+    position: absolute;    
+    top: -2px;
+    left:0;
+    right: 0;    
+}
+
+#error > div{
+    background: none repeat scroll 0 0 #afcee4;
+    border: 1px solid #FFF;
+    width:500px;
+    margin: 0 auto;
+    border-top:none;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+#error table{
+    background: none;
+    width: 100%;
+    font-weight: normal;
+}
+#error table, #error th, #error tr, #error td{
+    border: none;    
+    padding:0;
+}
+
+#error td{
+    margin:2px;
+}
+
+#error td.logo{
+    width: 36px;
+    height: 26px;
+}
+#error td.close{
+    width: 30px;
+    height:22px;
+}
+
+.alert_message{ background: url(../images/alert.png) center no-repeat; height: 26px;}
+.error_message{ background: url(../images/exit.png) center no-repeat; height: 26px;}
+.confirm_message{ background: url(../images/confirm.png) center no-repeat; height: 26px;}
+.info_message{ background: url(../images/info.png) center no-repeat; height: 26px;}
+#error p{
+    fon-size: 13px;
+    color: #000;
+}
+#pClose{background:url(../images/close.png) no-repeat 0px 0px; display:block; width:22px; height:22px; cursor:pointer}
+#pClose:hover{background:url(../images/close_hover.png) no-repeat 0px 0px;}

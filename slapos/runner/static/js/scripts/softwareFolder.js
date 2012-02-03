@@ -38,7 +38,7 @@ $(document).ready( function() {
 		if (send) return false;
 		if($("input#file").val() == "" || 
 			$("input#file").val() == "Enter name here..."){
-			error("Error: Please enter your file or folder name");
+			$("#error").Popup("Please enter your file or folder name", {type:'alert', duration:3000});
 			return false;
 		}
 		if($("input#subfolder").val() != ""){
@@ -61,7 +61,7 @@ $(document).ready( function() {
 					$("input#subfolder").val("");					
 				}
 				else{
-					error(data.result);
+					$("#error").Popup(data.result, {type:'error', duration:5000});
 				}
 				send = false;
 			}
@@ -71,7 +71,7 @@ $(document).ready( function() {
 	
 	$("#save").click(function(){
 		if(!edit){
-			error("Please select the file to edit");
+			$("#error").Popup("Please select the file to edit", {type:'alert', duration:3000});
 			return false;
 		}
 		send = false;
@@ -83,9 +83,10 @@ $(document).ready( function() {
 				if(data.code == 1){
 					$("#flash").fadeOut('normal');
 					$("#flash").empty();
+					$("#error").Popup("File saved succefuly!", {type:'confirm', duration:3000});
 				}
 				else{
-					error(data.result);
+					$("#error").Popup(data.result, {type:'error', duration:5000});
 				}
 				send = false;
 			}
@@ -143,12 +144,6 @@ $(document).ready( function() {
 	    }
 	}
 	
-	function error(msg){
-		$("#flash").fadeOut('normal');
-		$("#flash").empty();
-		$("#flash").fadeIn('normal');
-		$("#flash").append("<ul class='flashes'><li>" + msg + "</li></ul>");
-	}
 	function selectFile(file){
 		relativeFile = file.replace(workdir, "");
 		$("#info").empty();
@@ -175,7 +170,7 @@ $(document).ready( function() {
 					edit = true;
 				}
 				else{
-					error(data.result);
+					$("#error").Popup(data.result, {type:'error', duration:5000});
 				}
 				send = false;
 			}

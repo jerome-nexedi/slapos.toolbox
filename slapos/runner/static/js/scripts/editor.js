@@ -14,7 +14,7 @@ $(document).ready( function() {
 	
 	$("#save").click(function(){
 		if(!edit){
-			error("Error: Can not load your file, please make sure that you have selected a Software Release");
+			$("#error").Popup("Can not load your file, please make sure that you have selected a Software Release", {type:'alert', duration:5000});
 			return false;
 		}
 		send = false;
@@ -24,10 +24,10 @@ $(document).ready( function() {
 			data: {file: file, content: editor.getSession().getValue()},
 			success: function(data){				
 				if(data.code == 1){
-					error("File Saved!");
+					$("#error").Popup("File Saved!", {type:'confirm', duration:2000});
 				}
 				else{
-					error(data.result);
+					$("#error").Popup(data.result, {type:'error', duration:5000});
 				}
 				send = false;
 			}
@@ -35,12 +35,6 @@ $(document).ready( function() {
 		return false;
 	});
 	
-	function error(msg){
-		$("#flash").fadeOut('normal');
-		$("#flash").empty();
-		$("#flash").fadeIn('normal');
-		$("#flash").append("<ul class='flashes'><li>" + msg + "</li></ul>");
-	}
 	function selectFile(file){
 		edit = false;
 		$.ajax({
@@ -53,7 +47,7 @@ $(document).ready( function() {
 					edit = true;
 				}
 				else{
-					error("Error: Can not load your file, please make sure that you have selected a Software Release");
+					$("#error").Popup("Can not load your file, please make sure that you have selected a Software Release", {type:'alert', duration:5000});
 				}
 			}
 		});
