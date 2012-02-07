@@ -8,6 +8,7 @@ import urllib
 from flask import jsonify
 import shutil
 import string
+import hashlib
 
 
 class Popen(subprocess.Popen):
@@ -140,13 +141,17 @@ def runSoftwareWithLock(config):
     for path in os.listdir(config['software_root']):
       exist = False
       for val in data:
-	if val['md5'] == path:	  
+	if val['md5'] == path:
 	  exist = True
+      conf = os.path.join(config['runner_workdir'], ".project")
       if not exist: #save this compile software folder
-	data.append({"title":getProjectTitle(config), "md5":path,
-	            "path": open(os.path.join(config['runner_workdir'],
-	                                      ".project"), 'r').read()})
-	writeSoftwareData(config['runner_workdir'], data)
+	if os.path.exists(conf):
+	  data.append({"title":getProjectTitle(config), "md5":path,
+	              "path": open(os.path.join(config['runner_workdir'],
+	                                        ".project"), 'r').read()})
+	  writeSoftwareData(config['runner_workdir'], data)
+	else:
+	  shutil.rmtree(os.path.join(config['software_root'], path))
 	break
     return True
   return False
@@ -433,5 +438,21 @@ def isText(file):
   is_binary_string = lambda bytes: bool(bytes.translate(None, text_range))
   try:
     return not is_binary_string(open(file).read(1024))
+  except:
+    return False
+  
+def md5sum(file):
+  """Compute md5sum of `file` and return hexdigest value"""
+  if os.path.isdir(file):
+    return False
+  try:
+    fh = open(file, 'rb')
+    m = hashlib.md5()
+    while True:
+      data = fh.read(8192)
+      if not data:
+	break
+      m.update(data)
+    return m.hexdigest()
   except:
     return False

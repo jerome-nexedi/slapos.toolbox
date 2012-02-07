@@ -10,6 +10,7 @@ $(document).ready( function() {
 	    	
 	var file = $("input#profile").val();
 	var edit = false;
+	var send = false;
 	selectFile(file);
 	
 	$("#save").click(function(){
@@ -17,7 +18,8 @@ $(document).ready( function() {
 			$("#error").Popup("Can not load your file, please make sure that you have selected a Software Release", {type:'alert', duration:5000});
 			return false;
 		}
-		send = false;
+		if (send) return;
+		send =true
 		$.ajax({
 			type: "POST",
 			url: $SCRIPT_ROOT + '/saveFileContent',
@@ -32,6 +34,10 @@ $(document).ready( function() {
 				send = false;
 			}
 		});
+		return false;
+	});
+	$("#getmd5").click(function(){
+		getmd5sum();
 		return false;
 	});
 	
@@ -52,5 +58,25 @@ $(document).ready( function() {
 			}
 		});
 		return;
+	}
+	
+	function getmd5sum(){
+		if (send) return;
+		send =true
+		$.ajax({
+			type: "POST",
+			url: $SCRIPT_ROOT + '/getmd5sum',
+			data: {file: file},
+			success: function(data){
+				if(data.code == 1){
+					$("#md5sum").empty();
+					$("#md5sum").append('md5sum : <span>' + data.result + '</span>');
+				}
+				else{
+					$("#error").Popup(data.result, {type:'error', duration:5000});
+				}
+				send = false;
+			}
+		});
 	}
 });

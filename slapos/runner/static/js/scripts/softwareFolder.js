@@ -74,15 +74,14 @@ $(document).ready( function() {
 			$("#error").Popup("Please select the file to edit", {type:'alert', duration:3000});
 			return false;
 		}
-		send = false;
+		if (send) return false;
+		send = true;
 		$.ajax({
 			type: "POST",
 			url: $SCRIPT_ROOT + '/saveFileContent',
 			data: {file: $("input#subfolder").val(), content: editor.getSession().getValue()},
 			success: function(data){				
 				if(data.code == 1){
-					$("#flash").fadeOut('normal');
-					$("#flash").empty();
 					$("#error").Popup("File saved succefuly!", {type:'confirm', duration:3000});
 				}
 				else{
@@ -108,8 +107,33 @@ $(document).ready( function() {
 	    $("#info").empty();
 	    $("#info").append("Select parent directory or nothing for root...");
 	    $("input#subfolder").val("");
+	    $("#edit_info").empty();
+	    $("#edit_info").append("No file selected");
+	    editor.getSession().setValue("");
+	    $("#md5sum").empty();
 	    return false;
 	});
+	
+	function getmd5sum(){
+		var file = $("input#subfolder").val();
+		if (send) return;
+		send =true
+		$.ajax({
+			type: "POST",
+			url: $SCRIPT_ROOT + '/getmd5sum',
+			data: {file: $("input#subfolder").val()},
+			success: function(data){
+				if(data.code == 1){
+					$("#md5sum").empty();
+					$("#md5sum").append('md5sum : <span>' + data.result + '</span>');
+				}
+				else{
+					$("#error").Popup(data.result, {type:'error', duration:5000});
+				}
+				send = false;
+			}
+		});
+	}
 	
 	function switchContent(){
 	    var root = projectDir;
@@ -149,6 +173,7 @@ $(document).ready( function() {
 		$("#info").empty();
 		$("#info").append(relativeFile);
 		$("input#subfolder").val(file);
+		$("#md5sum").empty();
 		path = "";
 		send = false;
 		edit = false;
@@ -159,14 +184,17 @@ $(document).ready( function() {
 			data: "file=" + file,
 			success: function(data){				
 				if(data.code == 1){
-					$("#flash").fadeOut('normal');
-					$("#flash").empty();
+					md5link = " <a href='#' id='getmd5' title='Show or Update md5sum value'>[md5]</a>"
 					$("#edit_info").empty();
 					var name = file.split('/');
-					$("#edit_info").append("Edit selected file: " +
-						relativeFile);
+					$("#edit_info").append("Current file: " +
+						relativeFile + md5link);
 					editor.getSession().setValue(data.result);
 					setEditMode(name[name.length - 1]);
+					$("#getmd5").click(function(){
+						getmd5sum();
+						return false;
+					});
 					edit = true;
 				}
 				else{
@@ -178,7 +206,7 @@ $(document).ready( function() {
 		}
 		else{
 			$("#edit_info").empty();
-			$("#edit_info").append("Edit your selected file");
+			$("#edit_info").append("No file selected");
 			editor.getSession().setValue("");
 		}
 		return;

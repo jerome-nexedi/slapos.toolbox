@@ -18,7 +18,7 @@
 <input type="hidden" name="workdir" id="workdir" value="{{workDir}}" />
 <input type="hidden" name="subfolder" id="subfolder" value="" />
 <div id="software_folder">
-    <h2 class="hight show" id="details_head">Current software file content</h2>
+    <h2 class="hight show" id="details_head">Current software release file content</h2>
     <div class="software_details" id="details_box">
 	<div id="fileTree" class="file_tree_short"></div>	
 	<div class="box_software">
@@ -37,7 +37,8 @@
 	<div class="clear"></div>
     </div>
     <div id="code" style="margin-top:10px">
-    <h2 id="edit_info">Edit your selected file</h2>
+    <h2 id="edit_info" class='title'>No file selected</h2>
+    <div class='md5sum' id='md5sum'></div>
     <div class="main_content">
 <pre id="editor">
 

@@ -3,6 +3,7 @@ from flask import Flask, request, redirect, url_for, \
 from utils import *
 import os
 import shutil
+import md5
 from gittools import cloneRepo, gitStatus, switchBranch, createBranch, getDiff, \
      gitPush, gitPull
 
@@ -48,12 +49,13 @@ def inspectSoftware():
 
 @app.route('/removeSoftware')
 def removeSoftware():
+  file_config = os.path.join(app.config['runner_workdir'], ".softdata")
   if isSoftwareRunning(app.config) or isInstanceRunning(app.config):
     flash('Software installation or instantiation in progress, cannot remove')
-  elif os.path.exists(app.config['software_root']):
+  elif os.path.exists(file_config):
     svcStopAll(app.config)
     shutil.rmtree(app.config['software_root'])
-    os.remove(os.path.join(config['runner_workdir'], ".softdata"))
+    os.remove(os.path.join(app.config['runner_workdir'], ".softdata"))
     flash('Software removed')
   return redirect(url_for('inspectSoftware'))
 
@@ -289,3 +291,11 @@ def checkFileType():
     return jsonify(code=1, result="text")
   else:
     return jsonify(code=0, result="You can only open text files!")
+
+@app.route("/getmd5sum", methods=['POST'])
+def getmd5sum():
+  md5 = md5sum(request.form['file'])
+  if md5:
+    return jsonify(code=1, result=md5)
+  else:
+    return jsonify(code=0, result="Can not get md5sum for this file!")
