@@ -48,7 +48,11 @@
 
 if [ -f /etc/init.d/suse_studio_firstboot ]
 then
-  /etc/init.d/slapos_firstboot
+    echo "______________Init of SlapOS service_______________"
+    /etc/init.d/slapos_firstboot    
+    mv /etc/slapos/slapos.service /etc/systemd/system/
+    systemctl enable slapos.service
+    systemctl start slapos.service
 elif [ -f /token_second_boot ]; then
-  /etc/init.d/slapos_secondboot
+    /etc/init.d/slapos_secondboot
 fi

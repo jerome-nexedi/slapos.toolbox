@@ -278,7 +278,6 @@ quit
 def run():
   """Prepares machine to run SlapOS"""
   print "Running SUSE Studio first boot script..."
-  callWithIgnore("chkconfig --add slapos".split(' '))
   partprobe()
   slapos_label_file='/dev/disk/by-label/' + LABEL
   if not os.path.exists(slapos_label_file):

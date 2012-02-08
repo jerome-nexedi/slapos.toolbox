@@ -100,8 +100,10 @@ class Parser(OptionParser):
              default=False,
              action="store_true"),
       Option(None, "--no_usb", default=False, action="store_true",
-        help="Do not write on USB.")
-    ])
+        help="Do not write on USB."),
+      Option(None, "--one_disk",default=False, action="store_true",
+             help="Prepare image for one disk usage")
+   ])
 
   def check_args(self):
     """
@@ -266,13 +268,31 @@ def run(config):
         os.chmod(slapos_software_file, 0644)
 
       # Creating boot scripts
-      for script in ['slapos_firstboot', 'slapos']:
-        path = os.path.join(mount_dir_path, 'etc', 'init.d', script)
+      for script in ['slapos.service','slapos']:
+        path = os.path.join(mount_dir_path, 'etc', 'slapos', script)
         print "Creating %r" % path
         if not dry_run:
           open(path, 'w').write(pkg_resources.resource_stream(__name__,
             'script/%s' % script).read())
           os.chmod(path, 0755)
+
+      # Adding slapos_firstboot in case of MultiDisk usage    
+      if not config.one_disk :
+      	for script in ['slapos_firstboot']:
+      	  path = os.path.join(mount_dir_path, 'etc', 'init.d', script)
+      	  print "Creating %r" % path
+      	  if not dry_run:
+      	    open(path, 'w').write(pkg_resources.resource_stream(__name__,
+      	      'script/%s' % script).read())
+      	    os.chmod(path, 0755)	  
+      else:
+        for script in ['slapos_firstboot']:
+      	  path = os.path.join(mount_dir_path, 'etc', 'init.d', script)
+          if os.path.exists(path):
+            print "Removing %r" % path
+            os.remove(path)
+
+
     finally:
       _call(['umount', mount_dir_path], dry_run=dry_run)
   finally:
@@ -337,3 +357,6 @@ def main():
     return_code = err
 
   sys.exit(return_code)
+
+if __name__ == "__main__":
+  main()
