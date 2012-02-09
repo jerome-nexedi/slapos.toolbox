@@ -33,6 +33,30 @@ for service in rpcbind network-remotefs postfix ; do
   /etc/init.d/$service stop
 done
 
+# Test ipv6 connectivity and if not working use openvpn 
+# and wait for it to be ready
+/etc/init.d/openvpn stop
+ping6 -c 2 ipv6.google.com
+if [[ $? != 0 ]]; then
+    echo """ Starting openVPN """
+    /etc/init.d/openvpn start
+    ping6 -c 2 ipv6.google.com
+    while [[ $? != 0 ]]; do
+        ping6 -c 2 ipv6.google.com
+    done
+    # Ask slapos to use openvpn as ipv6 provider                                                                                                                       
+    if [ ! -f /etc/slapos/openvpn-needed ]; then
+        touch /etc/slapos/openvpn-needed
+        echo "ipv6_interface = tapVPN" >> /etc/slapos/slapos.cfg
+    fi
+else
+    # OpenVPN not needed delete last line of slapos.cfg if OpenVPN has been used before                                                                                     
+    if [ -f /etc/slapos/openvpn-needed ]; then
+        rm /etc/slapos/openvpn-needed
+        sed -i '$d' /etc/slapos/slapos.cfg
+    fi
+fi
+
 # set random root password
 pwgen -sync 512 1 | passwd --stdin root
 
@@ -101,5 +125,4 @@ chmod 666 /dev/kvm
 disk=`blkid -L SLAPOS | sed -r -e 's/(\/dev\/|[0-9]*$)//g'`
 echo noop > /sys/block/$disk/queue/scheduler
 
-  ;;
-esac
+

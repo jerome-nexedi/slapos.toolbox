@@ -50,6 +50,11 @@ if [ -f /etc/init.d/suse_studio_firstboot ]
 then
     echo "______________Init of SlapOS service_______________"
     /etc/init.d/slapos_firstboot    
+
+    #By default openvpn is running, we disable this feature 
+    /etc/init.d/openvpn stop
+    chkconfig --del openvpn
+
     mv /etc/slapos/slapos.service /etc/systemd/system/
     systemctl enable slapos.service
     systemctl start slapos.service
