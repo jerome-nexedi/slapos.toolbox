@@ -1,7 +1,11 @@
-0.17 (unreleased)
+0.17 (2012-02-10)
 =================
 
- * No change yet.
+ * slapbuilder: Update slapbuilder to new OpenSuse 12.1. [Cedric Le Ninivin]
+ * slapbuilder: Added automatic IPv6 support thanks to ViFiB OpenVPN.
+   [Cedric Le Ninivin]
+ * slapbuilder: Added virtual machine support. [Cedric Le Ninivin]
+ * slapbuilder: Added "One Disk" feature. [Cedric Le Ninivin]
 
 0.16 (2012-01-20)
 =================
