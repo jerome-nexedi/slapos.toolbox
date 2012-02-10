@@ -281,13 +281,18 @@ def run(config):
         os.chmod(slapos_software_file, 0644)
 
       # Creating boot scripts
-      for script in ['slapos.service','slapos']:
-        path = os.path.join(mount_dir_path, 'etc', 'slapos', script)
-        print "Creating %r" % path
-        if not dry_run:
-          open(path, 'w').write(pkg_resources.resource_stream(__name__,
-            'script/%s' % script).read())
-          os.chmod(path, 0755)
+      path = os.path.join(mount_dir_path, 'etc', 'slapos', 'slapos')
+      print "Creating %r" % path
+      if not dry_run:
+        open(path, 'w').write(pkg_resources.resource_stream(__name__,
+          'script/%s' % 'slapos').read())
+        os.chmod(path, 0755)
+      path = os.path.join(mount_dir_path, 'etc', 'systemd', 'system','slapos.service')
+      print "Creating %r" % path
+      if not dry_run:
+        open(path, 'w').write(pkg_resources.resource_stream(__name__,
+          'script/%s' % 'slapos.service').read())
+        os.chmod(path, 0755)
           
       # Removing line in slapos script activating kvm in virtual 
       if config.virtual:
@@ -380,5 +385,4 @@ def main():
     # Catch exception raise by optparse
     return_code = err
 
-    sys.exit(return_code)
-
+  sys.exit(return_code)
