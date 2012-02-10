@@ -122,6 +122,10 @@ class Parser(OptionParser):
       self.error("%s isn't valid. The first argument must be the raw " \
                  "slapos file" % system_path)
 
+    if options.virtual:
+      options.no_usb=True
+      options.one_disk=True
+
     device_path = os.path.abspath(device_path)
     if not options.no_usb:
       mode = os.stat(device_path)[ST_MODE]
@@ -284,7 +288,13 @@ def run(config):
           open(path, 'w').write(pkg_resources.resource_stream(__name__,
             'script/%s' % script).read())
           os.chmod(path, 0755)
-
+          
+      # Removing line in slapos script activating kvm in virtual 
+      if config.virtual:
+        path = os.path.join(mount_dir_path, 'etc', 'slapos','slapos')
+        _call(['sed','-i',"$d",path],dry_run=dry_run)
+        _call(['sed','-i',"$d",path],dry_run=dry_run)
+        
       # Adding slapos_firstboot in case of MultiDisk usage    
       if not config.one_disk :
       	for script in ['slapos_firstboot']:
@@ -300,14 +310,14 @@ def run(config):
           if os.path.exists(path):
             print "Removing %r" % path
             os.remove(path)
-
+      
 
     finally:
       if not config.virtual:
         _call(['umount', mount_dir_path], dry_run=dry_run)
       else:
         print "Umount Virtual Machine"
-        _call(["vmware-mount","-x"],dry_run=dry_run)
+        _call(["vmware-mount","-K",config.system_path],dry_run=dry_run)
   finally:
     # Always delete temporary directory
     #print "No deleting"
@@ -371,5 +381,4 @@ def main():
     return_code = err
 
     sys.exit(return_code)
-
 

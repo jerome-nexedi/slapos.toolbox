@@ -117,12 +117,10 @@ echo -n "Banging..."
 /opt/slapos/bin/bang -m "Rebooted" /etc/slapos/slapos.cfg
 echo "done."
 
-# Set kvm up
-modprobe kvm_intel
-chmod 666 /dev/kvm
-
 # Enable noop scheduler for disk which have SLAPOS labeled partition
 disk=`blkid -L SLAPOS | sed -r -e 's/(\/dev\/|[0-9]*$)//g'`
 echo noop > /sys/block/$disk/queue/scheduler
 
-
+# Set kvm up
+modprobe kvm_intel
+chmod 666 /dev/kvm
