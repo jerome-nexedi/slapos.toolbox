@@ -1,5 +1,6 @@
 include CHANGES.txt
 recursive-include slapos/builder/template *.in
+include slapos/builder/script/slapos.service
 include slapos/builder/script/slapos
 include slapos/builder/script/slapos_firstboot
 recursive-include slapos/onetimeupload/templates *.html
