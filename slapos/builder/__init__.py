@@ -102,7 +102,9 @@ class Parser(OptionParser):
       Option(None, "--no_usb", default=False, action="store_true",
         help="Do not write on USB."),
       Option(None, "--one_disk",default=False, action="store_true",
-             help="Prepare image for one disk usage")
+             help="Prepare image for one disk usage"),
+      Option(None, "--virtual",default=False, action="store_true",
+             help="Work with .vmdk files")
    ])
 
   def check_args(self):
@@ -145,19 +147,26 @@ def run(config):
     mount_dir_path = "/tmp/a_generated_directory"
     fdisk_output_path = "/tmp/a_generated_file"
   try:
-    offset = 0
-    fdisk_output_file = open(fdisk_output_path, 'w')
-    _call(['sfdisk', '-d', '-uS', config.system_path], stdout=fdisk_output_file)
-    fdisk_output_file.close()
-    fdisk_output_file = open(fdisk_output_path, 'r')
-    for line in fdisk_output_file:
-      line = line.rstrip().replace(' ', '')
-      if line.endswith("bootable"):
-        offset = int(line.split(':')[1].split(',')[0].split('=')[1])
-    fdisk_output_file.close()
-    offset = offset * 512
-    _call(['mount', '-o', 'loop,offset=%i' % offset, config.system_path,
-           mount_dir_path], dry_run=dry_run)
+    if not config.virtual:
+    	offset = 0
+    	fdisk_output_file = open(fdisk_output_path, 'w')
+    	_call(['sfdisk', '-d', '-uS', config.system_path], stdout=fdisk_output_file)
+    	fdisk_output_file.close()
+    	fdisk_output_file = open(fdisk_output_path, 'r')
+    	for line in fdisk_output_file:
+    	  line = line.rstrip().replace(' ', '')
+    	  if line.endswith("bootable"):
+    	    offset = int(line.split(':')[1].split(',')[0].split('=')[1])
+    	fdisk_output_file.close()
+    	offset = offset * 512
+    	_call(['mount', '-o', 'loop,offset=%i' % offset, config.system_path,
+    	       mount_dir_path], dry_run=dry_run)
+    # Call vmware-mount to mount Virtual disk image
+    else:
+      print "Mount Virtual Image"
+      fdisk_output_file = open(fdisk_output_path, 'w')
+      _call(['vmware-mount', config.system_path, mount_dir_path], dry_run=dry_run )      
+  
     try:
       # Create slapos configuration directory if needed
       slap_configuration_directory = os.path.normpath('/'.join([mount_dir_path,
@@ -294,16 +303,21 @@ def run(config):
 
 
     finally:
-      _call(['umount', mount_dir_path], dry_run=dry_run)
+      if not config.virtual:
+        _call(['umount', mount_dir_path], dry_run=dry_run)
+      else:
+        print "Umount Virtual Machine"
+        _call(["vmware-mount","-x"],dry_run=dry_run)
   finally:
     # Always delete temporary directory
+    #print "No deleting"
     print "Deleting temp directory: %s" % mount_dir_path
     if not dry_run:
       shutil.rmtree(mount_dir_path)
-    print "Deleting temp file: %s" % fdisk_output_path
+      print "Deleting temp file: %s" % fdisk_output_path
     if not dry_run:
       os.remove(fdisk_output_path)
-
+       
   # Copying
   if not config.no_usb:
     print "\nStarting the copy of the raw file, it may take some time...\n"
@@ -356,5 +370,6 @@ def main():
     # Catch exception raise by optparse
     return_code = err
 
-  sys.exit(return_code)
+    sys.exit(return_code)
+
 
