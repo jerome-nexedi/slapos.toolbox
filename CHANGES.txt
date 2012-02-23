@@ -1,7 +1,11 @@
-0.18 (Unreleased)
+0.18 (2012-02-23)
 =================
 
- * No change yet.
+ * slaprunner : Add git commit and push support. [Alain Takoudjou]
+ * slaprunner : Solve UI problems in project management. [Alain Takoudjou]
+ * slaprunner : Solve bug where ACE modifies carrier returns. [Alain Takoudjou]
+ * slaprunner : Add ajax view of build log. [Alain Takoudjou]
+ * slaprunner : Allow to edit any file in repository. [Alain Takoudjou]
 
 0.17 (2012-02-10)
 =================
