@@ -13,28 +13,8 @@
         <meta name="description" content="" />
 
         <link href="{{ url_for('static', filename='css/styles.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-        <script src="{{ url_for('static', filename='jquery/jquery-1.6.2.min.js') }}" type="text/javascript" charset="utf-8"></script>
-        {% if request.path == '/editSoftwareProfile' or request.path == '/editInstanceProfile' %}
-        <script src="{{ url_for('static', filename='ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ url_for('static', filename='ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ url_for('static', filename='ace/mode-buildout.js') }}" type="text/javascript" charset="utf-8"></script>
-        
-        <script type="text/javascript">
-            $(document).ready(function() {
-                var editor = ace.edit("editor");
-                editor.setTheme("ace/theme/crimson_editor");
-
-                var CurentMode = require("ace/mode/buildout").Mode;
-                editor.getSession().setMode(new CurentMode());
-                editor.getSession().setTabSize(2);
-                editor.getSession().setUseSoftTabs(true);
-                editor.renderer.setHScrollBarAlwaysVisible(false);
-                $('#save').click(function(){
-                    $('#editor_content').val(editor.getSession().getValue());
-                });
-            });
-        </script>
-        {% endif %}
+        <script src="{{ url_for('static', filename='js/jquery/jquery-1.6.2.min.js') }}" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ url_for('static', filename='js/jquery/popup.js') }}" type="text/javascript" charset="utf-8"></script>
         <script type=text/javascript>
           $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
         </script>
@@ -55,13 +35,18 @@
     		    if ($.trim(this.value) == ''){
 			    	this.value = (this.defaultValue ? this.defaultValue : '');
 				}
-    		});
-		});			
+    		});		
+		if($("input#fmsg").val() != ""){
+		   $("#error").Popup($("input#fmsg").val(), {type:'info', duration:10000, load:true});
+		}
+		});		
 	</script>
 	{% endblock %}
     </head>
     <body>
-        <div id="page">
+	<div id="error"></div>
+        <div id="page">	    
+	    <input type="hidden" name="fmsg" value="{{ get_flashed_messages()[0] }}" id="fmsg" />
             <div id="logo">
                 <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="" /></a>
             </div>
@@ -69,7 +54,7 @@
                 <div class="block_header">
                     <a href="{{ url_for('home') }}" style="float:left;" title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
 		    <div class="line"></div>
-		    <a href="{{ url_for('curentSoftware') }}" style="float:left" title="Current Software Folder"><img alt="" src="{{ url_for('static', filename='images/project.png') }}" /></a>
+		    <a href="{{ url_for('curentSoftware') }}" style="float:left" title="Edit current software release"><img alt="" src="{{ url_for('static', filename='images/project.png') }}" /></a>
 		    <div class="line"></div>
                     <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
                 </div>
@@ -93,18 +78,7 @@
                 </div>
                 <div class="clear"></div>
             </div>            
-            <div id="main">                
-                <div class="flash" id="flash">
-                    {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                    <ul class="flashes">
-                        {% for message in messages %}
-                        <li>{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                    {% endwith %}
-                </div>                
+            <div id="main">
                 <div {% if request.path == '/' %} class="home_content" {%else%} id="content" {% endif %}>
                     {% if request.path != '/' %}
                         <div class="main_head">
@@ -120,7 +94,7 @@
                 </div>
             </div>
             <div id="footer">
-                SlapOs webrunner &copy; Vifib SARL 2011 - All right reserved - Creative Commons Shared Alike Non Commercial
+                SlapOs web runner &copy; Vifib SARL 2011 - All right reserved - Creative Commons Shared Alike Non Commercial
             </div>
         </div>
     </body>

@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
-{% block title %}Manage your Project folder{% endblock %}
+{% block title %}Manage your Project{% endblock %}
 {% block head %}
   {{ super() }}  
-  <script src="{{ url_for('static', filename='jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('static', filename='scripts/repo.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/scripts/repo.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
 
@@ -21,28 +21,31 @@
 </select>
 <br/><br/>
 <div id="contentInfo">
-	<div id="status">
+	<div id="status" style="margin-bottom:20px;">
 		<h2>Please select one project...</h2>
-	</div>	
-	<div id="branchlist">
-	<div class="div"></div>
-	<h2>Your Repository Branch</h2>
+	</div>
+	<div id="branchlist" style="margin-bottom:20px;">
+	<h2>Your Repository Branches</h2>
 	<div style="margin-left:15px;">
-	<label for='activebranch'>Select the active Branch here: </label>
+	<label for='activebranch'>Select your active Branch: </label>
 	<select name="activebranch" id="activebranch">
 	</select>
-	&nbsp;&nbsp;&nbsp;<label for='branchname'>Branch Name: </label>
-	<input type="text" name="branchname" id="branchname" size='20' value="Enter the branch name..." />
+	&nbsp;&nbsp;<label for='branchname'>Branch Name: </label>
+	<input type="text" name="branchname" id="branchname" size='22' value="Enter the branch name..." />
 	<input type="submit" name="addbranch" id ="addbranch" value="Add" class="button"/>
+	<br/>
+	<!--<label for='pullbranch'>Update your local repository: </label>-->
+	<!--<input type="submit" name="pullbranch" id ="pullbranch" value="Pull" class="button"/>-->
+	<!--<img class="waitting" id="pullimgwaitting" src="{{ url_for('static', filename='images/waiting.gif') }}" alt="" />-->
 	</div>
 	</div>	
-	<div id="push">
-	<div class="div"></div>
-	<h2>Commit All your changes</h2>
+	<div id="push" style="margin-bottom:20px;">
+	<h2>Commit All your changes (On active branch)</h2>
 	<div style="margin-left:15px;">
-	<label for='commitmsg'>Enter your commit message here: </label>
+	<label for='commitmsg'>Commit message: </label>
 	<input type="text" name="commitmsg" id="commitmsg" size='40' value="Enter message..." />
 	<input type="submit" name="commit" id ="commit" value="Commit" class="button"/>
+	<img class="waitting" id="imgwaitting" src="{{ url_for('static', filename='images/waiting.gif') }}" alt="" />
 	</div>	
 	</div>
 	<br/>

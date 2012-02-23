@@ -12,20 +12,21 @@
     <div class="clear"></div>
 </div>
 <div class="smenu">
-    <h2><a href="{{ url_for('openProject', method='open')}}">Open Existing Project</a></h2>
-    <p>Once you have cloned your repository, you can open project here.</p>
+    <h2><a href="{{ url_for('openProject', method='open')}}">Open Software Release</a></h2>
+    <p>Once you have cloned your repository, you can now edit existing Software Release.</p>
     <img src="{{ url_for('static', filename='images/mydocuments.png') }}" />
     <div class="clear"></div>
 </div>
 <div class="sright_menu">
-    <h2><a href="{{ url_for('manageProject')}}">Manage your Project</a></h2>
-    <p>You can view details of your project and commit content here.</p>
+    <h2><a href="{{ url_for('manageProject')}}">Manage your Projects</a></h2>
+    <p>You can view details of all projects and commit your Software Release here.</p>
     <img src="{{ url_for('static', filename='images/manage_repo.png') }}" />
 </div>
 <div class="clear"></div>
 <div class="lmenu">
-    <h2><a href="{{ url_for('openProject', method='new')}}">Start a new software release</a></h2>
-    <p>Create a new software into your selected project directory. This allows you to create, edit and run a new software on SlapOs, using webrunner tools.
+    <h2><a href="{{ url_for('openProject', method='new')}}">Create your new Software Release</a></h2>
+    <p>To create a new Software Release, choose the project directory in which you want to create your software. You will then be able to edit and
+    run the new software on SlapOs, using webrunner tools.
     </p>
     <img src="{{ url_for('static', filename='images/folder_blue.png') }}" />
     <div class="clear"></div>

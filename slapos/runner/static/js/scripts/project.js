@@ -2,23 +2,20 @@ $(document).ready( function() {
 	var method = $("input#method").val();
 	var workdir = $("input#workdir").val();
 	if (method != "file"){
-		script = (method == "new") ? "/openFolder" : "/readFolder";
+		script = "/openFolder";
 		$('#fileTree').fileTree({ root: workdir, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function(file) { 
 			selectFile(file);
 		});
 	}
 	$("input#subfolder").val("");
 	$("#create").click(function(){
-		$("#flash").fadeOut('normal');
-		$("#flash").empty();
-		$("#flash").fadeIn('normal');
 		repo_url = $("input#software").val();
 		if($("input#software").val() == "" || !$("input#software").val().match(/^[\w\d._-]+$/)){
-			$("#flash").append("<ul class='flashes'><li>Error: Invalid Software name</li></ul>");
+			$("#error").Popup("Invalid Software name", {type:'alert', duration:3000})
 			return false;
 		}
 		if($("input#subfolder").val() == ""){
-			$("#flash").append("<ul class='flashes'><li>Error: Select the parent folder of your software!</li></ul>");
+			$("#error").Popup("Select the parent folder of your software!", {type:'alert', duration:3000})
 			return false;
 		}
 		$.ajax({
@@ -30,7 +27,8 @@ $(document).ready( function() {
 					location.href = $SCRIPT_ROOT + '/editSoftwareProfile'
 				}
 				else{
-					$("#flash").append("<ul class='flashes'><li>Error: " + data.result + "</li></ul>");
+					$("#error").Popup(data.result, {type:'error', duration:5000})
+					
 				}
 			}
 		});
@@ -42,7 +40,7 @@ $(document).ready( function() {
 		$("#flash").empty();
 		$("#flash").fadeIn('normal');
 		if($("input#path").val() == ""){
-			$("#flash").append("<ul class='flashes'><li>Error: Select the folder of your software</li></ul>");
+			$("#error").Popup("Select a valid Software Release folder!", {type:'alert', duration:3000})
 			return false;
 		}
 		$.ajax({
@@ -54,7 +52,7 @@ $(document).ready( function() {
 					location.href = $SCRIPT_ROOT + '/editSoftwareProfile'
 				}
 				else{
-					$("#flash").append("<ul class='flashes'><li>Error: " + data.result + "</li></ul>");
+					$("#error").Popup(data.result, {type:'error', duration:5000})
 				}
 			}
 		});
@@ -62,13 +60,21 @@ $(document).ready( function() {
 	});
 	
 	function selectFile(file){
-		relativeFile = file.replace(workdir, "");
-		$("#info").empty();
-		$("#info").append("Selection: " + relativeFile);
+		var relativeFile = file.replace(workdir, "");
+		$("#info").empty();		
 		$("input#subfolder").val(file);
 		path = "";
 		if(method == "open"){
+			$("#info").append("Selection: " + relativeFile);
 			checkFolder(file);
+		}
+		else{
+			if($("input#software").val() != "" && $("input#software").val().match(/^[\w\d._-]+$/)){
+				$("#info").append("New Software in: " + relativeFile + $("input#software").val());
+			}
+			else{
+				$("#info").append("Selection: " + relativeFile);
+			}
 		}
 		return;
 	}

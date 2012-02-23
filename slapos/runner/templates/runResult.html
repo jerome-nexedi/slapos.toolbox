@@ -1,20 +1,40 @@
 {% extends "layout.html" %}
-{% block title %}Webrunner software content{% endblock %}
+{% block title %}Webrunner software Inspection{% endblock %}
 {% block head %}
   {{ super() }}
   <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
-  {%if result != "" %}
-  <script type="text/javascript" charset="utf-8">
-    $(document).ready( function() {
-      $('#fileTree').fileTree({ root: "{{result}}", script: $SCRIPT_ROOT + "/readFolder", folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: false }, function(file) { 
-			alert(file);
-		});
-    });
-  </script>
-  {%endif%}
+  <script src="{{ url_for('static', filename='js/jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>  
+  <script src="{{ url_for('static', filename='js/ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/scripts/inspectSoftware.js') }}" type="text/javascript" charset="utf-8"></script>
+  <link href="{{ url_for('static', filename='css/colorbox.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='js/jquery/jquery.colorbox-min.js') }}" type="text/javascript" charset="utf-8"></script>
+  
 {% endblock %}
 {% block body %}
-<h2>Result for {{ type }}</h2>
-<div id="fileTree" class="file_tree"></div>
+<h2>Inspect software</h2>
+<input type="hidden" name="runnerdir" id="runnerdir" value="{{softwareRoot}}" />
+<label for='softwarelist'>Select software: </label>
+<select name="softwarelist" id="softwarelist">
+{%for soft in softwares %}
+<option value="{{soft['md5']}}" title="{{soft['title']}}" rel="{{soft['path']}}">{{soft['title']}}</option>
+{%endfor%}
+</select>
+&nbsp;&nbsp;<button id ="delete" class="button" title="Remove this software">Remove</button>
+&nbsp;&nbsp;<button id ="open" class="button" title="Set this software as current software release">Open</button>
+<br/><br/>
+<p><strong><u>Notes:</u> </strong> You can open any software release in the list by cliking on the "Open" button. Now compiling this software will take a very short time</p>
+<br/>
+<h2 id="softcontent">No content to displays</h2>
+<div id="fileTree" class="file_tree" style='height:200px;'></div>
+<div id="file_info" class="file_info">
+<span id="info">Please select your file or folder into the box...</span></div>
+<!-- This contains the hidden content for inline calls -->
+<a class='inline' style='display:none' href="#inline_content">Inline HTML</a>
+<div style='display:none'>
+<div id='inline_content' style='padding:10px; background:#fff;'>
+
+</div>
+</div>
+<br/>
 {% endblock %}

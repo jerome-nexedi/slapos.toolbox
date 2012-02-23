@@ -1,14 +1,21 @@
 {% extends "layout.html" %}
 {% block title %}Update instance profile{% endblock %}
+{% block head %}
+  {{ super() }}
+    <script src="{{ url_for('static', filename='js/ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/mode-buildout.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/scripts/editor.js') }}" type="text/javascript" charset="utf-8"></script>
+{% endblock %}
 {% block body %}
-<form action="{{ url_for('updateInstanceProfile') }}" method=post class=add-entry>
+<form method=post class=add-entry>
     <dl>
-        <dd><h2>Instance Profile:</h2></dd>
-        <dd> <!--<textarea name=content rows=20 cols=103 id="editor">{{ profile }}</textarea>-->
+        <dd><h2>Edit instance profile <a href='#' id='getmd5' title='Show or Update md5sum value'>[md5]</a>:</h2></dd>
+        <dd><div class='md5sum' id='md5sum'></div></dd>
+        <dd>
             <div class="main_content">
-                <pre id="editor">
-{{ profile }}
-                </pre>
+<pre id="editor"></pre>
+            <input type="hidden" name="profile" id="profile" value="{{ profile|safe }}" />
             </div>
             <input type="hidden" name=content id="editor_content"/>
         </dd>

@@ -3,13 +3,13 @@
 {% block head %}
   {{ super() }}
   <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('static', filename='scripts/softwareFolder.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('static', filename='ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='ace/mode-buildout.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='ace/mode-python.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='ace/mode-php.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/scripts/softwareFolder.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/ace/ace-uncompressed.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/mode-buildout.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/mode-python.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/mode-php.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
 
@@ -17,23 +17,29 @@
 <input type="hidden" name="project" id="project" value="{{project}}" />
 <input type="hidden" name="workdir" id="workdir" value="{{workDir}}" />
 <input type="hidden" name="subfolder" id="subfolder" value="" />
-<div id="file_navigation">
-	<h2>Current software file content</h2>
+<div id="software_folder">
+    <h2 class="hight show" id="details_head">Current software release file content</h2>
+    <div class="software_details" id="details_box">
 	<div id="fileTree" class="file_tree_short"></div>	
-	<div class="box_software">	
+	<div class="box_software">
 	    <h2>Add new file or folder</h2>
-	    <input type="text" name="file" id="file" size='25' value="Enter name here..." />
-	    &nbsp;&nbsp;<select name="type" id="type">
+	    <input type="text" name="file" id="file" size='22' value="Enter name here..." />
+	    &nbsp;&nbsp;&nbsp;<select name="type" id="type">
 	    <option value="file">file</option>
 	    <option value="folder">folder</option>
 	    </select>
-	    &nbsp;&nbsp;<input type="submit" name="add" id ="add" value="Add" class="button"/>
-	    <div id="file_info" class="file_info"><span id="info">Please select your file or folder into the box...</span></div>
+	    &nbsp;&nbsp;&nbsp;<input type="submit" name="add" id ="add" value="Add" class="button"/>
+	    <br/><br/>
+	    <a href="#" id="switch" class="lshare">Switch to Project files</a>
+	    <a href=""  id="clearselect" class="lshare">Clear selection</a><br/><br/>
+	    <div id="file_info" class="file_info"><span id="info">Select parent directory or nothing for root...</span></div>
 	</div>
 	<div class="clear"></div>
-	<div id="code" style="margin-top:10px">
-	<h2 id="edit_info">Edit your selected file</h2>
-	<div class="main_content">
+    </div>
+    <div id="code" style="margin-top:10px">
+    <h2 id="edit_info" class='title'>No file selected</h2>
+    <div class='md5sum' id='md5sum'></div>
+    <div class="main_content">
 <pre id="editor">
 
 </pre>
