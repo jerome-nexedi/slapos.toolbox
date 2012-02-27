@@ -112,8 +112,18 @@ sysctl -w \
   net.ipv6.neigh.default.gc_thresh3=2048
 
 # Execute slapformat
+i=1
 echo -n "Running slapformat..."
 /opt/slapos/bin/slapformat --verbose --console /etc/slapos/slapos.cfg
+while [[ $? != 0 ]]; do
+    sleep $(($i*60))
+    if [[ $i < 20 ]]; then
+	let i++
+    fi
+    echo "Retrying slapformat"
+    /opt/slapos/bin/slapformat --verbose --console /etc/slapos/slapos.cfg
+    # if slapformat fail more than 10 time the script is restarted
+done
 echo "done."
 echo -n "Banging..."
 /opt/slapos/bin/bang -m "Rebooted" /etc/slapos/slapos.cfg
