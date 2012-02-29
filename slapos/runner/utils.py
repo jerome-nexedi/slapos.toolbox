@@ -9,6 +9,7 @@ from flask import jsonify
 import shutil
 import string
 import hashlib
+import signal
 
 
 class Popen(subprocess.Popen):
@@ -27,7 +28,15 @@ def updateProxy(config):
   if not os.path.exists(config['instance_root']):
     os.mkdir(config['instance_root'])
   slap = slapos.slap.slap()
-  profile = getProfilePath(config['runner_workdir'], config['software_profile'])
+  #Get current software release profile
+  try:
+    software_folder = open(os.path.join(config['runner_workdir'],
+                                        ".project")).read()
+    profile = realpath(config, os.path.join(software_folder,
+                                          config['software_profile']))
+  except:
+    return False
+
   slap.initializeConnection(config['master_url'])
   slap.registerSupply().supply(profile, computer_guid=config['computer_id'])
   computer = slap.registerComputer(config['computer_id'])
@@ -59,7 +68,7 @@ def updateProxy(config):
   computer.updateConfiguration(xml_marshaller.dumps(slap_config))
   slap.registerOpenOrder().request(profile,
               partition_reference=partition_reference)
-
+  return True
 
 def readPid(file):
   if os.path.exists(file):
@@ -130,14 +139,15 @@ def runSoftwareWithLock(config):
     removeProxyDb(config)
     startProxy(config)
     logfile = open(config['software_log'], 'w')
-    updateProxy(config)
+    if not updateProxy(config):
+      return False
     slapgrid = Popen([config['slapgrid_sr'], '-vc', config['configuration_file_path']], stdout=logfile)
     writePid(slapgrid_pid, slapgrid.pid)
     slapgrid.wait()
     #Saves the current compile software for re-use
-    #This uses the new software create by slapgrid (if not exits yet)
+    #This uses the new folder create by slapgrid (if not exits yet)
     data = loadSoftwareData(config['runner_workdir'])
-    md5 = ""    
+    md5 = ""
     for path in os.listdir(config['software_root']):
       exist = False
       for val in data:
@@ -171,30 +181,50 @@ def isInstanceRunning(config):
     running = False
   return running
 
+def killRunningSlapgrid(config, ptype):
+  slapgrid_pid = os.path.join(config['runner_workdir'], ptype)
+  pid = readPid(slapgrid_pid)
+  if pid:
+      recursifKill([pid])
+  else:
+    return False
+
+def recursifKill(pids):
+  """Try to kill a list of proccess by the given pid list"""
+  if pids == []:
+    return
+  else:
+    for pid in pids:
+      ppids = pidppid(pid)
+      try:
+	os.kill(pid, signal.SIGKILL) #kill current process
+      except Exception:
+	pass
+      recursifKill(ppids) #kill all children of this process
+
+def pidppid(pid):
+  """get the list of the children pids of a process `pid`"""
+  proc = Popen('ps -o pid,ppid ax | grep "%d"' % pid, shell=True,
+               stdout=subprocess.PIPE)
+  ppid  = [x.split() for x in proc.communicate()[0].split("\n") if x]
+  return list(int(p) for p, pp in ppid if int(pp) == pid)
 
 def runInstanceWithLock(config):
   slapgrid_pid = os.path.join(config['runner_workdir'], 'slapgrid-cp.pid')
   if not isInstanceRunning(config):
     startProxy(config)
     logfile = open(config['instance_log'], 'w')
-    updateProxy(config)
+    if not updateProxy(config):
+      return False
     slapgrid = Popen([config['slapgrid_cp'], '-vc', config['configuration_file_path']], stdout=logfile)
     writePid(slapgrid_pid, slapgrid.pid)
     slapgrid.wait()
     return True
   return False
 
-
-def getProfile(peojectDir, profileName):
-  profile = getProfilePath(peojectDir, profileName)
-  if os.path.exists(profile):
-    return open(profile).read()
-  else:
-    return None
-
 def getProfilePath(peojectDir, profile):
   if not os.path.exists(os.path.join(peojectDir, ".project")):
-    return ""
+    return False
   projectFolder = open(os.path.join(peojectDir, ".project")).read()
   return os.path.join(projectFolder, profile)
 
@@ -217,18 +247,14 @@ def runBuildoutAnnotate(config):
 	bin_buildout = os.path.join(config['software_root'], "bin/buildout")
 	if os.path.exists(bin_buildout):
 	  logfile = open(config['annotate_log'], 'w')
-	  buildout = Popen([bin_buildout, '-vc', config['configuration_file_path'], 
+	  buildout = Popen([bin_buildout, '-vc', config['configuration_file_path'],
 	                    "annotate"], stdout=logfile)
 	  buildout.wait()
 	  return True
   return False
 
 def svcStopAll(config):
-  #stop all process running in supervisord
-  request = Popen([config['supervisor'], config['configuration_file_path'], 
-                'stop', 'all'])
-  request.wait()
-  return Popen([config['supervisor'], config['configuration_file_path'], 
+  return Popen([config['supervisor'], config['configuration_file_path'],
                 'shutdown']).communicate()[0]
 
 def removeInstanceRoot(config):
@@ -243,7 +269,7 @@ def removeInstanceRoot(config):
     shutil.rmtree(config['instance_root'])
 
 def getSvcStatus(config):
-  result = Popen([config['supervisor'], config['configuration_file_path'], 
+  result = Popen([config['supervisor'], config['configuration_file_path'],
                   'status']).communicate()[0]
   regex = "(^unix:.+\.socket)|(^error:).*$"
   supervisord = []
@@ -253,47 +279,59 @@ def getSvcStatus(config):
   return supervisord
 
 def getSvcTailProcess(config, process):
-  return Popen([config['supervisor'], config['configuration_file_path'], 
+  return Popen([config['supervisor'], config['configuration_file_path'],
                 "tail", process]).communicate()[0]
 
 def svcStartStopProcess(config, process, action):
   cmd = {"RESTART":"restart", "STOPPED":"start", "RUNNING":"stop", "EXITED":"start", "STOP":"stop"}
-  return Popen([config['supervisor'], config['configuration_file_path'], 
+  return Popen([config['supervisor'], config['configuration_file_path'],
                 cmd[action], process]).communicate()[0]
 
-def getFolderContent(folder):
+def getFolderContent(config, folder):
   r=['<ul class="jqueryFileTree" style="display: none;">']
   try:
+    folder = str(folder)
     r=['<ul class="jqueryFileTree" style="display: none;">']
     d=urllib.unquote(folder)
-    ldir = sorted(os.listdir(d), key=unicode.lower)
+    realdir = realpath(config, d)
+    if not realdir:
+      r.append('Could not load directory: Permission denied')
+      ldir = []
+    else:
+      ldir = sorted(os.listdir(realdir), key=str.lower)
     for f in ldir:
       if f.startswith('.'): #do not displays this file/folder
-	continue      
+	continue
       ff=os.path.join(d,f)
-      if os.path.isdir(ff):
-	r.append('<li class="directory collapsed"><a href="#" rel="%s/">%s</a></li>' % (ff,f))
+      if os.path.isdir(os.path.join(realdir,f)):
+	r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff,f))
       else:
 	e=os.path.splitext(f)[1][1:] # get .ext and remove dot
-	r.append('<li class="file ext_%s"><a href="#" rel="%s">%s</a></li>' % (e,ff,f))
+	r.append('<li class="file ext_%s"><a href="#%s" rel="%s">%s</a></li>' % (e, ff,ff,f))
     r.append('</ul>')
   except Exception,e:
     r.append('Could not load directory: %s' % str(e))
   r.append('</ul>')
   return jsonify(result=''.join(r))
 
-def getFolder(folder):
+def getFolder(config, folder):
   r=['<ul class="jqueryFileTree" style="display: none;">']
   try:
-    r=['<ul class="jqueryFileTree" style="display: none;">']    
+    folder = str(folder)
+    r=['<ul class="jqueryFileTree" style="display: none;">']
     d=urllib.unquote(folder)
-    ldir = sorted(os.listdir(d), key=unicode.lower)
+    realdir = realpath(config, d)
+    if not realdir:
+      r.append('Could not load directory: Permission denied')
+      ldir = []
+    else:
+      ldir = sorted(os.listdir(realdir), key=str.lower)
     for f in ldir:
       if f.startswith('.'): #do not display this file/folder
 	continue
       ff=os.path.join(d,f)
-      if os.path.isdir(ff):
-	r.append('<li class="directory collapsed"><a href="#" rel="%s/">%s</a></li>' % (ff, f))
+      if os.path.isdir(os.path.join(realdir,f)):
+	r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff, f))
     r.append('</ul>')
   except Exception,e:
     r.append('Could not load directory: %s' % str(e))
@@ -307,13 +345,18 @@ def getProjectList(folder):
     project.append(elt)
   return project
 
-def configNewSR(config, project):
-  if os.path.exists(project):
+def configNewSR(config, projectpath):
+  folder = realpath(config, projectpath)
+  if folder:
+    if isInstanceRunning(config):
+      killRunningSlapgrid(config, "slapgrid-cp.pid")
+    if isSoftwareRunning(config):
+      killRunningSlapgrid(config, "slapgrid-sr.pid")
     stopProxy(config)
     removeProxyDb(config)
     startProxy(config)
     removeInstanceRoot(config)
-    open(os.path.join(config['runner_workdir'], ".project"), 'w').write(project)
+    open(os.path.join(config['runner_workdir'], ".project"), 'w').write(projectpath)
     return True
   else:
     return False
@@ -323,8 +366,9 @@ def newSoftware(folder, config, session):
   code = 0
   runner_dir = config['runner_workdir']
   try:
-    if not os.path.exists(folder):
-      os.mkdir(folder)
+    folderPath = realpath(config, folder, check_exist=False)
+    if folderPath and not os.path.exists(folderPath):
+      os.mkdir(folderPath)
       #load software.cfg and instance.cfg from http://git.erp5.org
       software = "http://git.erp5.org/gitweb/slapos.git/blob_plain/HEAD:/software/lamp-template/software.cfg"
       instance = "http://git.erp5.org/gitweb/slapos.git/blob_plain/HEAD:/software/lamp-template/instance.cfg"
@@ -336,34 +380,32 @@ def newSoftware(folder, config, session):
       except:
 	#Software.cfg and instance.cfg content will be empty
 	pass
-      open(os.path.join(folder, config['software_profile']), 'w').write(softwareContent)
-      open(os.path.join(folder, config['instance_profile']), 'w').write(instanceContent)
-      open(os.path.join(runner_dir, ".project"), 'w').write(folder)
+      open(os.path.join(folderPath, config['software_profile']), 'w').write(softwareContent)
+      open(os.path.join(folderPath, config['instance_profile']), 'w').write(instanceContent)
+      open(os.path.join(runner_dir, ".project"), 'w').write(folder + "/")
       session['title'] = getProjectTitle(config)
       code = 1
     else:
-      json = "Directory '" + folder + "' already exist, please enter a new name for your software"
+      json = "Bad folder or Directory '" + folder + \
+        "' already exist, please enter a new name for your software"
   except Exception, e:
     json = "Can not create your software, please try again! : " + str(e)
-    if os.path.exists(folder):
-      shutil.rmtree(folder)
+    if os.path.exists(folderPath):
+      shutil.rmtree(folderPath)
   return jsonify(code=code, result=json)
 
 def checkSoftwareFolder(path, config):
-  tmp = path.split('/')
-  del tmp[len(tmp) - 1]
-  path = string.join(tmp, '/')
-  if os.path.exists(os.path.join(path, config['software_profile'])):
+  realdir = realpath(config, path)
+  if realdir and os.path.exists(os.path.join(realdir, config['software_profile'])):
     return jsonify(result=path)
   return jsonify(result="")
 
 def getProjectTitle(config):
   conf = os.path.join(config['runner_workdir'], ".project")
   if os.path.exists(conf):
-    project = open(conf, "r").read().replace(config['workspace'] + "/", "").split("/")
-    software = project[len(project) - 1]
-    del project[len(project) - 1]
-    return software + "(SR in /" + string.join(project, '/') + ")"
+    project = open(conf, "r").read().split("/")
+    software = project[len(project) - 2]
+    return software + " (" + string.join(project[:(len(project) - 2)], '/') + ")"
   return "No Profile"
 
 def loadSoftwareData(runner_dir):
@@ -383,7 +425,7 @@ def writeSoftwareData(runner_dir, data):
   # Pickle dictionary using protocol 0.
   pickle.dump(data, pkl_file)
   pkl_file.close()
-  
+
 def removeSoftwareByName(config, folderName):
   if isSoftwareRunning(config) or isInstanceRunning(config):
     return jsonify(code=0, result="Software installation or instantiation in progress, cannot remove")
@@ -430,6 +472,38 @@ def tail(f, lines=20):
       block -= 1
   return string.join(''.join(data).splitlines()[-lines:], '\n')
 
+def readFileFrom(f, lastPosition):
+  """
+  Returns the last lines of file `f`, from position lastPosition.
+  and the last position
+  """
+  BUFSIZ = 1024
+  f.seek(0, 2)
+  bytes = f.tell()
+  block = -1
+  data = ""
+  length = bytes
+  if lastPosition <= 0 and length > 50000:
+    lastPosition = 50000
+  size = bytes - lastPosition
+  while bytes > lastPosition:
+    if abs(block*BUFSIZ) <= size:
+      # Seek back one whole BUFSIZ
+      f.seek(block * BUFSIZ, 2)
+      data = f.read(BUFSIZ) + data
+    else:
+      margin = abs(block*BUFSIZ) - size
+      if length < BUFSIZ:
+	f.seek(0,0)
+      else:
+	seek = block * BUFSIZ + margin
+	f.seek(seek, 2)
+      data = f.read(BUFSIZ - margin) + data
+    bytes -= BUFSIZ
+    block -= 1
+  f.close()
+  return {"content":data, "position":length}
+
 def isText(file):
   """Return True if the mimetype of file is Text"""
   if not os.path.exists(file):
@@ -440,7 +514,7 @@ def isText(file):
     return not is_binary_string(open(file).read(1024))
   except:
     return False
-  
+
 def md5sum(file):
   """Compute md5sum of `file` and return hexdigest value"""
   if os.path.isdir(file):
@@ -456,3 +530,22 @@ def md5sum(file):
     return m.hexdigest()
   except:
     return False
+
+def realpath(config, path, check_exist=True):
+  """Get realpath of path or return False if user is not allowed to access to
+  this file"""
+  split_path = path.split('/')
+  key = split_path[0]
+  allow_list = {'software_root':config['software_root'], 'instance_root':
+                config['instance_root'], 'workspace': config['workspace']}
+  if allow_list.has_key(key):
+    del split_path[0]
+    path = os.path.join(allow_list[key], string.join(split_path, '/'))
+    if check_exist:
+      if os.path.exists(path):
+	return path
+      else:
+	return False
+    else:
+      return path
+  return False

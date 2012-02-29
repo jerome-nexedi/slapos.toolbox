@@ -17,7 +17,7 @@ $(document).ready( function() {
 		return;
 	}
 	
-	function fillContent(selectedElt){
+	function fillContent(){
 		var folder = $("#softwarelist").val();
 		var elt = $("option:selected", $("#softwarelist"));
 		$('#fileTree').fileTree({ root: runnerDir + "/" + folder, script: $SCRIPT_ROOT + '/readFolder', 
@@ -32,7 +32,7 @@ $(document).ready( function() {
 		var elt = $("option:selected", $("#softwarelist"));
 		$.ajax({
 			type: "POST",
-			url: $SCRIPT_ROOT + '/setCurentProject',
+			url: $SCRIPT_ROOT + '/setCurrentProject',
 			data: "path=" + elt.attr('rel'),
 			success: function(data){
 				if(data.code == 1){

@@ -45,7 +45,7 @@ $(document).ready( function() {
 		}
 		$.ajax({
 			type: "POST",
-			url: $SCRIPT_ROOT + '/setCurentProject',
+			url: $SCRIPT_ROOT + '/setCurrentProject',
 			data: "path=" + $("input#path").val(),
 			success: function(data){
 				if(data.code == 1){
@@ -60,20 +60,19 @@ $(document).ready( function() {
 	});
 	
 	function selectFile(file){
-		var relativeFile = file.replace(workdir, "");
 		$("#info").empty();		
 		$("input#subfolder").val(file);
 		path = "";
 		if(method == "open"){
-			$("#info").append("Selection: " + relativeFile);
+			$("#info").append("Selection: " + file);
 			checkFolder(file);
 		}
 		else{
 			if($("input#software").val() != "" && $("input#software").val().match(/^[\w\d._-]+$/)){
-				$("#info").append("New Software in: " + relativeFile + $("input#software").val());
+				$("#info").append("New Software in: " + file + $("input#software").val());
 			}
 			else{
-				$("#info").append("Selection: " + relativeFile);
+				$("#info").append("Selection: " + file);
 			}
 		}
 		return;

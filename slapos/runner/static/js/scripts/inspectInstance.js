@@ -1,5 +1,4 @@
 $(document).ready( function() {
-  var basedir = $("input#basedir").val();
   var editor;
   setupFileTree();
 
@@ -17,11 +16,10 @@ $(document).ready( function() {
   
   function viewFile(file){
 	  //User have double click on file in to the fileTree
-	  var name = file.replace(basedir, "");
-	  loadFileContent(file, name);
+	  loadFileContent(file);
   }
 	
-  function loadFileContent(file, filename){
+  function loadFileContent(file){
   $.ajax({
 	type: "POST",
 	url: $SCRIPT_ROOT + '/checkFileType',
@@ -36,8 +34,8 @@ $(document).ready( function() {
 	      success: function(data){	
 		      if(data.code == 1){
 			$("#inline_content").empty();
-			$("#inline_content").append('<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">Inspect Software Content: ' +
-				filename +'</h2>');
+			$("#inline_content").append('<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">Inspect Instance Content: ' +
+				file +'</h2>');
 			$("#inline_content").append('<br/><div class="main_content"><pre id="editor"></pre></div>');
 			setupEditor();
 			$(".inline").colorbox({inline:true, width: "847px", onComplete:function(){						

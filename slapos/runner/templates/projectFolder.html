@@ -14,7 +14,7 @@
 <input type="hidden" name="method" id="method" value="{{method}}" />
 {% if method == "new" %}
 <div id="addsoftware">
-<h2>What is the name of your software release?</h2>
+<h2>Create your software release</h2>
 <label for='software'>Name: </label>
 <input type="text" name="software" id="software" size='30' value="Enter software name..." />
 <br/><br/>
@@ -23,7 +23,7 @@
 	<div id="fileTree" class="file_tree"></div>
 	<div id="file_info" class="file_info"><span id="info">Please select your parent folder into the box...</span></div>
 	<br/>
-	<input type="submit" name="create" id ="create" value="Start Project" class="button"/>
+	<input type="submit" name="create" id ="create" value="Create" class="button"/>
 </div>
 </div>
 {% elif method == "open" %}

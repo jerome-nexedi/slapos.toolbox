@@ -1,8 +1,23 @@
 {% extends "layout.html" %}
 {% block title %}View {{ type }} log{% endblock %}
+{% block head %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/scripts/viewlog.js') }}" type="text/javascript" charset="utf-8"></script>
+{% endblock %}
 {% block body %}
-<strong>Note:</strong> You can refresh this page from time to time to have updates.<br>
-<h2>Currently running: <span class="message">{{ running }}</span></h2><br>
-<h2>Result for {{ type }}</h2>
-<div class="log_content"><textarea class="log" readonly >{{ result }}</textarea></div>
+<input type="hidden" name="type" value="{{type}}" id="type" />
+<h2 class="hight hide" id="logheader">Slapgrid result for {{ type }}</h2>
+<div class="log_btn" id="logconfigbox" style="display:none">
+<span style="margin-left:15px; font-size: 18px;"> Update parameters </span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="liveupdate" id="manual" value="manual" />
+<label for="manual">Manualy update</label>&nbsp;
+<input type="radio" name="liveupdate" id="live" value="live" />
+<label for="live">Live update</label>&nbsp;
+<input type="radio" name="liveupdate" id="slow" value="slow" />
+<label for="slow">From time to time</label>
+</div>
+<br/>
+<div class="log_content"><textarea class="log" readonly id="salpgridLog"></textarea>
+<textarea class="log" readonly id="manualLog" style="display:none">{{result}}</textarea></div>
 {% endblock %}

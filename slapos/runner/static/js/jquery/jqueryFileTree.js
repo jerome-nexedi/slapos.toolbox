@@ -14,7 +14,7 @@
 //           selectFolder   - if true, also return path of folder when event happen on it
 //
 if(jQuery) (function($){
-	
+
 	$.extend($.fn, {
 		fileTree: function(o, h, p) {
 			// Defaults
@@ -29,9 +29,9 @@ if(jQuery) (function($){
 			if( o.multiFolder == undefined ) o.multiFolder = true;
 			if( o.loadMessage == undefined ) o.loadMessage = 'Loading...';
 			if( o.selectFolder == undefined ) o.selectFolder = false;
-			
+
 			$(this).each( function() {
-				
+
 				function showTree(c, t) {
 					$(c).addClass('wait');
 					$(".jqueryFileTree.start").remove();
@@ -42,7 +42,7 @@ if(jQuery) (function($){
 						bindTree(c);
 					});
 				}
-				
+
 				function bindTree(t) {
 					$(t).find('LI A').bind(o.folderEvent, function() {
 						if( $(this).parent().hasClass('directory') ) {
@@ -55,18 +55,18 @@ if(jQuery) (function($){
 								$(this).parent().find('UL').remove(); // cleanup
 								showTree( $(this).parent(), escape($(this).attr('rel').match( /.*\// )) );
 								$(this).parent().removeClass('collapsed').addClass('expanded');
+									if(o.selectFolder){
+									h($(this).attr('rel'));
+								}
 							} else {
 								// Collapse
 								$(this).parent().find('UL').slideUp({ duration: o.collapseSpeed, easing: o.collapseEasing });
 								$(this).parent().removeClass('expanded').addClass('collapsed');
 							}
-							if(o.selectFolder){
-								h($(this).attr('rel'));
-							}
 						} else {
 							h($(this).attr('rel'));
 						}
-						return false;
+
 					});
 					// Prevent A from triggering the # on non-click events
 					if( o.folderEvent.toLowerCase != 'click' ) $(t).find('LI A').bind('click', function() { return false; });
@@ -86,5 +86,5 @@ if(jQuery) (function($){
 			});
 		}
 	});
-	
+
 })(jQuery);

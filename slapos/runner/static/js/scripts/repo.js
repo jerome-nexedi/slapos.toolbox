@@ -2,7 +2,7 @@ $(document).ready( function() {
 	var send = false;
 	var getStatus;
 	gitStatus();
-	$("#project").change(function(){		
+	$("#project").change(function(){
 		if (send){
 			getStatus.abort();
 			send=false;
@@ -27,9 +27,9 @@ $(document).ready( function() {
 		});
 	});
 	$("#addbranch").click(function(){
-		if($("input#branchname").val() == "" || 
+		if($("input#branchname").val() == "" ||
 			$("input#branchname").val() == "Enter the branch name..."){
-			$("#error").Popup("Please Enter your branch name", {type:'alert', duration:3000});
+			$("#error").Popup("Please Enter the new branch name", {type:'alert', duration:3000});
 			return false;
 		}
 		var project = $("#project").val();
@@ -37,10 +37,34 @@ $(document).ready( function() {
 		$.ajax({
 			type: "POST",
 			url: $SCRIPT_ROOT + '/newBranch',
-			data: "project=" + $("input#workdir").val() + "/" + project + "&name=" + branch,
+			data: {project:$("input#workdir").val() + "/" + project, name:branch, create:'1'},
 			success: function(data){
 				if(data.code == 1){
-					$("input#branchname").val("");
+					$("input#branchname").val("Enter the branch name...");
+					gitStatus();
+				}
+				else{
+					$("#error").Popup(data.result, {type:'error'});
+				}
+			}
+		});
+		return false;
+	});
+	$("#docheckout").click(function(){
+		if($("input#checkout").val() == "" ||
+			$("input#checkout").val() == "Existing branch name..."){
+			$("#error").Popup("Please Enter your branch name", {type:'alert', duration:3000});
+			return false;
+		}
+		var project = $("#project").val();
+		var branch = $("input#checkout").val();
+		$.ajax({
+			type: "POST",
+			url: $SCRIPT_ROOT + '/newBranch',
+			data: {project:$("input#workdir").val() + "/" + project, name:branch, create:'0'},
+			success: function(data){
+				if(data.code == 1){
+					$("input#checkout").val("Existing branch name...");
 					gitStatus();
 				}
 				else{
@@ -56,7 +80,7 @@ $(document).ready( function() {
 			$("#error").Popup("Please Enter the commit message", {type:'alert', duration:3000});
 			return false;
 		}
-		if (send){ 
+		if (send){
 			return false;
 		}
 		send = true;
@@ -84,13 +108,13 @@ $(document).ready( function() {
 				$("#commit").empty();
 				$("#commit").attr("value", "Commit");
 				send = false;
-			}			
+			}
 		});
 		return false;
 	});
 	/*
 	$("#pullbranch").click(function(){
-		if (send){ 
+		if (send){
 			return false;
 		}
 		send = true;
@@ -124,7 +148,7 @@ $(document).ready( function() {
 	});*/
 	function gitStatus(){
 		var project = $("#project").val();
-		$("#status").empty();			
+		$("#status").empty();
 		$("#push").hide();
 		$("#flash").empty();
 		if (project == ""){
@@ -141,16 +165,16 @@ $(document).ready( function() {
 			success: function(data){
 				if(data.code == 1){
 					$("#branchlist").show();
-					$("#status").append("<h2>Your Repository status</h2>");					
+					$("#status").append("<h2>Your Repository status</h2>");
 					message = data.result.split('\n').join('<br/>');
 					//alert(message);
-					$("#status").append("<p>" + message + "</p>");									
+					$("#status").append("<p>" + message + "</p>");
 					if(data.dirty){
 						$("#push").show();
 						$("#status").append("<br/><h2>Display Diff for current Project</h2>");
-						$("#status").append("<p style='font-size:15px;'>You have changes in your project." + 
+						$("#status").append("<p style='font-size:15px;'>You have changes in your project." +
 							" <a href='" + $SCRIPT_ROOT + "/getProjectDiff/"
-							+ encodeURI(project) + "'>Watch the diff</a></p>");	
+							+ encodeURI(project) + "'>Watch the diff</a></p>");
 					}
 					loadBranch(data.branch);
 				}

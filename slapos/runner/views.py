@@ -4,7 +4,7 @@ from utils import *
 import os
 import shutil
 import md5
-from gittools import cloneRepo, gitStatus, switchBranch, createBranch, getDiff, \
+from gittools import cloneRepo, gitStatus, switchBranch, addBranch, getDiff, \
      gitPush, gitPull
 
 app = Flask(__name__)
@@ -16,14 +16,14 @@ def before_request():
 # general views
 @app.route('/')
 def home():
-  if not os.path.exists(app.config['workspace']) or len(os.listdir(app.config['workspace'])) == 0:  
-    return redirect(url_for('configRepo'))  
+  if not os.path.exists(app.config['workspace']) or len(os.listdir(app.config['workspace'])) == 0:
+    return redirect(url_for('configRepo'))
   return render_template('index.html')
 
 @app.route('/configRepo')
 def configRepo():
   public_key = open(app.config['public_key'], 'r').read()
-  return render_template('cloneRepository.html', workDir=app.config['workspace'], public_key=public_key)
+  return render_template('cloneRepository.html', workDir='workspace', public_key=public_key)
 
 # software views
 @app.route('/editSoftwareProfile')
@@ -31,20 +31,16 @@ def editSoftwareProfile():
   profile = getProfilePath(app.config['runner_workdir'], app.config['software_profile'])
   if profile == "":
     flash('Error: can not open profile, please select your project first')
-  return render_template('updateSoftwareProfile.html',
-      profile=profile)
-
-@app.route('/software.cfg', methods=['GET', 'POST'])
-def getSoftware():
-  return getProfile(app.config['runner_workdir'], app.config['software_profile'])
+  return render_template('updateSoftwareProfile.html', workDir='workspace',
+      profile=profile, projectList=getProjectList(app.config['workspace']))
 
 @app.route('/inspectSoftware', methods=['GET'])
 def inspectSoftware():
   if not os.path.exists(app.config['software_root']):
     result = ""
   else:
-    result = app.config['software_root']    
-  return render_template('runResult.html', softwareRoot=app.config['software_root'],
+    result = app.config['software_root']
+  return render_template('runResult.html', softwareRoot='software_root',
                          softwares=loadSoftwareData(app.config['runner_workdir']))
 
 @app.route('/removeSoftware')
@@ -59,13 +55,12 @@ def removeSoftware():
     flash('Software removed')
   return redirect(url_for('inspectSoftware'))
 
-@app.route('/runSoftwareProfile', methods=['GET'])
+@app.route('/runSoftwareProfile', methods=['POST'])
 def runSoftwareProfile():
   if runSoftwareWithLock(app.config):
-    flash('Started.')
+    return  jsonify(result = True)
   else:
-    flash('Already running.')
-  return redirect(url_for('viewSoftwareLog'))
+    return  jsonify(result = False)
 
 @app.route('/viewSoftwareLog', methods=['GET'])
 def viewSoftwareLog():
@@ -73,34 +68,30 @@ def viewSoftwareLog():
     result = tail(open(app.config['software_log'], 'r'), lines=1500)
   else:
     result = 'Not found yet'
-  return render_template('viewLog.html', type='Software',
-      result=result, running=isSoftwareRunning(app.config))
+  return render_template('viewLog.html', type='software',
+      result=result)
 
 # instance views
 @app.route('/editInstanceProfile')
 def editInstanceProfile():
   profile = getProfilePath(app.config['runner_workdir'], app.config['instance_profile'])
   if profile == "":
-    flash('Error: can not open instance profile for this Software Release') 
-  return render_template('updateInstanceProfile.html',
-      profile=profile)
-
-@app.route('/instance.cfg', methods=['GET', 'POST'])
-def getInstance():
-  return getProfile(app.config['runner_workdir'], app.config['instance_profile'])
+    flash('Error: can not open instance profile for this Software Release')
+  return render_template('updateInstanceProfile.html', workDir='workspace',
+      profile=profile, projectList=getProjectList(app.config['workspace']))
 
 @app.route('/inspectInstance', methods=['GET'])
 def inspectInstance():
   file_content = ''
   result = ''
   if os.path.exists(app.config['instance_root']):
-    file_content = app.config['instance_root']
+    file_content = 'instance_root'
     result = getSvcStatus(app.config)
     if len(result) == 0:
       result = []
   return render_template('instanceInspect.html',
       file_path=file_content, supervisor=result, slap_status=getSlapStatus(app.config),
-      supervisore=result, base_dir=app.config['runner_workdir'])
+      supervisore=result)
 
 @app.route('/removeInstance')
 def removeInstance():
@@ -111,15 +102,14 @@ def removeInstance():
     flash('Instance removed')
   return redirect(url_for('inspectInstance'))
 
-@app.route('/runInstanceProfile', methods=['GET'])
+@app.route('/runInstanceProfile', methods=['POST'])
 def runInstanceProfile():
   if not os.path.exists(app.config['instance_root']):
     os.mkdir(app.config['instance_root'])
   if runInstanceWithLock(app.config):
-    flash('Started.')
+    return  jsonify(result = True)
   else:
-    flash('Already running.')
-  return redirect(url_for('viewInstanceLog'))
+    return  jsonify(result = False)
 
 @app.route('/viewInstanceLog', methods=['GET'])
 def viewInstanceLog():
@@ -127,8 +117,8 @@ def viewInstanceLog():
     result = open(app.config['instance_log'], 'r').read()
   else:
     result = 'Not found yet'
-  return render_template('viewLog.html', type='Instance',
-      result=result, running=isInstanceRunning(app.config))
+  return render_template('viewLog.html', type='instance',
+      result=result)
 
 @app.route('/stopAllPartition', methods=['GET'])
 def stopAllPartition():
@@ -164,24 +154,23 @@ def viewBuildoudAnnotate():
 
 @app.route('/openProject/<method>', methods=['GET'])
 def openProject(method):
-  return render_template('projectFolder.html', method=method, 
-                         workDir=app.config['workspace'])
+  return render_template('projectFolder.html', method=method,
+                         workDir='workspace')
 
 @app.route('/cloneRepository', methods=['POST'])
 def cloneRepository():
-  data = {"repo":request.form['repo'], "user":request.form['user'], 
-          "email":request.form['email']}
-  name = request.form['name']
-  data['path'] = os.path.join(app.config['workspace'], name)
+  path = realpath(app.config, request.form['name'], False)
+  data = {"repo":request.form['repo'], "user":request.form['user'],
+          "email":request.form['email'], "path":path}
   return cloneRepo(data)
 
 @app.route('/readFolder', methods=['POST'])
 def readFolder():
-  return getFolderContent(request.form['dir'])
+  return getFolderContent(app.config, request.form['dir'])
 
 @app.route('/openFolder', methods=['POST'])
 def openFolder():
-  return getFolder(request.form['dir'])
+  return getFolder(app.config, request.form['dir'])
 
 @app.route('/createSoftware', methods=['POST'])
 def createSoftware():
@@ -191,10 +180,9 @@ def createSoftware():
 def checkFolder():
   return checkSoftwareFolder(request.form['path'], app.config)
 
-@app.route("/setCurentProject", methods=['POST'])
-def setCurentProject():
-  folder = request.form['path']
-  if configNewSR(app.config, folder):    
+@app.route("/setCurrentProject", methods=['POST'])
+def setCurrentProject():
+  if configNewSR(app.config, request.form['path']):
     session['title'] = getProjectTitle(app.config)
     return jsonify(code=1, result="")
   else:
@@ -202,28 +190,37 @@ def setCurentProject():
 
 @app.route("/manageProject", methods=['GET'])
 def manageProject():
-  return render_template('manageProject.html', workDir=app.config['workspace'],
+  return render_template('manageProject.html', workDir='workspace',
                          project=getProjectList(app.config['workspace']))
 
 @app.route("/getProjectStatus", methods=['POST'])
 def getProjectStatus():
-  return gitStatus(request.form['project'])
+  path = realpath(app.config, request.form['project'])
+  if path:
+    return gitStatus(path)
+  else:
+    return jsonify(code=0, result="Can not read folder: Permission Denied")
 
-@app.route("/curentSoftware")
-def curentSoftware():
+@app.route("/editCurrentProject")
+def editCurrentProject():
   project = os.path.join(app.config['runner_workdir'], ".project")
   if os.path.exists(project):
-    return render_template('softwareFolder.html', workDir=app.config['workspace'],
-                           project=open(project).read())
+    return render_template('softwareFolder.html', workDir='workspace',
+                           project=open(project).read(),
+                           projectList=getProjectList(app.config['workspace']))
   return redirect(url_for('configRepo'))
 
 @app.route("/createFile", methods=['POST'])
 def createFile():
+  path = realpath(app.config, request.form['file'], False)
+  if not path:
+    return jsonify(code=0, result="Error when creating your " + \
+                   request.form['type'] + ": Permission Denied")
   try:
     if request.form['type'] == "file":
-      f = open(request.form['file'], 'w').write(" ")
+      f = open(path, 'w').write(" ")
     else:
-      os.mkdir(request.form['file'])
+      os.mkdir(path)
     return jsonify(code=1, result="")
   except Exception, e:
     return jsonify(code=0, result=str(e))
@@ -238,37 +235,50 @@ def removeFile():
     return jsonify(code=1, result="")
   except Exception, e:
     return jsonify(code=0, result=str(e))
-  
+
 @app.route("/removeSoftwareDir", methods=['POST'])
 def removeSoftwareDir():
   return removeSoftwareByName(app.config, request.form['name'])
 
 @app.route("/getFileContent", methods=['POST'])
 def getFileContent():
-  if os.path.exists(request.form['file']):
+  file_path = realpath(app.config, request.form['file'])
+  if file_path:
     if not request.form.has_key('truncate'):
-      return jsonify(code=1, result=open(request.form['file'], 'r').read())
+      return jsonify(code=1, result=open(file_path, 'r').read())
     else:
-      content = tail(open(request.form['file'], 'r'), int(request.form['truncate']))
+      content = tail(open(file_path, 'r'), int(request.form['truncate']))
       return jsonify(code=1, result=content)
   else:
     return jsonify(code=0, result="Error: No such file!")
-  
+
 @app.route("/saveFileContent", methods=['POST'])
 def saveFileContent():
-  if os.path.exists(request.form['file']):
-    open(request.form['file'], 'w').write(request.form['content'])
+  file_path = realpath(app.config, request.form['file'])
+  if file_path:
+    open(file_path, 'w').write(request.form['content'])
     return jsonify(code=1, result="")
   else:
     return jsonify(code=0, result="Error: No such file!")
 
 @app.route("/changeBranch", methods=['POST'])
 def changeBranch():
-  return switchBranch(request.form['project'], request.form['name'])
+  path = realpath(app.config, request.form['project'])
+  if path:
+    return switchBranch(path, request.form['name'])
+  else:
+    return jsonify(code=0, result="Can not read folder: Permission Denied")
 
 @app.route("/newBranch", methods=['POST'])
 def newBranch():
-  return createBranch(request.form['project'], request.form['name'])
+  path = realpath(app.config, request.form['project'])
+  if path:
+    if request.form['create'] == '1':
+      return addBranch(path, request.form['name'])
+    else:
+      return addBranch(path, request.form['name'], True)
+  else:
+    return jsonify(code=0, result="Can not read folder: Permission Denied")
 
 @app.route("/getProjectDiff/<project>", methods=['GET'])
 def getProjectDiff(project):
@@ -278,24 +288,73 @@ def getProjectDiff(project):
 
 @app.route("/pushProjectFiles", methods=['POST'])
 def pushProjectFiles():
-  return gitPush(request.form['project'], request.form['msg'])
+  path = realpath(app.config, request.form['project'])
+  if path:
+    return gitPush(path, request.form['msg'])
+  else:
+    return jsonify(code=0, result="Can not read folder: Permission Denied")
 
 @app.route("/pullProjectFiles", methods=['POST'])
 def pullProjectFiles():
-  return gitPull(request.form['project'])
+  path = realpath(app.config, request.form['project'])
+  if path:
+    return gitPull(path)
+  else:
+    return jsonify(code=0, result="Can not read folder: Permission Denied")
 
 @app.route("/checkFileType", methods=['POST'])
 def checkFileType():
-  path = request.form['path']
+  path = realpath(app.config, request.form['path'])
+  if not path:
+    return jsonify(code=0, result="Can not open file: Permission Denied!")
   if isText(path):
     return jsonify(code=1, result="text")
   else:
-    return jsonify(code=0, result="You can only open text files!")
+    return jsonify(code=0, result="Can not open a binary file, please select a text file!")
 
 @app.route("/getmd5sum", methods=['POST'])
 def getmd5sum():
-  md5 = md5sum(request.form['file'])
+  realfile = realpath(app.config, request.form['file'])
+  if not realfile:
+    return jsonify(code=0, result="Can not open file: Permission Denied!")
+  md5 = md5sum(realfile)
   if md5:
     return jsonify(code=1, result=md5)
   else:
     return jsonify(code=0, result="Can not get md5sum for this file!")
+
+@app.route("/slapgridResult", methods=['POST'])
+def slapgridResult():
+  software_state = isSoftwareRunning(app.config)
+  instance_state = isInstanceRunning(app.config)
+  log_result = {"content":"", "position":0}
+  if request.form['log'] == "software"  or\
+     request.form['log'] == "instance":
+    log_file = request.form['log'] + "_log"
+    if os.path.exists(app.config[log_file]):
+      log_result = readFileFrom(open(app.config[log_file], 'r'),
+                            int(request.form['position']))
+  return  jsonify(software=software_state, instance=instance_state,
+                  result=(instance_state or software_state), content=log_result)
+
+@app.route("/stopSlapgrid", methods=['POST'])
+def stopSlapgrid():
+  result = killRunningSlapgrid(app.config, request.form['type'])
+  return jsonify(result=result)
+
+@app.route("/getPath", methods=['POST'])
+def getPath():
+  files = request.form['file'].split('#')
+  list = []
+  for p in files:
+    path = realpath(app.config, p)
+    if not p:
+      list = []
+      break
+    else:
+      list.append(path)
+  realfile = string.join(list, "#")
+  if not realfile:
+    return jsonify(code=0, result="Can not access to this file: Permission Denied!")
+  else:
+    return jsonify(code=1, result=realfile)
