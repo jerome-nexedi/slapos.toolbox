@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}Manage your Project{% endblock %}
 {% block head %}
-  {{ super() }}  
+  {{ super() }}
   <script src="{{ url_for('static', filename='js/jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/scripts/repo.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
@@ -33,12 +33,17 @@
 	&nbsp;&nbsp;<label for='branchname'>Branch Name: </label>
 	<input type="text" name="branchname" id="branchname" size='22' value="Enter the branch name..." />
 	<input type="submit" name="addbranch" id ="addbranch" value="Add" class="button"/>
+	<div style="margin-left:166px;">
+	<label for='checkout'>Checkout existing branch: </label>
+	<input type="text" name="checkout" id="checkout" size='22' value="Existing branch name..." />
+	<input type="submit" name="docheckout" id ="docheckout" value="Checkout" class="button"/>
+	</div>
 	<br/>
 	<!--<label for='pullbranch'>Update your local repository: </label>-->
 	<!--<input type="submit" name="pullbranch" id ="pullbranch" value="Pull" class="button"/>-->
 	<!--<img class="waitting" id="pullimgwaitting" src="{{ url_for('static', filename='images/waiting.gif') }}" alt="" />-->
 	</div>
-	</div>	
+	</div>
 	<div id="push" style="margin-bottom:20px;">
 	<h2>Commit All your changes (On active branch)</h2>
 	<div style="margin-left:15px;">
@@ -46,7 +51,7 @@
 	<input type="text" name="commitmsg" id="commitmsg" size='40' value="Enter message..." />
 	<input type="submit" name="commit" id ="commit" value="Commit" class="button"/>
 	<img class="waitting" id="imgwaitting" src="{{ url_for('static', filename='images/waiting.gif') }}" alt="" />
-	</div>	
+	</div>
 	</div>
 	<br/>
 </div>

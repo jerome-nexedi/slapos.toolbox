@@ -19,9 +19,12 @@ class Popen(subprocess.Popen):
     self.stdin.flush()
     self.stdin.close()
     self.stdin = None
-  
+
 def cloneRepo(data):
   workDir = data['path']
+  if not workDir:
+    return jsonify(code=0,
+                   result="Can not create project folder: Permission Denied")
   code = 0
   json = ""
   try:
@@ -36,7 +39,7 @@ def cloneRepo(data):
       config_writer.set_value("user", "email", data["email"])
     code = 1
   except Exception, e:
-    json = str(e)
+    json = safeResult(str(e))
     if os.path.exists(workDir):
       shutil.rmtree(workDir)
   return jsonify(code=code, result=json)
@@ -52,7 +55,7 @@ def gitStatus(project):
     isdirty = repo.is_dirty(untracked_files=True)
     code = 1
   except Exception, e:
-    json = str(e)
+    json = safeResult(str(e))
   return jsonify(code=code, result=json, branch=branch, dirty=isdirty)
 
 def switchBranch(project, name):
@@ -65,23 +68,26 @@ def switchBranch(project, name):
     if name == current_branch:
       json = "This is already your active branch for this project"
     else:
-      json = "Error: Can not found branch '" + name + "'"
       git  = repo.git
       git.checkout(name)
+      code = 1
   except Exception, e:
-    json = str(e)
+    json = safeResult(str(e))
   return jsonify(code=code, result=json)
 
-def createBranch(project, name):
+def addBranch(project, name, onlyCheckout=False):
   code = 0
   json = ""
   try:
     repo = Repo(project)
     git  = repo.git
-    git.checkout('-b', name)
+    if not onlyCheckout:
+      git.checkout('-b', name)
+    else:
+      git.checkout(name)
     code = 1
   except Exception, e:
-    json = str(e)
+    json = safeResult(str(e))
   return jsonify(code=code, result=json)
 
 def getDiff(project):
@@ -92,7 +98,7 @@ def getDiff(project):
     current_branch = repo.active_branch.name
     result = git.diff(current_branch)
   except Exception, e:
-    result = str(e)
+    result = safeResult(str(e))
   return result
 
 def gitPush(project, msg):
@@ -103,7 +109,7 @@ def gitPush(project, msg):
     repo = Repo(project)
     if repo.is_dirty:
       git = repo.git
-      current_branch = repo.active_branch.name      
+      current_branch = repo.active_branch.name
       #add file to be commited
       files = repo.untracked_files
       for f in files:
@@ -120,7 +126,7 @@ def gitPush(project, msg):
   except Exception, e:
     if undo_commit:
       git.reset("HEAD~") #undo previous commit
-    json = str(e)
+    json = safeResult(str(e))
   return jsonify(code=code, result=json)
 
 def gitPull(project):
@@ -133,5 +139,9 @@ def gitPull(project):
     git.pull()
     code = 1
   except Exception, e:
-    result = str(e)
+    result = safeResult(str(e))
   return jsonify(code=code, result=result)
+
+def safeResult(result):
+  regex=re.compile("(https:\/\/)([\w\d\._-]+:[\w\d\._-]+)\@([\S]+\s)", re.VERBOSE)
+  return regex.sub(r'\1\3', result)
