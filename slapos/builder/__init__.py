@@ -81,7 +81,8 @@ class Parser(OptionParser):
     """
     Initialize all options possibles.
     """
-    desc = """This command allow you to personalize a SlapOS Image. You can use it to put your image on a USB key, a Hard Drive, or you can use it with a virtual machine image. More information on:                                   
+    desc = """This command allows you to customize a SlapOS Image. It can be used to put a SlapOS disk image on a USB key, on a Hard Drive or in a virtual machine.
+For more informations, go to:                                   
 http://www.slapos.org/wiki/osoe-Lecture.SlapOS.Extended """
     
     OptionParser.__init__(self, usage=usage, version=version, description=desc,
