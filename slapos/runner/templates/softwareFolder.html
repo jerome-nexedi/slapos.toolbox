@@ -20,7 +20,7 @@
 <div id="software_folder">
     <h2 class="hight show" id="details_head">Current software release file content</h2>
     <div class="software_details" id="details_box">
-	<div id="fileTree" class="file_tree_short"></div>	
+	<div id="fileTree" class="file_tree_short"></div>
 	<div class="box_software">
 	    <h2>Add new file or folder</h2>
 	    <input type="text" name="file" id="file" size='22' value="Enter name here..." />
@@ -32,12 +32,13 @@
 	    <br/><br/>
 	    <a href="#" id="switch" class="lshare">Switch to Project files</a>
 	    <a href=""  id="clearselect" class="lshare">Clear selection</a><br/><br/>
-	    <div id="file_info" class="file_info"><span id="info">Select parent directory or nothing for root...</span></div>
+	    <div id="file_info" class="file_info"><span id="info">Select directory or nothing for root directory...</span></div>
 	</div>
 	<div class="clear"></div>
     </div>
+    <div class="clear"></div>
     <div id="code" style="margin-top:10px">
-    <h2 id="edit_info" class='title'>No file selected</h2>
+    <h2 class='title'><span id="edit_info">No file selected</span> <a style="display:none" id='option' href='#' rel='tooltip' title='Show more option'>[More]</a></h2>
     <div class='md5sum' id='md5sum'></div>
     <div class="main_content">
 <pre id="editor">
@@ -46,7 +47,36 @@
             </div>
 	    <input type=submit value=Update id="save" class="button">
 	</div>
-		
+
 </div>
 </form>
+<div class="popup">
+  <table id="dpop" cellpadding="0" border="0">
+  <tbody><tr>
+    <td id="topleft" class="corner"></td>
+    <td class="top"><img width="30" height="29" alt="" src="{{ url_for('static', filename='images/bubble-tail2.png') }}"/></td>
+    <td id="topright" class="corner"></td>
+  </tr><tr>
+    <td class="left"></td>
+    <td><div class="popup-contents">
+    <a id='getmd5' href="#">Get or Update md5sum</a>
+    <br/>Add Project to Develop<br/>
+    <div style="margin-top:3px;border-bottom: 1px dashed #666666; heigth:1px"></div>
+    <ul id="plist">
+    {% for name in projectList%}
+	<li><input type="checkbox" name="develop" value="{{name}}" id="{{name}}">
+	<label for="{{name}}">{{name}}</label></li>
+    {% endfor %}
+    </ul>
+    <br/>
+    <a href="#" id="adddevelop" class="lshare">Add to profile</a>
+    </div></td>
+    <td class="right"></td>
+  </tr><tr>
+    <td class="corner" id="bottomleft"></td>
+    <td class="bottom" valign="left"></td>
+    <td id="bottomright" class="corner"></td>
+  </tr>
+  </tbody></table>
+</div>
 {% endblock %}
