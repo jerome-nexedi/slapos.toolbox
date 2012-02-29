@@ -81,7 +81,10 @@ class Parser(OptionParser):
     """
     Initialize all options possibles.
     """
-    OptionParser.__init__(self, usage=usage, version=version,
+    desc = """This command allow you to personalize a SlapOS Image. You can use it to put your image on a USB key, a Hard Drive, or you can use it with a virtual machine image. More information on:                                   
+http://www.slapos.org/wiki/osoe-Lecture.SlapOS.Extended """
+    
+    OptionParser.__init__(self, usage=usage, version=version, description=desc,
                           option_list=[
       Option("-c", "--slapos_configuration",
              help="The path of the slapos configuration directory",
@@ -111,6 +114,8 @@ class Parser(OptionParser):
     """
     Check arguments
     """
+
+
     (options, args) = self.parse_args()
     if len(args) != 8:
       self.error("Incorrect number of arguments")
@@ -366,12 +371,12 @@ def main():
   usage = "usage: %s [options] SYSTEM_FILE OUTPUT_DEVICE " \
           "COMPUTER_ID SSH_KEY_FILE MASTER_URL SLAPOS_SOFTWARE_PROFILE_URL "\
           "COMPUTER_CERTIFICATE COMPUTER_KEY" % sys.argv[0]
+  
 
   try:
     # Parse arguments
     config = Config()
     config.setConfig(*Parser(usage=usage).check_args())
-
     run(config)
     return_code = 0
   except UsageError, err:
@@ -386,3 +391,4 @@ def main():
     return_code = err
 
   sys.exit(return_code)
+
