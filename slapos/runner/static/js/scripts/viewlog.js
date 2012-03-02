@@ -13,17 +13,17 @@ $(document).ready( function() {
   });
   $("#live").change(function(){
     updatelogBox();$("#logconfigbox").find("input:radio").attr('checked', false);$("#live").attr('checked', true);
-    setSpeed(500);setCookie("autoUpdate", "live");openedlogpage = $("input#type").val();});
+    setSpeed(100);setCookie("autoUpdate", "live");openedlogpage = $("input#type").val();});
   $("#slow").change(function(){
     updatelogBox();$("#logconfigbox").find("input:radio").attr('checked', false);$("#slow").attr('checked', true);
-    setSpeed(5000);setCookie("autoUpdate", "slow");openedlogpage = $("input#type").val();});
+    setSpeed(2500);setCookie("autoUpdate", "slow");openedlogpage = $("input#type").val();});
   if(state){
     $("#"+state).attr('checked', true);
     updatelogBox();
     if (state == "manual"){
       openedlogpage = ""; setSpeed(0);
     }
-    else{setSpeed((state=="live")?500:5000);}
+    else{setSpeed((state=="live")?100:2500);}
   }
   else{$("#slow").attr('checked', true);}
 

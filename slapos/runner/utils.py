@@ -483,8 +483,8 @@ def readFileFrom(f, lastPosition):
   block = -1
   data = ""
   length = bytes
-  if lastPosition <= 0 and length > 50000:
-    lastPosition = 50000
+  if lastPosition <= 0 and length > 30000:
+    lastPosition = length-30000
   size = bytes - lastPosition
   while bytes > lastPosition:
     if abs(block*BUFSIZ) <= size:

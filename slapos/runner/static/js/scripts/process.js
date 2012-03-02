@@ -33,7 +33,8 @@ function getRunningState(){
         .scrollTop($("#salpgridLog")[0].scrollHeight - $("#salpgridLog")
           .height());
       }
-      processState = (running && processState != "Running")?"Running":"Stopped";
+      if (running && processState=="Checking" && openedlogpage != ""){$("#salpgridLog").show();$("#manualLog").hide();}
+      processState = (running)?"Running":"Stopped";
   })
   .error(function() { clearAll(false); })
   .complete(function() {
