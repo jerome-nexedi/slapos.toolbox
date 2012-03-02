@@ -27,51 +27,11 @@ $(document).ready( function() {
 		});
 	});
 	$("#addbranch").click(function(){
-		if($("input#branchname").val() == "" ||
-			$("input#branchname").val() == "Enter the branch name..."){
-			$("#error").Popup("Please Enter the new branch name", {type:'alert', duration:3000});
-			return false;
-		}
-		var project = $("#project").val();
-		var branch = $("input#branchname").val();
-		$.ajax({
-			type: "POST",
-			url: $SCRIPT_ROOT + '/newBranch',
-			data: {project:$("input#workdir").val() + "/" + project, name:branch, create:'1'},
-			success: function(data){
-				if(data.code == 1){
-					$("input#branchname").val("Enter the branch name...");
-					gitStatus();
-				}
-				else{
-					$("#error").Popup(data.result, {type:'error'});
-				}
-			}
-		});
+		checkout("1");
 		return false;
 	});
 	$("#docheckout").click(function(){
-		if($("input#checkout").val() == "" ||
-			$("input#checkout").val() == "Existing branch name..."){
-			$("#error").Popup("Please Enter your branch name", {type:'alert', duration:3000});
-			return false;
-		}
-		var project = $("#project").val();
-		var branch = $("input#checkout").val();
-		$.ajax({
-			type: "POST",
-			url: $SCRIPT_ROOT + '/newBranch',
-			data: {project:$("input#workdir").val() + "/" + project, name:branch, create:'0'},
-			success: function(data){
-				if(data.code == 1){
-					$("input#checkout").val("Existing branch name...");
-					gitStatus();
-				}
-				else{
-					$("#error").Popup(data.result, {type:'error'});
-				}
-			}
-		});
+		checkout("0");
 		return false;
 	});
 	$("#commit").click(function(){
@@ -102,7 +62,7 @@ $(document).ready( function() {
 					gitStatus();
 				}
 				else{
-					$("#error").Popup(data.result, {type:'error', duration:5000});
+					$("#error").Popup(data.result, {type:'error'});
 				}
 				$("#imgwaitting").hide()
 				$("#commit").empty();
@@ -184,6 +144,30 @@ $(document).ready( function() {
 				send = false;
 			}
 		});
+	}
+	function checkout(mode){
+		if($("input#branchname").val() == "" ||
+			$("input#branchname").val() == "Enter the branch name..."){
+			$("#error").Popup("Please Enter the branch name", {type:'alert', duration:3000});
+			return false;
+		}
+		var project = $("#project").val();
+		var branch = $("input#branchname").val();
+		$.ajax({
+			type: "POST",
+			url: $SCRIPT_ROOT + '/newBranch',
+			data: {project:$("input#workdir").val() + "/" + project, name:branch, create:mode},
+			success: function(data){
+				if(data.code == 1){
+					$("input#branchname").val("Enter the branch name...");
+					gitStatus();
+				}
+				else{
+					$("#error").Popup(data.result, {type:'error'});
+				}
+			}
+		});
+		return false;
 	}
 	function loadBranch(branch){
 		$("#activebranch").empty();

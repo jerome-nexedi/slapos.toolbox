@@ -4,16 +4,16 @@
 <div id="home_box">
 <div class="inner_box">
 <div class="lmenu">
-    <h2><a href="{{ url_for('configRepo')}}">Clone an Repository into your local Workspace</a></h2>
+    <h2><a href="{{ url_for('configRepo')}}">Clone a Repository into your local Workspace</a></h2>
     <p>Your repository will be cloned into your project folder, you will need the url of the repository.
-    This allows you to open and edit your local project copy and synchonize content with online repository.
+    This allows you to open and edit your local project copy and synchronize content with online repository.
     </p>
     <img src="{{ url_for('static', filename='images/folder_html.png') }}" />
     <div class="clear"></div>
 </div>
 <div class="smenu">
     <h2><a href="{{ url_for('openProject', method='open')}}">Open Software Release</a></h2>
-    <p>Once you have cloned your repository, you can now edit existing Software Release.</p>
+    <p>If you have cloned your repository, you can now edit and test existing Software Release.</p>
     <img src="{{ url_for('static', filename='images/mydocuments.png') }}" />
     <div class="clear"></div>
 </div>
@@ -26,7 +26,7 @@
 <div class="lmenu">
     <h2><a href="{{ url_for('openProject', method='new')}}">Create your new Software Release</a></h2>
     <p>To create a new Software Release, choose the project directory in which you want to create your software. You will then be able to edit and
-    run the new software release on SlapOS using slapgrid.
+    run the new software release.
     </p>
     <img src="{{ url_for('static', filename='images/folder_blue.png') }}" />
     <div class="clear"></div>

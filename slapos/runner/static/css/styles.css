@@ -638,6 +638,7 @@ a.lshare img{
     width: 30px;
     height:22px;
 }
+.list{background: url(../images/menu_dropdown.png) left center no-repeat; padding-left:10px;}
 
 .alert_message{ background: url(../images/alert.png) center no-repeat; height: 26px;}
 .error_message{ background: url(../images/exit.png) center no-repeat; height: 26px;}
