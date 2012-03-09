@@ -64,10 +64,10 @@ def updateProxy(config):
                      'reference': partition_reference,
                      'tap': {'name': partition_reference},
                      })
-
   computer.updateConfiguration(xml_marshaller.dumps(slap_config))
-  slap.registerOpenOrder().request(profile,
-              partition_reference=partition_reference)
+  slap.registerOpenOrder().request(profile, partition_reference=partition_reference,
+                partition_parameter_kw=None, software_type=None, filter_kw=None,
+                state=None, shared=False)
   return True
 
 def readPid(file):

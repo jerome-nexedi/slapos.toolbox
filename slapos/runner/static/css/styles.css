@@ -313,9 +313,8 @@ input[type="radio"], input[type="checkbox"]{
     background: none;
     border: 1px solid #678dad;
     padding: 0;
-    height: 405px;
     color: #4c6172;
-    margin: 15px;
+    margin: 15px 59px 15px 59px;
 }
 
 #home_box a{
@@ -351,26 +350,26 @@ input[type="radio"], input[type="checkbox"]{
     margin: 0;
     border: 1px solid #CAD4DC;
     display: block;
-    padding: 15px;
-    height: 373px;
+    padding: 30px 0 30px 0;
 }
 
 .inner_box p{
     font-size: 13px;
     float: left;
-    width: 460px;
+    width: 450px;
     cursor:default;
+    text-align:justify;
 }
 
 
 .lmenu{
     display: block;
     height: 80px;
-    margin: 10px;
-    margin-left: 60px;
-    padding: 15px;
+    margin: 10px 45px 10px 45px;
+    padding: 10px;
+    padding-bottom:15px;
     border: #678dad;
-    width: 540px;
+    width: 530px;
     border: 1px solid #678dad;
 }
 
@@ -382,9 +381,9 @@ input[type="radio"], input[type="checkbox"]{
 .smenu{
     display: block;
     height: 80px;
-    margin-left: 60px;
-    margin-right: 10px;
-    padding: 15px;
+    margin: 0 10px 0 45px;
+    padding: 10px;
+    padding-bottom:15px;
     border: #678dad;
     width: 250px;
     border: 1px solid #678dad;
@@ -394,7 +393,9 @@ input[type="radio"], input[type="checkbox"]{
 .sright_menu{
     display: block;
     height: 80px;
-    padding: 15px;
+    margin: 0 45px 0 0;
+    padding: 10px;
+    padding-bottom:15px;
     border: #678dad;
     width: 247px;
     border: 1px solid #678dad;
@@ -676,3 +677,4 @@ a.lshare img{
 .popup a:hover{color: #666666;}
 .popup ul{margin:0; padding:0; list-style:none;}
 .popup li{border-bottom: 1px dashed #666666; padding:5px; padding-top:5px;}
+textarea.parameter {border: solid 1px #678dad; color: #666666; height:110px;}

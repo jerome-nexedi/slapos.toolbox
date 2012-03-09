@@ -57,8 +57,9 @@ class Config:
     configuration_parser = ConfigParser.SafeConfigParser()
     configuration_parser.read(configuration_file_path)
     # Merges the arguments and configuration
-    
-    for section in ("slaprunner", "slapos", "slapproxy", "slapformat", "sshkeys_authority", "gitclient"):
+
+    for section in ("slaprunner", "slapos", "slapproxy", "slapformat",
+                    "sshkeys_authority", "gitclient", "cloud9_IDE"):
       configuration_dict = dict(configuration_parser.items(section))
       for key in configuration_dict:
         if not getattr(self, key, None):
