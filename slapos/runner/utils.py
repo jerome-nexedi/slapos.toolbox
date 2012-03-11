@@ -3,6 +3,7 @@ import time
 import subprocess
 import os
 from xml_marshaller import xml_marshaller
+from xml.dom import minidom
 import re
 import urllib
 from flask import jsonify
@@ -10,6 +11,7 @@ import shutil
 import string
 import hashlib
 import signal
+
 
 
 class Popen(subprocess.Popen):
@@ -549,3 +551,21 @@ def realpath(config, path, check_exist=True):
     else:
       return path
   return False
+
+def readParameters(path):
+  if os.path.exists(path):
+    try:
+      xmldoc = minidom.parse(path)
+      object = {}
+      for elt in xmldoc.childNodes:
+    sub_object = {}
+	for subnode in elt.childNodes:
+	  if subnode.nodeType != subnode.TEXT_NODE:
+	    sub_object[str(subnode.getAttribute('id'))] = str(subnode.
+	                                                 childNodes[0].data)
+	object[str(elt.tagName)] = sub_object
+      return object
+    except Exception, e:
+      return str(e)
+  else:
+    return "No such file or directory: " + path

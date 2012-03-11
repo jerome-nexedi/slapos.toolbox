@@ -358,3 +358,25 @@ def getPath():
     return jsonify(code=0, result="Can not access to this file: Permission Denied!")
   else:
     return jsonify(code=1, result=realfile)
+
+@app.route("/loadParameterXml", methods=['POST'])
+def redParameterXml():
+  content = request.form['parameter']
+  param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
+  f = open(param_path, 'w')
+  f.write(content)
+  f.close()
+  result = readParameters(param_path)
+  if type(result) == type(''):
+    return jsonify(code=0, result="XML Error: " + result)
+  else:
+    return jsonify(code=1, result="")
+
+@app.route("/getParameterXml", methods=['GET'])
+def getParameterXml():
+  param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
+  if os.path.exists(param_path):
+    content = open(param_path, 'w').read()
+    return jsonify(code=1, result=content)
+  else:
+    return jsonify(code=0, result="Error: Can not load default instance parameters")

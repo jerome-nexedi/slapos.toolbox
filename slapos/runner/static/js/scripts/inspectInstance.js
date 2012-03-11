@@ -18,6 +18,9 @@ $(document).ready( function() {
 	  //User have double click on file in to the fileTree
 	  loadFileContent(file);
   }
+  $("#update").click(function(){
+    alert($("#parameter").val());
+  });
 	
   function loadFileContent(file){
   $.ajax({
