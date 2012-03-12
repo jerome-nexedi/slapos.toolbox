@@ -359,8 +359,11 @@ def getPath():
   else:
     return jsonify(code=1, result=realfile)
 
-@app.route("/loadParameterXml", methods=['POST'])
+@app.route("/saveParameterXml", methods=['POST'])
 def redParameterXml():
+  project = os.path.join(app.config['runner_workdir'], ".project")
+  if not os.path.exists(project):
+    return jsonify(code=0, result="Please first open a Software Release")
   content = request.form['parameter']
   param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
   f = open(param_path, 'w')
@@ -370,13 +373,17 @@ def redParameterXml():
   if type(result) == type(''):
     return jsonify(code=0, result="XML Error: " + result)
   else:
+    try:
+      updateProxy(app.config)
+    except Exeption:
+      return jsonify(code=0, result="An error occurred while applying your settings!")
     return jsonify(code=1, result="")
 
 @app.route("/getParameterXml", methods=['GET'])
 def getParameterXml():
   param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
   if os.path.exists(param_path):
-    content = open(param_path, 'w').read()
-    return jsonify(code=1, result=content)
+    content = open(param_path, 'r').read()
+    return html_escape(content)
   else:
-    return jsonify(code=0, result="Error: Can not load default instance parameters")
+    return "&lt;?xml version='1.0' encoding='utf-8'?&gt;"

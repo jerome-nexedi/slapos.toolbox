@@ -25,6 +25,18 @@ class Popen(subprocess.Popen):
     self.stdin.close()
     self.stdin = None
 
+html_escape_table = {
+  "&": "&amp;",
+  '"': "&quot;",
+  "'": "&apos;",
+  ">": "&gt;",
+  "<": "&lt;",
+}
+ 
+def html_escape(text):
+  """Produce entities within text."""
+  return "".join(html_escape_table.get(c,c) for c in text)
+
 
 def updateProxy(config):
   if not os.path.exists(config['instance_root']):
@@ -66,10 +78,17 @@ def updateProxy(config):
                      'reference': partition_reference,
                      'tap': {'name': partition_reference},
                      })
+  #get instance parameter
+  param_path = os.path.join(config['runner_workdir'], ".parameter.xml")
+  xml_result = readParameters(param_path)
+  if type(xml_result) != type('') and xml_result.has_key('instance'):
+    partition_parameter_kw = xml_result['instance']
+  else:
+    partition_parameter_kw = None
   computer.updateConfiguration(xml_marshaller.dumps(slap_config))
   slap.registerOpenOrder().request(profile, partition_reference=partition_reference,
-                partition_parameter_kw=None, software_type=None, filter_kw=None,
-                state=None, shared=False)
+                partition_parameter_kw=partition_parameter_kw, software_type=None,
+                filter_kw=None, state=None, shared=False)
   return True
 
 def readPid(file):
@@ -199,9 +218,9 @@ def recursifKill(pids):
     for pid in pids:
       ppids = pidppid(pid)
       try:
-	os.kill(pid, signal.SIGKILL) #kill current process
+        os.kill(pid, signal.SIGKILL) #kill current process
       except Exception:
-	pass
+	      pass
       recursifKill(ppids) #kill all children of this process
 
 def pidppid(pid):
@@ -276,8 +295,11 @@ def getSvcStatus(config):
   regex = "(^unix:.+\.socket)|(^error:).*$"
   supervisord = []
   for item in result.split('\n'):
-    if item != "" and re.search(regex, item) == None:
-      supervisord.append(re.split('[\s,]+', item))
+    if item.strip() != "":
+      if re.search(regex, item, re.IGNORECASE) == None:
+        supervisord.append(re.split('[\s,]+', item))
+      else:
+        return [] #ignore because it is an error message
   return supervisord
 
 def getSvcTailProcess(config, process):
@@ -558,12 +580,12 @@ def readParameters(path):
       xmldoc = minidom.parse(path)
       object = {}
       for elt in xmldoc.childNodes:
-    sub_object = {}
-	for subnode in elt.childNodes:
-	  if subnode.nodeType != subnode.TEXT_NODE:
-	    sub_object[str(subnode.getAttribute('id'))] = str(subnode.
+        sub_object = {}
+        for subnode in elt.childNodes:
+          if subnode.nodeType != subnode.TEXT_NODE:
+            sub_object[str(subnode.getAttribute('id'))] = str(subnode.
 	                                                 childNodes[0].data)
-	object[str(elt.tagName)] = sub_object
+	    object[str(elt.tagName)] = sub_object
       return object
     except Exception, e:
       return str(e)

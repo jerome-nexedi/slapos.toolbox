@@ -4,5 +4,8 @@ String.prototype.toHtmlChar = function(){
        '#':'&#035;' };
   return this.replace( /[<&>'"#]/g, function(s) { return c[s]; } );
 }
+String.prototype.trim = function () {
+    return this.replace(/^\s*/, "").replace(/\s*$/, "");
+}
 
 /**************************/

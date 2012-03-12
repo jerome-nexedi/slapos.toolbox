@@ -18,8 +18,24 @@ $(document).ready( function() {
 	  //User have double click on file in to the fileTree
 	  loadFileContent(file);
   }
+  $("#parameter").load($SCRIPT_ROOT + '/getParameterXml');
   $("#update").click(function(){
-    alert($("#parameter").val());
+    if($("#parameter").val() == ""){
+        $("#error").Popup("Can not save empty value!", {type:'alert', duration:3000});
+    }
+    $.ajax({
+        type: "POST",
+    	url: $SCRIPT_ROOT + '/saveParameterXml',
+    	data: {parameter: $("#parameter").val().trim()},
+    	success: function(data){
+            if(data.code == 1){
+                $("#error").Popup("Instance parameters updated!", {type:'info', duration:3000});
+            }
+            else{
+                $("#error").Popup(data.result, {type:'error', duration:5000});
+            }
+    	}
+    });
   });
 	
   function loadFileContent(file){

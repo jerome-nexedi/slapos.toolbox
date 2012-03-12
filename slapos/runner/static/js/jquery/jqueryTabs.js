@@ -1,7 +1,18 @@
 $(document).ready(function(){
-	$(".tabContents").hide(); // Hide all tab conten divs by default
-	$(".tabContents:first").show(); // Show the first div of tab content by default
-	
+	$(".tabContents").hide(); // Hide all tab content divs by default	
+  var hashes = window.location.href.split('#');  
+  if (hashes.length == 2){
+    $("#tabContaier>ul li").each(function() {
+      var $tab = $(this).find("a");
+      if($tab.hasClass("active")) $tab.removeClass("active");
+      if ($tab.attr("href") == "#"+hashes[1]){
+        $tab.addClass("active");
+        $("#"+hashes[1]).show();
+      }
+      //alert($(this).attr("href"));
+    });
+  }
+  else{$(".tabContents:first").show();} // Show the first div of tab content by default
 	$("#tabContaier ul li a").click(function(){ //Fire the click event
 		if($(this).hasClass('active')){
 		    return;
