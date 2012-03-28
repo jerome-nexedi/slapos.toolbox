@@ -86,9 +86,11 @@ def updateProxy(config):
   else:
     partition_parameter_kw = None
   computer.updateConfiguration(xml_marshaller.dumps(slap_config))
-  slap.registerOpenOrder().request(profile, partition_reference=partition_reference,
+  sr_request = slap.registerOpenOrder().request(profile, partition_reference=partition_reference,
                 partition_parameter_kw=partition_parameter_kw, software_type=None,
                 filter_kw=None, state=None, shared=False)
+  #open(param_path, 'w').write(xml_marshaller.dumps(sr_request.
+  #                      getInstanceParameterDict()))
   return True
 
 def readPid(file):
@@ -257,9 +259,15 @@ def getSlapStatus(config):
   try:
     for partition in computer.getComputerPartitionList():
       # Note: Internal use of API, as there is no reflexion interface in SLAP
-      partition_list.append((partition.getId(), partition._connection_dict.copy()))
+      partition_list.append((partition.getId(), partition._connection_dict.copy(),
+                              partition._parameter_dict.copy()))
   except Exception:
     pass
+  if partition_list:
+    for i in xrange(0, int(config['partition_amount'])):
+      slappart_id = '%s%s' % ("slappart", i)
+      if not [x[0] for x in partition_list if slappart_id==x[0]]:
+        partition_list.append((slappart_id, []))
   return partition_list
 
 def runBuildoutAnnotate(config):

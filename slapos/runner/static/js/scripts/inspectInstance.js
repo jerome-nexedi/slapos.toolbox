@@ -1,6 +1,18 @@
 $(document).ready( function() {
   var editor;
   setupFileTree();
+  $($("#slappart li")[0]).find("input:radio").attr('checked', true);
+  $(".menu-box-right>div").css('min-height', $("#slappart li").length*26 + 20 + "px");
+  configRadio();
+  var lastli = null;
+  var partitionAmount = $("imput#partitionAmount").val();
+  $("#slappart li").each(function(){
+    lastli = $(this);
+    $(this).find("input:radio").change(function(){
+  	  configRadio();      
+	  });
+  });  
+  lastli.css("border-bottom", "none");    
 
   function setupFileTree(){
     var root = $("input#root").val();
@@ -79,7 +91,22 @@ $(document).ready( function() {
 	}
     });
   }
-  
+  function configRadio(){
+  	$("#slappart li").each(function() {			
+      var $radio = $(this).find("input:radio");
+			var boxselector = "#box" + $radio.attr('id');      
+			if($(this).hasClass('checked')){
+				$(this).removeClass('checked');
+				$(boxselector).slideUp("normal");
+			}
+			if($radio.is(':checked')){
+				$(this).addClass('checked');
+				//change content here
+				$(boxselector).slideDown("normal");
+        
+			}
+		});
+	}
   function setupEditor(){		
     editor = ace.edit("editor");
     editor.setTheme("ace/theme/crimson_editor");
@@ -90,5 +117,13 @@ $(document).ready( function() {
     editor.getSession().setUseSoftTabs(true);
     editor.renderer.setHScrollBarAlwaysVisible(false);
     editor.setReadOnly(true);
+  }
+  function setupSlappart(){
+    for(var i=0; i<partitionAmount; i++){
+      var elt = $("#slappart"+i+"Parameter");
+      if(elt != undefined) elt.click(function(){
+        alert(elt.attr('id'));
+      });        
+    }
   }
 });

@@ -88,10 +88,10 @@ def inspectInstance():
     file_content = 'instance_root'
     result = getSvcStatus(app.config)
     if len(result) == 0:
-      result = []
+      result = []  
   return render_template('instanceInspect.html',
       file_path=file_content, supervisor=result, slap_status=getSlapStatus(app.config),
-      supervisore=result)
+      supervisore=result, partition_amount=app.config['partition_amount'])
 
 @app.route('/removeInstance')
 def removeInstance():
