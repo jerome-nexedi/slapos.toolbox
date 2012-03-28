@@ -50,35 +50,19 @@
 
 </div>
 </form>
-<div class="popup">
-  <table id="dpop" cellpadding="0" border="0">
-  <tbody><tr>
-    <td id="topleft" class="corner"></td>
-    <td class="top"><img width="30" height="29" alt="" src="{{ url_for('static', filename='images/bubble-tail2.png') }}"/></td>
-    <td id="topright" class="corner"></td>
-  </tr><tr>
-    <td class="left"></td>
-    <td><div class="popup-contents">
-    <span class="list">MD5 SUM for the current file</span>
+<div id="tooltip-option" style="display:none">
+  <span class="list">MD5 SUM for the current file</span>
     <div style="margin-top:3px; margin-bottom:5px;border-bottom: 1px dashed #666666; heigth:1px"></div>
     <a id='getmd5' href="#">Get or Update md5sum</a>
     <br/><span class="list">Add Project to Develop</span><br/>
     <div style="margin-top:3px;border-bottom: 1px dashed #666666; heigth:1px"></div>
     <ul id="plist">
     {% for name in projectList%}
-	<li><input type="checkbox" name="develop" value="{{name}}" id="{{name}}">
-	<label for="{{name}}">{{name}}</label></li>
+  <li><input type="checkbox" name="develop" value="{{name}}" id="{{name}}">
+  <label>{{name}}</label></li>
     {% endfor %}
     </ul>
     <br/>
     <a href="#" id="adddevelop" class="lshare">Add to profile</a>
-    </div></td>
-    <td class="right"></td>
-  </tr><tr>
-    <td class="corner" id="bottomleft"></td>
-    <td class="bottom" valign="left"></td>
-    <td id="bottomright" class="corner"></td>
-  </tr>
-  </tbody></table>
 </div>
 {% endblock %}

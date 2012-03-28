@@ -4,6 +4,7 @@
 	position:relative;
 	width:757px;
 	font-size: 14px;
+  border-radius: 4px 4px 0 0;
 }
 
 #tabContaier textarea {
@@ -11,7 +12,6 @@
 }
 #tabContaier > ul{
 	overflow:hidden;
-	border-right:1px solid #fff;
 	height:34px;
 	position:absolute;
 	z-index:100;
@@ -21,10 +21,8 @@
 	list-style:none;
 }
 #tabContaier > ul > li a{
-	background:#ddd;
-	border:1px solid #fcfcfc;
-	border-right:0;
-	border-bottom: 0;
+	background:#e4e4e4;
+	border-left:1px solid #fcfcfc;
 	color:#666;
 	cursor:pointer;
 	display:block;
@@ -42,12 +40,13 @@
 #tabContaier > ul > li a.active{
 	background:#fbfbfb;
 	border:1px solid #fff;	
-	border-right:0;
+  border-top:0;
+	border-right:0;  
 	color:#333;
 }
+#tabContaier > ul > li:first-child a{border-left:0}
 .tabDetails{
 	background:#fbfbfb;
-	border:1px solid #fff;
 	border-top: none;
 	margin:34px 0 0;
 }

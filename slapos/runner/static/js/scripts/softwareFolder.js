@@ -7,7 +7,6 @@ $(document).ready( function() {
 	editor.getSession().setTabSize(2);
 	editor.getSession().setUseSoftTabs(true);
 	editor.renderer.setHScrollBarAlwaysVisible(false);
-	$("#editor").css("font-size", "14px");
 
 	var script = "/readFolder";
 	var softwareDisplay = true;

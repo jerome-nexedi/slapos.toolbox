@@ -6,7 +6,7 @@
 	{% block head %}
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
-        <title>Buildout runner</title>
+        <title>SlapOS Buildout web runner</title>
 
         <meta name="keywords" content="" />
 
@@ -24,29 +24,13 @@
 	<script src="{{ url_for('static', filename='js/scripts/common.js') }}" type="text/javascript" charset="utf-8"></script>
         <script type="text/javascript">
 		$(document).ready(function() {
-			$('input[type="text"]').addClass("idleField");
-       		$('input[type="text"]').focus(function() {
-       			$(this).removeClass("idleField").addClass("focusField");
-    		    if (this.value == this.defaultValue){
-    		    	this.value = '';
-				}
-				if(this.value != this.defaultValue){
-	    			this.select();
-	    		}
-    		});
-    		$('input[type="text"]').blur(function() {
-    			$(this).removeClass("focusField").addClass("idleField");
-    		    if ($.trim(this.value) == ''){
-			    	this.value = (this.defaultValue ? this.defaultValue : '');
-				}
-    		});
-		if($("input#fmsg").val() != ""){
-		   $("#error").Popup($("input#fmsg").val(), {type:'info', duration:5000, load:true});
-		}
-		bindRun();
-		if(!checkSavedCmd()){
-		    getRunningState();
-		}
+  		if($("input#fmsg").val() != ""){
+  		   $("#error").Popup($("input#fmsg").val(), {type:'info', duration:5000, load:true});
+  		}
+  		bindRun();
+  		if(!checkSavedCmd()){
+  		    getRunningState();
+  		}
 		});
 	</script>
 	{% endblock %}
@@ -60,7 +44,7 @@
             <!--</div>-->
             <div id="header">
                 <div class="block_header">
-                    <a href="{{ url_for('home') }}" style="float:left;" title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
+                    <a href="{{ url_for('home') }}" style="float:left;" id="home" {% if request.path != '/' %}rel="tooltip"{% endif %} title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
 		    <div class="line"></div>
 		    <a href="{{ url_for('editCurrentProject') }}" style="float:left" title="Edit your current project"><img alt="" src="{{ url_for('static', filename='images/project.png') }}" /></a>
 		    <div class="line"></div>
@@ -75,15 +59,14 @@
                         <li><a href="{{ url_for('runSoftwareProfile') }}" id="softrun">Run</a></li>
                         <li><a href="{{ url_for('viewSoftwareLog') }}">Build log</a></li>
                         <li><a href="{{ url_for('inspectSoftware') }}">Inspect</a></li>
-                        <li><a href="{{ url_for('removeSoftware') }}">Remove</a></li>
+                        <li><a href="{{ url_for('removeSoftware') }}">Remove all</a></li>
 
                         <li class="space"><span class="title_instance">Instance</span></li>
                         <li><a href="{{ url_for('editInstanceProfile') }}">Edit</a></li>
                         <li><a href="{{ url_for('runInstanceProfile') }}" id="instrun">Run</a></li>
                         <li><a href="{{ url_for('viewInstanceLog') }}">Build log</a></li>
                         <li><a href="{{ url_for('inspectInstance') }}">Inspect</a></li>
-                        <li><a href="{{ url_for('stopAllPartition') }}">Stop all</a></li>
-                        <li><a href="{{ url_for('removeInstance') }}">Remove</a></li>
+                        <li><a href="{{ url_for('removeInstance') }}">Remove all</a></li>
                     </ul>
                 </div>
                 <div class="clear"></div>
@@ -107,5 +90,32 @@
                 SlapOs web runner &copy; Vifib SARL 2011 - All right reserved - Creative Commons Shared Alike Non Commercial
             </div>
         </div>
+        <div class="popup">
+        <table id="dpop" cellpadding="0" border="0">
+        <tbody><tr>
+          <td id="topleft" class="corner"></td>
+          <td class="top"><img width="30" height="29" alt="" src="{{ url_for('static', filename='images/bubble-tail2.png') }}"/></td>
+          <td id="topright" class="corner"></td>
+        </tr><tr>
+          <td class="left"></td>
+          <td><div class="popup-contents" id="jqtooltip"></div></td>
+          <td class="right"></td>
+        </tr><tr>
+          <td class="corner" id="bottomleft"></td>
+          <td class="bottom" valign="left"></td>
+          <td id="bottomright" class="corner"></td>
+        </tr>
+        </tbody></table>
+      </div>
+      <div id="tooltip-home" style="display:none">
+        <span style="font-weight:bold">QUICK ACCESS TO MENU</span><br/><br/>
+          <div style="margin-top:3px;border-bottom: 1px dashed #666666; heigth:1px"></div>
+          <ul>          
+            <li><a href="{{ url_for('manageProject')}}">Manage Repositories</a></li>
+            <li><a href="{{ url_for('configRepo')}}" >Clone your Repository</a></li>            
+            <li><a href="{{ url_for('openProject', method='open')}}">Open Software Release</a></li>
+            <li><a href="{{ url_for('openProject', method='new')}}">Create Software Release</a></li>            
+          </ul>
+      </div>
     </body>
 </html>
