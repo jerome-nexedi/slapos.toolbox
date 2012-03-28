@@ -1,7 +1,10 @@
-0.19 (Unreleased)
+0.19 (2012-03-28)
 =================
 
- * No change yet.
+ * slaprunner : Add Support for more instances at the same time. [Alain Takoudjou]
+ * slaprunner : Add slapgrid process control and management. [Alain Takoudjou]
+ * slaprunner : Add Cloud9 IDE. [Alain Takoudjou]
+ * slaprunner : Add develop location of cloned git repository. [Alain Takoudjou]
 
 0.18 (2012-02-23)
 =================
