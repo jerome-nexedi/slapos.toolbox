@@ -5,4 +5,4 @@ include slapos/builder/script/slapos
 include slapos/builder/script/slapos_firstboot
 recursive-include slapos/onetimeupload/templates *.html
 recursive-include slapos/runner/templates *.html
-recursive-include slapos/runner/static *.css *.png *.js
+recursive-include slapos/runner/static *.css *.png *.js *.gif
