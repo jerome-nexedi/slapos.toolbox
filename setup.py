@@ -36,7 +36,8 @@ setup(name=name,
         'GitPython', #needed for git manipulation into slaprunner
       ],
       extras_require = {
-        'lampconfigure':  ["mysql-python"] #needed for MySQL Database access
+        'lampconfigure':  ["mysql-python"], #needed for MySQL Database access
+        'zodbpack': ['ZODB3'], # needed to play with ZODB
       },
       zip_safe=False, # proxy depends on Flask, which has issues with
                       # accessing templates
@@ -62,6 +63,7 @@ setup(name=name,
           'pubsubserver = slapos.pubsub:main',
           'pubsubnotifier = slapos.pubsub.notifier:main',
           'slaprunnertest = slapos.runner.testRunner:run',
+          'zodbpack = slapos.zodbpack:run [zodbpack]',
         ]
       },
     )
