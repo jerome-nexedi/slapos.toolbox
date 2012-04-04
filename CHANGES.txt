@@ -1,7 +1,7 @@
 0.21 (Unreleased)
 =================
 
- * No change yet.
+ * zodbpack : simple tool to pack ZODB [Łukasz Nowak]
 
 0.20 (2012-03-28)
 =================
