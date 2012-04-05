@@ -10,6 +10,13 @@ long_description = open("README.txt").read() + "\n" + \
 for f in sorted(glob.glob(os.path.join('slapos', 'README.*.txt'))):
   long_description += '\n' + open(f).read() + '\n'
 
+# Provide a way to install additional requirements
+additional_install_requires = []
+try:
+  import argparse
+except ImportError:
+  additional_install_requires.append('argparse')
+
 setup(name=name,
       version=version,
       description="SlapOS toolbox.",
@@ -34,7 +41,7 @@ setup(name=name,
         'slapos.core', # as it provides library for slap
         'xml_marshaller', # needed to dump information
         'GitPython', #needed for git manipulation into slaprunner
-      ],
+      ] + additional_install_requires,
       extras_require = {
         'lampconfigure':  ["mysql-python"], #needed for MySQL Database access
         'zodbpack': ['ZODB3'], # needed to play with ZODB
