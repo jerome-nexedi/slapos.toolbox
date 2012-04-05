@@ -1,7 +1,7 @@
-0.22 (unreleased)
+0.22 (2012-04-05)
 =================
 
- * No changes yet.
+ * Install argparse if missing [Łukasz Nowak]
 
 0.21 (2012-04-04)
 =================
