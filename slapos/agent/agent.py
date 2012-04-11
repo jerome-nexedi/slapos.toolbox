@@ -55,16 +55,6 @@ class Agent:
     safeRpcCall(portal, "Agent_requestSoftwareReleaseInstallationOnComputer", computer, software_release)
     time.sleep(5)
 
-  def stopSoftwareReleaseCleanupOnComputer(self, computer, software_release):
-    portal = xmlrpclib.ServerProxy(self.portal_url, allow_none=1)
-    safeRpcCall(portal, "Agent_stopSoftwareReleaseCleanupOnComputer", computer, software_release)
-    time.sleep(5)
-
-  def stopSoftwareReleaseInstallationOnComputer(self, computer, software_release):
-    portal = xmlrpclib.ServerProxy(self.portal_url, allow_none=1)
-    safeRpcCall(portal, "Agent_stopSoftareReleaseInstallationOnComputer", computer, software_release)
-    time.sleep(5)
-
   def checkSoftwareReleaseStatus(self):
     now = datetime.now()
     for computer in self.computer_list:
