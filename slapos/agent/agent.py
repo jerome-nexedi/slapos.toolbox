@@ -39,20 +39,6 @@ class Agent:
     portal = xmlrpclib.ServerProxy(self.portal_url, allow_none=1)
     return safeRpcCall(portal, "Agent_getInstallingSoftwareReleaseReferenceListOnComputer", computer, self.software_release_list)
 
-  def getSoftwareReleaseCleanupStartDateOnComputer(self, computer, software_release):
-    portal = xmlrpclib.ServerProxy(self.portal_url, allow_none=1)
-    start_date_string = safeRpcCall(portal, "Agent_getSoftwareReleaseCleanupStartDateOnComputer", computer, software_release)
-    if start_date_string is not None:
-      return datetime.strptime(start_date_string, "%Y-%m-%dT%H:%M:%S")
-    return None
-
-  def getSoftwareReleaseSetupStartDateOnComputer(self, computer, software_release):
-    portal = xmlrpclib.ServerProxy(self.portal_url, allow_none=1)
-    start_date_string = safeRpcCall(portal, "Agent_getSoftwareReleaseSetupStartDateOnComputer", computer, software_release)
-    if start_date_string is not None:
-      return datetime.strptime(start_date_string, "%Y-%m-%dT%H:%M:%S")
-    return None
-
   def getSoftwareReleaseUsageOnComputer(self, computer, software_release):
     portal = xmlrpclib.ServerProxy(self.portal_url, allow_none=1)
     return safeRpcCall(portal, "Agent_getSoftwareReleaseUsageOnComputer", computer, software_release)
