@@ -34,11 +34,31 @@ for service in rpcbind network-remotefs postfix ; do
 done
 
 IPV6CHECK=ipv6.google.com
+IPV4CHECK=google.com
+IPV6WAITTIME=5
 
-# Test ipv6 connectivity and if not working use openvpn 
+# Test ipv4/ipv6 connectivity and if not working use openvpn 
 # and wait for it to be ready
 /etc/init.d/openvpn stop
+
+ping -c 2 $IPV4CHECK
+while [ $? != 0 ]; do
+    sleep 5
+    ping -c 2 $IPV4CHECK
+done
+
+echo """Ipv4 connection ok"""
+
+# Wait for native ipv6 connection to be ready 
+i=0
 ping6 -c 2 $IPV6CHECK
+while [[ $? != 0 ]] && [[ $i < $IPV6WAITTIME ]]
+do
+    let i++
+    sleep 1
+    ping6 -c 2 $IPV6CHECK
+done
+
 if [[ $? != 0 ]]; then
     echo """ Starting openVPN """
     /etc/init.d/openvpn start
@@ -46,7 +66,7 @@ if [[ $? != 0 ]]; then
     while [[ $? != 0 ]]; do
         ping6 -c 2 $IPV6CHECK
     done
-    # Ask slapos to use openvpn as ipv6 provider                                                                                                                       
+    # Ask slapos to use openvpn as ipv6 provider      
     if [ ! -f /etc/slapos/openvpn-needed ]; then
         touch /etc/slapos/openvpn-needed
         echo "ipv6_interface = tapVPN" >> /etc/slapos/slapos.cfg
