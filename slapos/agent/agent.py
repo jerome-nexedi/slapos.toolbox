@@ -1,3 +1,26 @@
+import sys
+sys.path[0:0] = [
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/slapos.cookbook-0.45-py2.7.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/zc.recipe.egg-1.3.2-py2.7.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/zc.buildout-1.6.0_dev_SlapOS_003-py2.7.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/xml_marshaller-0.9.7-py2.7.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/slapos.core-0.24-py2.7.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/inotifyx-0.2.0-py2.7-linux-x86_64.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/setuptools-0.6c12dev_r88846-py2.7.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/netaddr-0.7.6-py2.7.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/develop-eggs/lxml-2.3.4-py2.7-linux-x86_64.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/PyXML-0.8.4-py2.7-linux-x86_64.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/zope.interface-3.8.0-py2.7-linux-x86_64.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/supervisor-3.0a12-py2.7.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/netifaces-0.8-py2.7-linux-x86_64.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/Flask-0.8-py2.7.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/meld3-0.6.8-py2.7.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/Jinja2-2.6-py2.7.egg',
+    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/Werkzeug-0.8.3-py2.7.egg',
+    ]
+
+import ConfigParser
+import json
 from random import random, choice
 import os
 import socket
@@ -6,11 +29,8 @@ from datetime import datetime
 from datetime import timedelta
 import xmlrpclib
 from logging import getLogger, basicConfig
-
-MAXIMUM_SOFTWARE_INSTALLATION_DURATION = timedelta(minutes = 120)
-MAXIMUM_SOFTWARE_CLEANUP_DURATION = timedelta(minutes = 15)
-SOFTWARE_RELEASE_DESTROYING_RATIO = 0.01
-MAXIMUM_SOFTWARE_INSTALLATION_COUNT = 5
+from slapos.slap import slap, Supply
+from slapos.grid.utils import setRunning, setFinished
 
 def safeRpcCall(proxy, function_id, *args):
   try:
@@ -19,80 +39,141 @@ def safeRpcCall(proxy, function_id, *args):
   except (socket.error, xmlrpclib.ProtocolError, xmlrpclib.Fault), e:
     pass
 
+def _encode_software_dict(software_dict):
+  result = dict()
+  for key, value in software_dict.items():
+    result[key] = datetime.strftime(value, "%Y-%m-%dT%H:%M:%S")
+  return result
+
+def _decode_software_dict(software_dict):
+  result = dict()
+  for key, value in software_dict.items():
+    result[key] = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+  return result
+
 class Agent:
   def __init__(self):
-    self.computer_list = []
-    self.software_release_list = []
-    self.portal_url = ""
-    basicConfig(format="%(asctime)-15s %(message)s", level="INFO")
+    dirname = os.path.dirname(__file__)
+    configuration = ConfigParser.SafeConfigParser()
+    configuration.readfp(open(os.path.join(dirname, "agent.cfg")))
+    self.portal_url = configuration.get("agent", "portal_url")
+    self.master_url = configuration.get("agent", "master_url")
+    self.key_file = configuration.get("agent", "key_file")
+    self.cert_file = configuration.get("agent", "cert_file")
+    self.maximum_software_installation_duration = \
+        timedelta(minutes=configuration.getfloat("agent", "maximum_software_installation_duration"))
+    self.software_live_duration = \
+        timedelta(minutes=configuration.getfloat("agent", "software_live_duration"))
+    self.computer_list = json.loads(configuration.get("agent", "computer_list"))
+    self.software_list = json.loads(configuration.get("agent", "software_list"))
+    self.software_uri = dict()
+    for (software, uri) in configuration.items("software_uri"):
+      self.software_uri[software] = uri
+
+    filename = "agent-%s.log" % datetime.strftime(datetime.now(), "%Y-%m-%d")
+    basicConfig(filename=os.path.join(dirname, filename), format="%(asctime)-15s %(message)s", level="INFO")
     self.logger = getLogger()
+
+    self.slap = slap()
+    self.slap.initializeConnection(self.master_url, self.key_file, self.cert_file)
+    self.supply = Supply()
+
+    state = ConfigParser.SafeConfigParser()
+    state.readfp(open(os.path.join(dirname, "state.cfg")))
+    self.installing_software_dict = dict()
+    self.installed_software_dict = dict()
+    for computer in self.computer_list:
+      if state.has_section(computer):
+        self.installing_software_dict[computer] = \
+            _decode_software_dict(json.loads(state.get(computer, "installing_software", "{}")))
+        self.installed_software_dict[computer] = \
+            _decode_software_dict(json.loads(state.get(computer, "installed_software", "{}")))
+      else:
+        self.installing_software_dict[computer] = dict()
+        self.installed_software_dict[computer] = dict()
 
   def getDestroyingSoftwareReleaseListOnComputer(self, computer):
     portal = xmlrpclib.ServerProxy(self.portal_url, allow_none=1)
-    return safeRpcCall(portal, "Agent_getDestroyingSoftwareReleaseReferenceListOnComputer", computer, self.software_release_list)
+    return safeRpcCall(portal, "Agent_getDestroyingSoftwareReleaseReferenceListOnComputer", computer, self.software_list)
 
   def getInstalledSoftwareReleaseListOnComputer(self, computer):
     portal = xmlrpclib.ServerProxy(self.portal_url, allow_none=1)
-    return safeRpcCall(portal, "Agent_getInstalledSoftwareReleaseReferenceListOnComputer", computer, self.software_release_list)
+    return safeRpcCall(portal, "Agent_getInstalledSoftwareReleaseReferenceListOnComputer", computer, self.software_list)
 
   def getInstallingSoftwareReleaseListOnComputer(self, computer):
     portal = xmlrpclib.ServerProxy(self.portal_url, allow_none=1)
-    return safeRpcCall(portal, "Agent_getInstallingSoftwareReleaseReferenceListOnComputer", computer, self.software_release_list)
+    return safeRpcCall(portal, "Agent_getInstallingSoftwareReleaseReferenceListOnComputer", computer, self.software_list)
 
-  def getSoftwareReleaseUsageOnComputer(self, computer, software_release):
+  def getSoftwareReleaseUsageOnComputer(self, computer, software):
     portal = xmlrpclib.ServerProxy(self.portal_url, allow_none=1)
-    return safeRpcCall(portal, "Agent_getSoftwareReleaseUsageOnComputer", computer, software_release)
+    return safeRpcCall(portal, "Agent_getSoftwareReleaseUsageOnComputer", computer, software)
 
-  def requestSoftwareReleaseCleanupOnComputer(self, computer, software_release):
-    self.logger.info("Request to cleanup %s on %s." % (software_release, computer))
-    portal = xmlrpclib.ServerProxy(self.portal_url, allow_none=1)
-    safeRpcCall(portal, "Agent_requestSoftwareReleaseCleanupOnComputer", computer, software_release)
-    time.sleep(5)
+  def requestSoftwareReleaseCleanupOnComputer(self, computer, software):
+    self.logger.info("Request to cleanup %s on %s." % (software, computer))
+    try:
+      self.supply.supply(self.software_uri[software], computer, "destroyed")
+      return True
+    except:
+      self.logger.info("Failed to request to cleanup %s on %s." % (software, computer))
+      return False
 
-  def requestSoftwareReleaseInstallationOnComputer(self, computer, software_release):
-    self.logger.info("Request to install %s on %s." % (software_release, computer))
-    portal = xmlrpclib.ServerProxy(self.portal_url, allow_none=1)
-    safeRpcCall(portal, "Agent_requestSoftwareReleaseInstallationOnComputer", computer, software_release)
-    time.sleep(5)
+  def requestSoftwareReleaseInstallationOnComputer(self, computer, software):
+    self.logger.info("Request to install %s on %s." % (software, computer))
+    try:
+      self.supply.supply(self.software_uri[software], computer, "available")
+      return True
+    except:
+      self.logger.info("Failed to request to install %s on %s." % (software, computer))
+      return False
 
-  def checkSoftwareReleaseStatus(self):
-    now = datetime.now()
+  def writeState(self):
+    state = ConfigParser.SafeConfigParser()
     for computer in self.computer_list:
-      installing_software_release_list = self.getInstallingSoftwareReleaseListOnComputer(computer)
-      for software_release in installing_software_release_list:
-        start_date = self.getSoftwareReleaseSetupStartDateOnComputer(computer, software_release)
-        if start_date is not None:
-          duration = now - start_date
-          if duration > MAXIMUM_SOFTWARE_INSTALLATION_DURATION:
-            self.logger.error("Failed to install %s on %s in %s." % (software_release, computer, duration))
-          if duration > 2 * MAXIMUM_SOFTWARE_INSTALLATION_DURATION:
-            self.requestSoftwareReleaseCleanupOnComputer(computer, software_release)
-    for computer in self.computer_list:
-      destroying_software_release_list = self.getDestroyingSoftwareReleaseListOnComputer(computer)
-      for software_release in destroying_software_release_list:
-        start_date = self.getSoftwareReleaseCleanupStartDateOnComputer(computer, software_release)
-        if start_date is not None:
-          duration = now - start_date
-          if duration > MAXIMUM_SOFTWARE_CLEANUP_DURATION:
-            self.logger.error("Failed to cleanup %s on %s in %s." % (software_release, computer, duration))
-
-  def do(self):
-    for computer in self.computer_list:
-      installing_software_release_list = self.getInstallingSoftwareReleaseListOnComputer(computer)
-      installed_software_release_list = self.getInstalledSoftwareReleaseListOnComputer(computer)
-      if len(installing_software_release_list) < MAXIMUM_SOFTWARE_INSTALLATION_COUNT:
-        software_release = choice(self.software_release_list)
-        if not software_release in installing_software_release_list + installed_software_release_list:
-          self.requestSoftwareReleaseInstallationOnComputer(computer, software_release)
-    now = datetime.now()
-    for computer in self.computer_list:
-      installed_software_release_list = self.getInstalledSoftwareReleaseListOnComputer(computer)
-      for software_release in installed_software_release_list:
-        if self.getSoftwareReleaseUsageOnComputer(computer, software_release) == 0:
-          if random() < SOFTWARE_RELEASE_DESTROYING_RATIO:
-            self.requestSoftwareReleaseCleanupOnComputer(computer, software_release)
+      state.add_section(computer)
+      state.set(computer, "installing_software", \
+          json.dumps(_encode_software_dict(self.installing_software_dict[computer])))
+      state.set(computer, "installed_software", \
+          json.dumps(_encode_software_dict(self.installed_software_dict[computer])))
+    dirname = os.path.dirname(__file__)
+    state.write(open(os.path.join(dirname, "state.cfg"), "w"))
 
 if __name__ == "__main__":
+  dirname = os.path.dirname(__file__)
+  pidfile = os.path.join(dirname, "agent.pid")
+  setRunning(pidfile)
+
   agent = Agent()
-  agent.checkSoftwareReleaseStatus()
-  agent.do()
+  now = datetime.now()
+  for computer in agent.computer_list:
+    installing_software_list = agent.getInstallingSoftwareReleaseListOnComputer(computer)
+    installed_software_list = agent.getInstalledSoftwareReleaseListOnComputer(computer)
+    destroying_software_list = agent.getDestroyingSoftwareReleaseListOnComputer(computer)
+    if len(installing_software_list) == 0:
+      software = choice(agent.software_list)
+      if software in installed_software_list or software in destroying_software_list:
+        pass
+      else:
+        if agent.requestSoftwareReleaseInstallationOnComputer(computer, software):
+          agent.installing_software_dict[computer][software] = datetime.now()
+    else:
+      for installing_software in installing_software_list:
+        if installing_software in agent.installing_software_dict[computer]:
+          start_time = agent.installing_software_dict[computer][installing_software]
+          if now - start_time > agent.maximum_software_installation_duration:
+            agent.logger.info("Failed to install %s on %s in %s." % \
+                (installing_software, computer, agent.maximum_software_installation_duration))
+            if agent.requestSoftwareReleaseCleanupOnComputer(computer, installing_software):
+              del agent.installing_software_dict[computer][installing_software]
+    for installed_software in installed_software_list:
+      if installed_software in agent.installing_software_dict[computer]:
+        agent.logger.info("Successfully installed %s on %s." % (installed_software, computer))
+        del agent.installing_software_dict[computer][installed_software]
+        agent.installed_software_dict[computer][installed_software] = now
+      elif installed_software in agent.installed_software_dict[computer] and \
+          agent.getSoftwareReleaseUsageOnComputer(computer, installed_software) == 0 and \
+          now - agent.installed_software_dict[computer][installed_software] > agent.software_live_duration:
+        if agent.requestSoftwareReleaseCleanupOnComputer(computer, installed_software):
+          del agent.installed_software_dict[computer][installed_software]
+  agent.writeState()
+
+  setFinished(pidfile)
