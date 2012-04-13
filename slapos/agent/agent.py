@@ -1,24 +1,3 @@
-import sys
-sys.path[0:0] = [
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/slapos.cookbook-0.45-py2.7.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/zc.recipe.egg-1.3.2-py2.7.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/zc.buildout-1.6.0_dev_SlapOS_003-py2.7.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/xml_marshaller-0.9.7-py2.7.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/slapos.core-0.24-py2.7.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/inotifyx-0.2.0-py2.7-linux-x86_64.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/setuptools-0.6c12dev_r88846-py2.7.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/netaddr-0.7.6-py2.7.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/develop-eggs/lxml-2.3.4-py2.7-linux-x86_64.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/PyXML-0.8.4-py2.7-linux-x86_64.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/zope.interface-3.8.0-py2.7-linux-x86_64.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/supervisor-3.0a12-py2.7.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/netifaces-0.8-py2.7-linux-x86_64.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/Flask-0.8-py2.7.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/meld3-0.6.8-py2.7.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/Jinja2-2.6-py2.7.egg',
-    '/opt/slapgrid/15a67986198fab31575a84cc67dc6912/eggs/Werkzeug-0.8.3-py2.7.egg',
-    ]
-
 import ConfigParser
 import json
 from random import random, choice
