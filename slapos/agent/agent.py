@@ -1,4 +1,5 @@
 import ConfigParser
+import argparse
 import json
 from random import random, choice
 import os
@@ -12,11 +13,12 @@ from slapos.slap import slap, Supply
 from slapos.grid.utils import setRunning, setFinished
 
 def safeRpcCall(proxy, function_id, *args):
-  try:
-    function = getattr(proxy, function_id)
-    return function(*args)
-  except (socket.error, xmlrpclib.ProtocolError, xmlrpclib.Fault), e:
-    pass
+  while True:
+    try:
+      function = getattr(proxy, function_id)
+      return function(*args)
+    except (socket.error, xmlrpclib.ProtocolError, xmlrpclib.Fault), e:
+      time.sleep(64)
 
 def _encode_software_dict(software_dict):
   result = dict()
@@ -31,10 +33,9 @@ def _decode_software_dict(software_dict):
   return result
 
 class Agent:
-  def __init__(self):
-    dirname = os.path.dirname(__file__)
+  def __init__(self, configuration_file):
     configuration = ConfigParser.SafeConfigParser()
-    configuration.readfp(open(os.path.join(dirname, "agent.cfg")))
+    configuration.readfp(configuration_file)
     self.portal_url = configuration.get("agent", "portal_url")
     self.master_url = configuration.get("agent", "master_url")
     self.key_file = configuration.get("agent", "key_file")
@@ -48,9 +49,11 @@ class Agent:
     self.software_uri = dict()
     for (software, uri) in configuration.items("software_uri"):
       self.software_uri[software] = uri
+    self.log_directory = configuration.get("agent", "log_directory")
+    self.state_file = configuration.get("agent", "state_file")
 
-    filename = "agent-%s.log" % datetime.strftime(datetime.now(), "%Y-%m-%d")
-    basicConfig(filename=os.path.join(dirname, filename), format="%(asctime)-15s %(message)s", level="INFO")
+    filename = os.path.join(self.log_directory, "agent-%s.log" % datetime.strftime(datetime.now(), "%Y-%m-%d"))
+    basicConfig(filename=filename, format="%(asctime)-15s %(message)s", level="INFO")
     self.logger = getLogger()
 
     self.slap = slap()
@@ -58,7 +61,7 @@ class Agent:
     self.supply = Supply()
 
     state = ConfigParser.SafeConfigParser()
-    state.readfp(open(os.path.join(dirname, "state.cfg")))
+    state.readfp(open(self.state_file))
     self.installing_software_dict = dict()
     self.installed_software_dict = dict()
     for computer in self.computer_list:
@@ -114,14 +117,28 @@ class Agent:
       state.set(computer, "installed_software", \
           json.dumps(_encode_software_dict(self.installed_software_dict[computer])))
     dirname = os.path.dirname(__file__)
-    state.write(open(os.path.join(dirname, "state.cfg"), "w"))
+    state.write(open(self.state_file, "w"))
 
-if __name__ == "__main__":
-  dirname = os.path.dirname(__file__)
-  pidfile = os.path.join(dirname, "agent.pid")
-  setRunning(pidfile)
+def main(*args):
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--pidfile", help="The location where pidfile will be created.")
+  parser.add_argument("configuration_file", nargs=1, type=argparse.FileType(),
+      help="Slap Test Agent configuration file.")
+  if args == ():
+    argument_option_instance = parser.parse_args()
+  else:
+    argument_option_instance = \
+      parser.parse_args(list(args))
+  option_dict = {}
+  configuration_file = argument_option_instance.configuration_file[0]
+  for argument_key, argument_value in vars(argument_option_instance
+      ).iteritems():
+    option_dict.update({argument_key:argument_value})
+  pidfile = option_dict.get("pidfile", None)
+  if pidfile:
+    setRunning(pidfile)
 
-  agent = Agent()
+  agent = Agent(configuration_file)
   now = datetime.now()
   for computer in agent.computer_list:
     installing_software_list = agent.getInstallingSoftwareReleaseListOnComputer(computer)
@@ -155,4 +172,8 @@ if __name__ == "__main__":
           del agent.installed_software_dict[computer][installed_software]
   agent.writeState()
 
-  setFinished(pidfile)
+  if pidfile:
+    setFinished(pidfile)
+
+if __name__ == "__main__":
+  main()
