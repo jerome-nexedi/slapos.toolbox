@@ -1,7 +1,7 @@
-0.24 (unreleased)
+0.24 (2012-04-19)
 =================
 
- * No changes yet.
+ * Slap Test Agent : test software release installation and instance allocation [Yingjie Xu]
 
 0.22 (2012-04-05)
 =================
