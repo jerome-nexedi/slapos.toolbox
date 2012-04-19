@@ -50,6 +50,7 @@ setup(name=name,
                       # accessing templates
       entry_points={
         'console_scripts': [
+          'agent = slapos.agent.agent:main',
           'clouddestroy = slapos.cloudmgr.destroy:main',
           'cloudgetprivatekey = slapos.cloudmgr.getprivatekey:main',
           'cloudgetpubliciplist = slapos.cloudmgr.getpubliciplist:main',
