@@ -51,6 +51,8 @@ setup(name=name,
       entry_points={
         'console_scripts': [
           'agent = slapos.agent.agent:main',
+          'report_start = slapos.agent.report_start:main',
+          'report_stop = slapos.agent.report_stop:main',
           'clouddestroy = slapos.cloudmgr.destroy:main',
           'cloudgetprivatekey = slapos.cloudmgr.getprivatekey:main',
           'cloudgetpubliciplist = slapos.cloudmgr.getpubliciplist:main',
