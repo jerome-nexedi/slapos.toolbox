@@ -1,10 +1,7 @@
-import ConfigParser
-import argparse
+import ConfigParser, argparse
 import json
 from random import random, choice
-import os
-import socket
-import time
+import os, socket, time
 from datetime import datetime
 from datetime import timedelta
 import xmlrpclib
@@ -52,7 +49,7 @@ class Agent:
     self.log_directory = configuration.get("agent", "log_directory")
     self.state_file = configuration.get("agent", "state_file")
 
-    filename = os.path.join(self.log_directory, "agent-%s.log" % datetime.strftime(datetime.now(), "%Y-%m-%d"))
+    filename = os.path.join(self.log_directory, "agent-%s.log" % datetime.strftime(datetime.now(), "%Y%m%d"))
     basicConfig(filename=filename, format="%(asctime)-15s %(message)s", level="INFO")
     self.logger = getLogger()
 
@@ -91,18 +88,18 @@ class Agent:
     return safeRpcCall(portal, "Agent_getSoftwareReleaseUsageOnComputer", computer, software)
 
   def requestSoftwareReleaseCleanupOnComputer(self, computer, software):
-    self.logger.info("Request to cleanup %s on %s." % (software, computer))
     try:
       self.supply.supply(self.software_uri[software], computer, "destroyed")
+      self.logger.info("Successfully requested to cleanup %s on %s." % (software, computer))
       return True
     except:
       self.logger.info("Failed to request to cleanup %s on %s." % (software, computer))
       return False
 
   def requestSoftwareReleaseInstallationOnComputer(self, computer, software):
-    self.logger.info("Request to install %s on %s." % (software, computer))
     try:
       self.supply.supply(self.software_uri[software], computer, "available")
+      self.logger.info("Successfully requested to install %s on %s." % (software, computer))
       return True
     except:
       self.logger.info("Failed to request to install %s on %s." % (software, computer))
@@ -116,7 +113,6 @@ class Agent:
           json.dumps(_encode_software_dict(self.installing_software_dict[computer])))
       state.set(computer, "installed_software", \
           json.dumps(_encode_software_dict(self.installed_software_dict[computer])))
-    dirname = os.path.dirname(__file__)
     state.write(open(self.state_file, "w"))
 
 def main(*args):
