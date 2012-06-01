@@ -129,7 +129,7 @@ def main(*args):
   for argument_key, argument_value in vars(argument_option_instance
       ).iteritems():
     option_dict.update({argument_key:argument_value})
-  pidfile = option_dict.get("pidfile", None)
+  pidfile = option_dict.get("pidfile")
   if pidfile:
     setRunning(pidfile)
 
