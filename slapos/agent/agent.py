@@ -117,6 +117,12 @@ class Agent:
 def main(*args):
   parser = argparse.ArgumentParser()
   parser.add_argument("--pidfile", help="The location where pidfile will be created.")
+  parser.add_argument("--log_directory", help="")
+  parser.add_argument("--state_file", help="")
+  parser.add_argument("--path_file", help="")
+  parser.add_argument("--key_file", help="Key file path for https connection to master.")
+  parser.add_argument("--cert_file", help="Certificate file path for https "
+    "connection to master")
   parser.add_argument("configuration_file", nargs=1, type=argparse.FileType(),
       help="Slap Test Agent configuration file.")
   if args:
