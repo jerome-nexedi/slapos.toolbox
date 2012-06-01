@@ -30,24 +30,23 @@ def _decode_software_dict(software_dict):
   return result
 
 class Agent:
-  def __init__(self, configuration_file):
-    configuration = ConfigParser.SafeConfigParser()
-    configuration.readfp(configuration_file)
-    self.portal_url = configuration.get("agent", "portal_url")
-    master_url = configuration.get("agent", "master_url")
-    key_file = configuration.get("agent", "key_file")
-    cert_file = configuration.get("agent", "cert_file")
+  def __init__(self, portal_url, master_url,
+        maximum_software_installation_duration, software_live_duration,
+        computer_list, software_list, log_directory, state_file, software_uri,
+        key_file=None, cert_file=None,
+      ):
+    self.portal_url = portal_url
+    master_url = master_url
+    key_file = key_file
+    cert_file = cert_file
     self.maximum_software_installation_duration = \
-        timedelta(minutes=configuration.getfloat("agent", "maximum_software_installation_duration"))
-    self.software_live_duration = \
-        timedelta(minutes=configuration.getfloat("agent", "software_live_duration"))
-    self.computer_list = json.loads(configuration.get("agent", "computer_list"))
-    self.software_list = json.loads(configuration.get("agent", "software_list"))
-    self.software_uri = dict()
-    for (software, uri) in configuration.items("software_uri"):
-      self.software_uri[software] = uri
-    self.log_directory = configuration.get("agent", "log_directory")
-    self.state_file = configuration.get("agent", "state_file")
+      maximum_software_installation_duration
+    self.software_live_duration = software_live_duration
+    self.computer_list = computer_list
+    self.software_list = software_list
+    self.software_uri = software_uri
+    self.log_directory = log_directory
+    self.state_file = state_file
 
     filename = os.path.join(self.log_directory, "agent-%s.log" % datetime.strftime(datetime.now(), "%Y%m%d"))
     basicConfig(filename=filename, format="%(asctime)-15s %(message)s", level="INFO")
@@ -124,16 +123,28 @@ def main(*args):
     argument_option_instance = parser.parse_args(list(args))
   else:
     argument_option_instance = parser.parse_args()
-  option_dict = {}
-  configuration_file = argument_option_instance.configuration_file[0]
-  for argument_key, argument_value in vars(argument_option_instance
-      ).iteritems():
-    option_dict.update({argument_key:argument_value})
+  configuration = ConfigParser.SafeConfigParser()
+  configuration.readfp(argument_option_instance.pop("configuration_file")[0])
+  configuration_dict = dict(configuration.items("agent"))
+  configuration_dict.update(argument_option_instance.__dict__)
   pidfile = option_dict.get("pidfile")
   if pidfile:
     setRunning(pidfile)
-
-  agent = Agent(configuration_file)
+  agent = Agent(
+    portal_url=configuration_dict["portal_url"],
+    master_url=configuration_dict["master_url"],
+    maximum_software_installation_duration=timedelta(minutes=float(
+      configuration_dict["maximum_software_installation_duration"])),
+    software_live_duration=timedelta(minutes=float(configuration_dict[
+      "software_live_duration"])),
+    computer_list=json.loads(configuration_dict["computer_list"]),
+    software_list=json.loads(configuration_dict["software_list"]),
+    log_directory=configuration_dict["log_directory"],
+    state_file=configuration_dict["state_file"],
+    software_uri=dict(configuration.items("software_uri")),
+    key_file=configuration_dict.get("key_file", None),
+    cert_file=configuration_dict.get("cert_file", None),
+  )
   now = datetime.now()
   for computer in agent.computer_list:
     installing_software_list = agent.getInstallingSoftwareReleaseListOnComputer(computer)
