@@ -120,11 +120,10 @@ def main(*args):
   parser.add_argument("--pidfile", help="The location where pidfile will be created.")
   parser.add_argument("configuration_file", nargs=1, type=argparse.FileType(),
       help="Slap Test Agent configuration file.")
-  if args == ():
-    argument_option_instance = parser.parse_args()
+  if args:
+    argument_option_instance = parser.parse_args(list(args))
   else:
-    argument_option_instance = \
-      parser.parse_args(list(args))
+    argument_option_instance = parser.parse_args()
   option_dict = {}
   configuration_file = argument_option_instance.configuration_file[0]
   for argument_key, argument_value in vars(argument_option_instance
