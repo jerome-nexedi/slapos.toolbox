@@ -34,9 +34,9 @@ class Agent:
     configuration = ConfigParser.SafeConfigParser()
     configuration.readfp(configuration_file)
     self.portal_url = configuration.get("agent", "portal_url")
-    self.master_url = configuration.get("agent", "master_url")
-    self.key_file = configuration.get("agent", "key_file")
-    self.cert_file = configuration.get("agent", "cert_file")
+    master_url = configuration.get("agent", "master_url")
+    key_file = configuration.get("agent", "key_file")
+    cert_file = configuration.get("agent", "cert_file")
     self.maximum_software_installation_duration = \
         timedelta(minutes=configuration.getfloat("agent", "maximum_software_installation_duration"))
     self.software_live_duration = \
@@ -54,7 +54,7 @@ class Agent:
     self.logger = getLogger()
 
     self.slap = slap()
-    self.slap.initializeConnection(self.master_url, self.key_file, self.cert_file)
+    self.slap.initializeConnection(master_url, key_file, cert_file)
     self.supply = Supply()
 
     state = ConfigParser.SafeConfigParser()
