@@ -6,7 +6,7 @@ from datetime import datetime
 from datetime import timedelta
 import xmlrpclib
 from logging import getLogger, basicConfig
-from slapos.slap import slap, Supply
+from slapos.slap import slap
 from slapos.grid.utils import setRunning, setFinished
 
 def safeRpcCall(proxy, function_id, *args):
@@ -52,9 +52,9 @@ class Agent:
     basicConfig(filename=filename, format="%(asctime)-15s %(message)s", level="INFO")
     self.logger = getLogger()
 
-    self.slap = slap()
-    self.slap.initializeConnection(master_url, key_file, cert_file)
-    self.supply = Supply()
+    self.slap = slap = slap()
+    slap.initializeConnection(master_url, key_file, cert_file)
+    self.supply = slap.registerSupply()
 
     state = ConfigParser.SafeConfigParser()
     state.readfp(open(self.state_file))
