@@ -1,6 +1,6 @@
 import ConfigParser, argparse
 import json
-from random import random, choice
+from random import choice
 import os, socket, time
 from datetime import datetime
 from datetime import timedelta
