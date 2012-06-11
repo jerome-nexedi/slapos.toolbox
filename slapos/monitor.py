@@ -224,7 +224,7 @@ class SlapMonitor(object):
       conn = sqlite3.connect(self.path_database)
       cursor = conn.cursor()
       cursor.execute("create table if not exists data (cpu real, cpu_time real, memory real, rss real," \
-                      "date text, time text, report integer NULL DEFAULT 0)")
+                      "date text, time text, reported integer NULL DEFAULT 0)")
       try:
         res_list = temporary_monitoring.get_cpu_and_memory_usage(self.proc)
         date_catched = "-".join([str(res_list[4].year), str(res_list[4].month), str(res_list[4].day)])
@@ -266,7 +266,7 @@ class SlapReport(object):
     fd = open(self.consumption_log_path, 'a')
     conn = sqlite3.connect(self.path_database)
     cursor = conn.cursor()
-    log_list = cursor.execute("SELECT * FROM data WHERE report=0 ORDER BY rowid ASC")
+    log_list = cursor.execute("SELECT * FROM data WHERE reported=0 ORDER BY rowid ASC")
     last_report_time = ""
     for row in log_list:
       cpu_consumption_info = "%s %s Instance %s CPU Consumption: CPU:%s CPU_TIME:%s\n" \
@@ -283,7 +283,7 @@ class SlapReport(object):
           if last_report_time != row[5]:
             fd.write("%s%s" % (cpu_consumption_info,memory_consumption_info))
             last_report_time = "%s" % row[5]
-          cursor.execute("UPDATE data set report='1' WHERE time=?", (row[5],))
+          cursor.execute("UPDATE data set reported='1' WHERE time=?", (row[5],))
 	  conn.commit()
       
       except Exception, e:
@@ -307,7 +307,7 @@ class SlapReport(object):
       try:
     	# send log to logbox
         self.write_log()
-	time.sleep(self.update_time)
+        time.sleep(self.update_time)
       except IOError:
         if log_file: 
           logging.info("ERROR : process with pid : %s watched by slap monitor exited too quickly at %s" 
