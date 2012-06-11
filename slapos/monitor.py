@@ -364,6 +364,9 @@ def run_slapreport():
     global log_file
     log_file = True
   
+  if args[3] == "":
+    sys.exit(0) 
+
   pid_file_path = "%s" % args[0]
   #set ssh parameters
   ssh_parameters['ip']=args[3]
