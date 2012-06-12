@@ -11,6 +11,7 @@ import shutil
 import string
 import hashlib
 import signal
+import multiprocessing
 
 
 
@@ -164,7 +165,11 @@ def runSoftwareWithLock(config):
     logfile = open(config['software_log'], 'w')
     if not updateProxy(config):
       return False
-    slapgrid = Popen([config['slapgrid_sr'], '-vc', config['configuration_file_path']], stdout=logfile)
+    # Accelerate compilation by setting make -jX
+    environment = os.environ.copy()
+    environment['MAKEFLAGS'] = '-j%r' % multiprocessing.cpu_count()
+    slapgrid = Popen([config['slapgrid_sr'], '-vc',
+        config['configuration_file_path']], stdout=logfile, env=environment)
     writePid(slapgrid_pid, slapgrid.pid)
     slapgrid.wait()
     #Saves the current compile software for re-use
