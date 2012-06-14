@@ -19,10 +19,16 @@
         <script type=text/javascript>
           $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
         </script>
-	<script src="{{ url_for('static', filename='js/scripts/process.js') }}" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ url_for('static', filename='js/scripts/cookies.js') }}" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ url_for('static', filename='js/scripts/common.js') }}" type="text/javascript" charset="utf-8"></script>
-        <script type="text/javascript">
+  <script type="text/javascript">
+  	$(document).ready(function() {
+      setInput();
+  	});
+  </script>
+  {% if request.path != '/login' %}
+  <script src="{{ url_for('static', filename='js/scripts/process.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script type="text/javascript">
 		$(document).ready(function() {
   		if($("input#fmsg").val() != ""){
   		   $("#error").Popup($("input#fmsg").val(), {type:'info', duration:5000, load:true});
@@ -33,15 +39,15 @@
   		}
 		});
 	</script>
+  {%endif%}
 	{% endblock %}
     </head>
     <body>
 	<div id="error"></div>
-        <div id="page">
+
+        <div {% if request.path != '/login' %}id="page"{%else%}id="login-page"{%endif%}>
 	    <input type="hidden" name="fmsg" value="{{ get_flashed_messages()[0] }}" id="fmsg" />
-            <!--<div id="logo">-->
-                <!--<a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="" /></a>-->
-            <!--</div>-->
+      {% if request.path != '/login' %}
             <div id="header">
                 <div class="block_header">
                     <a href="{{ url_for('home') }}" style="float:left;" id="home" {% if request.path != '/' %}rel="tooltip"{% endif %} title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
@@ -71,24 +77,27 @@
                 </div>
                 <div class="clear"></div>
             </div>
-            <div id="main">
-                <div {% if request.path == '/' %} class="home_content" {%else%} id="content" {% endif %}>
-                    {% if request.path != '/' %}
+            {% endif %}
+            <div {% if request.path != '/login' %}id="main"{% endif %}>
+                <div {% if request.path == '/' %} class="home_content" {%elif request.path == '/login'%} {%else%} id="content" {% endif %}>
+                    {% if request.path != '/' and request.path != '/login'%}
                         <div class="main_head">
                         </div>
                         <div class="content">
                     {% endif %}
                     {% block body %}{% endblock %}
-                    {% if request.path != '/' %}
+                    {% if request.path != '/' and request.path != '/login'%}
                         </div>
                         <div class="main_foot">
                         </div>
                     {% endif %}
                 </div>
             </div>
+            {% if request.path != '/login' %}
             <div id="footer">
                 SlapOs web runner &copy; Vifib SARL 2011 - All right reserved - Creative Commons Shared Alike Non Commercial
             </div>
+            {%endif%}
         </div>
         <div class="popup">
         <table id="dpop" cellpadding="0" border="0">
@@ -110,11 +119,11 @@
       <div id="tooltip-home" style="display:none">
         <span style="font-weight:bold">QUICK ACCESS TO MENU</span><br/><br/>
           <div style="margin-top:3px;border-bottom: 1px dashed #666666; heigth:1px"></div>
-          <ul>          
+          <ul>
             <li><a href="{{ url_for('manageProject')}}">Manage Repositories</a></li>
-            <li><a href="{{ url_for('configRepo')}}" >Clone your Repository</a></li>            
+            <li><a href="{{ url_for('configRepo')}}" >Clone your Repository</a></li>
             <li><a href="{{ url_for('openProject', method='open')}}">Open Software Release</a></li>
-            <li><a href="{{ url_for('openProject', method='new')}}">Create Software Release</a></li>            
+            <li><a href="{{ url_for('openProject', method='new')}}">Create Software Release</a></li>
           </ul>
       </div>
     </body>
