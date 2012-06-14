@@ -9,14 +9,14 @@
       if (option.closebtn == undefined) option.closebtn = false;
       if (option.duration == undefined) option.duration = 0;
       if (option.load == undefined) option.load = false;
-      $box = $(this);  
+      $box = $(this);
       $box.empty();
       $box.css('top','-1000px');
       $box.show();
       $box.append('<div><table id="bcontent"><tr>' +
 	    '<td valign="middle" class="logo ' + option.type + '_message"></td>' +
 	    '<td valign="middle"><p>' + msg + '</p></td>' +
-	    '<td valign="middle" class="close"><span id="pClose"></span></td></tr></table></div>');         
+	    '<td valign="middle" class="b_close"><span id="pClose"></span></td></tr></table></div>');
       $(window).scroll(function(){
 	$box.animate({top:$(window).scrollTop()+"px" },{queue: false, duration: 350});
       });
@@ -45,5 +45,5 @@
 	});
       }
     }
-  });  
+  });
 }(jQuery, document, this));

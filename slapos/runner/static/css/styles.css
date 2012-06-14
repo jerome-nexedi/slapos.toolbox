@@ -15,7 +15,8 @@ a:hover {
 }
 
 table {
-    margin: 0;    
+    margin: 0;
+    padding:0;
     border-right: none;
     border-bottom: none;
     font-size: 14px;
@@ -36,16 +37,18 @@ th{
     font-weight: normal;
     font-size: 18px;
 }
-
+table.small th{padding: 4px;font-size: 16px;}
 textarea {
 	width:762px;
 }
 
 body {
 	background: url("../images/1307251316-background-stripes.gif") repeat #9C9C9C;
-	font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+	font-family: 'Helvetica Neue',Tahoma,Helvetica,Arial,sans-serif;
 	color: #000000;
 	font-size: 13px;
+  overflow: -moz-scrollbars-vertical;
+overflow-y: scroll;
 }
 
 #page
@@ -314,7 +317,7 @@ input[type="radio"], input[type="checkbox"]{
 
 #home_box{
     background: none;
-    border: 1px solid #678dad;
+    border: 2px solid #87B0D4;
     padding: 0;
     color: #4c6172;
     margin: 15px 59px 15px 59px;
@@ -333,7 +336,7 @@ input[type="radio"], input[type="checkbox"]{
 #home_box h2{
     font-weight: normal;
     font-size: 23px;
-    color: #4c6172;
+    color: #475F73;
 }
 
 #home_box p{
@@ -351,7 +354,6 @@ input[type="radio"], input[type="checkbox"]{
 .inner_box{
     background: none;
     margin: 0;
-    border: 1px solid #CAD4DC;
     display: block;
     padding: 30px 0 30px 0;
 }
@@ -371,23 +373,24 @@ input[type="radio"], input[type="checkbox"]{
     margin: 10px 45px 10px 45px;
     padding: 10px;
     padding-bottom:15px;
-    border: #678dad;
     width: 530px;
     border: 1px solid #678dad;
 }
 
-.lmenu:hover, .smenu:hover, .sright_menu:hover{
+.smaller{margin-left:10px; width: 350px; float:right}
+.smaller p{width: 280px;}
+.umenu{display: block;margin: 10px 0 10px 45px; width: 147px; float:left;border: 1px solid #678dad;
+padding: 10px;height: 80px;padding-bottom:15px;}
+.umenu p{font-size: 13px;float: left;width: 77px;cursor:default;}
+.lmenu:hover, .smenu:hover, .sright_menu:hover, .smaller:hover, .umenu:hover{
     background: #96b9d7;
-
 }
-
 .smenu{
     display: block;
     height: 80px;
     margin: 0 10px 0 45px;
     padding: 10px;
     padding-bottom:15px;
-    border: #678dad;
     width: 250px;
     border: 1px solid #678dad;
     float: left;
@@ -580,9 +583,10 @@ a.lshare{
     height: 18px;
     font-size: 15px;
     border: solid 1px #678dad;
-    color: #4DA0C6;    
+    color: #4DA0C6;
     text-align:center;
     font-weight:bold;
+    cursor:pointer;
 }
 a.lshare:hover{
     background:#D9D9D9;
@@ -593,7 +597,9 @@ a.lshare:hover{
 a.lshare:focus{
     border:solid 1px #73A6FF;
 }
-
+a.no-right-border{border-right:none}
+a.no-right-border:hover{border-right:none}
+a.no-right-border:focus{border-right:none}
 a.lshare img{
     margin: 5px;
 }
@@ -635,19 +641,19 @@ a.lshare img{
     width: 36px;
     height: 26px;
 }
-#error td.close{
+#error td.b_close{
     width: 30px;
     height:22px;
 }
 .list{background: url(../images/menu_dropdown.png) left center no-repeat; padding-left:10px;}
-
+.slidebox{padding:10px; }
 .alert_message{ background: url(../images/alert.png) center no-repeat; height: 26px;}
 .error_message{ background: url(../images/exit.png) center no-repeat; height: 26px;}
 .confirm_message{ background: url(../images/confirm.png) center no-repeat; height: 26px;}
 .info_message{ background: url(../images/info.png) center no-repeat; height: 26px;}
 #error p{ font-size: 13px; color: #4A131F;}
-#pClose{background:url(../images/close.png) no-repeat 0px 0px; display:block; width:22px; height:22px; cursor:pointer}
-#pClose:hover{background:url(../images/close_hover.png) no-repeat 0px 0px;}
+#pClose, .close{background:url(../images/close.png) no-repeat 0px 0px; display:block; width:22px; height:22px; cursor:pointer}
+#pClose:hover, .close:hover{background:url(../images/close_hover.png) no-repeat 0px 0px;}
 .md5sum {margin:10px; font-size:15px;}
 .title{background: #e4e4e4; width: 100%; height: 25px; padding-top:2px; text-indent: 5px; color: #737373; text-shadow: 0px 1px #FFF;}
 .menu-box-left{float:left; width: 120px; font-size:14px; background: #e4e4e4; padding:5px 0 5px 5px; margin-top:10px;
@@ -679,7 +685,8 @@ a.lshare img{
 .popup li{border-bottom: 1px dashed #666666; padding:5px; padding-top:5px;}
 .popup-value{display:none;}
 textarea.parameter {border: solid 1px #678dad; color: #666666; height:110px;}
-
+.link{color:#fff; font-weight:bold; text-decoration:none}
+.link:hover{color: #19485C;}
 input[type=radio] {
 }
 
@@ -689,3 +696,12 @@ input[type=radio]:checked {
 input[type=radio]:hover {
     box-shadow: 0px 1px 3px #F0F1F2;
 }
+/* Login Css region *******/
+#login-page{width:429px; height:236px; margin:130px auto 0px; background:url(../images/loginBox.png) no-repeat;
+padding:10px; font-size:14px; color:#03406A}
+#login-page h2{color:#fff; font-size:26px; font-weight:normal; text-indent:50px;}
+.login-content{margin:10px; margin-top:40px; margin-bottom:0; height:90px;}
+.login-button{width:140px; margin:0 auto;}
+.login-element{float:left; min-width:120px;}
+.login-label{padding:5px; font-size:16px;}
+.login-input{width:220px;}

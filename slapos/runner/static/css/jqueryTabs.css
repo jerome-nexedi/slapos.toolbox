@@ -9,7 +9,12 @@
 
 #tabContaier textarea {
 	width:702px;
+  margin-top:4px;
+  margin-left:4px;
+  resize: none;
 }
+#tabContaier textarea.slap{width:455px; max-height:120px; height:20px;padding:3px;color:#6F6F6F}
+#tabContaier input[type='text']{width:125px;}
 #tabContaier > ul{
 	overflow:hidden;
 	height:34px;
@@ -39,9 +44,9 @@
 }
 #tabContaier > ul > li a.active{
 	background:#fbfbfb;
-	border:1px solid #fff;	
+	border:1px solid #fff;
   border-top:0;
-	border-right:0;  
+	border-right:0;
 	color:#333;
 }
 #tabContaier > ul > li:first-child a{border-left:0}
@@ -55,4 +60,4 @@
 }
 .tabContents p{
 	padding:0 0 10px;
-} 
+}

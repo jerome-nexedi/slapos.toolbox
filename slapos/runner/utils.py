@@ -33,11 +33,20 @@ html_escape_table = {
   ">": "&gt;",
   "<": "&lt;",
 }
- 
+
 def html_escape(text):
   """Produce entities within text."""
   return "".join(html_escape_table.get(c,c) for c in text)
 
+def checkLogin(config, login, pwd):
+  if not os.path.exists(os.path.join(config['runner_workdir'], '.users')):
+    return False
+  user = open(os.path.join(config['runner_workdir'], '.users'), 'r').read().split(';')
+  salt = "runner81" #to be changed
+  current_pwd = hashlib.md5( salt + pwd ).hexdigest()
+  if current_pwd == user[1]:
+    return user
+  return False
 
 def updateProxy(config):
   if not os.path.exists(config['instance_root']):
@@ -82,12 +91,11 @@ def updateProxy(config):
   #get instance parameter
   param_path = os.path.join(config['runner_workdir'], ".parameter.xml")
   xml_result = readParameters(param_path)
+  partition_parameter_kw = None
   if type(xml_result) != type('') and xml_result.has_key('instance'):
     partition_parameter_kw = xml_result['instance']
-  else:
-    partition_parameter_kw = None
   computer.updateConfiguration(xml_marshaller.dumps(slap_config))
-  sr_request = slap.registerOpenOrder().request(profile, partition_reference=partition_reference,
+  sr_request = slap.registerOpenOrder().request(profile, partition_reference=getSoftwareReleaseName(config),
                 partition_parameter_kw=partition_parameter_kw, software_type=None,
                 filter_kw=None, state=None, shared=False)
   #open(param_path, 'w').write(xml_marshaller.dumps(sr_request.
@@ -107,6 +115,27 @@ def readPid(file):
 def writePid(file, pid):
   open(file, 'w').write(str(pid))
 
+def updateInstanceParameter(config, software_type=None):
+  slap = slapos.slap.slap()
+  slap.initializeConnection(config['master_url'])
+  partition_list = []
+  #Get current software release profile
+  try:
+    software_folder = open(os.path.join(config['runner_workdir'],
+                                        ".project")).read()
+    profile = realpath(config, os.path.join(software_folder,
+                                          config['software_profile']))
+  except:
+    return False
+  #get instance parameter
+  param_path = os.path.join(config['runner_workdir'], ".parameter.xml")
+  xml_result = readParameters(param_path)
+  partition_parameter_kw = None
+  if type(xml_result) != type('') and xml_result.has_key('instance'):
+    partition_parameter_kw = xml_result['instance']
+  slap.registerOpenOrder().request(profile, partition_reference=getSoftwareReleaseName(config),
+          partition_parameter_kw=partition_parameter_kw, software_type=software_type,
+          filter_kw=None, state=None, shared=False)
 
 def startProxy(config):
   proxy_pid = os.path.join(config['runner_workdir'], 'proxy.pid')
@@ -244,6 +273,7 @@ def runInstanceWithLock(config):
     logfile = open(config['instance_log'], 'w')
     if not updateProxy(config):
       return False
+    svcStopAll(config) #prevent lost control of process
     slapgrid = Popen([config['slapgrid_cp'], '-vc', config['configuration_file_path']], stdout=logfile)
     writePid(slapgrid_pid, slapgrid.pid)
     slapgrid.wait()
@@ -264,8 +294,7 @@ def getSlapStatus(config):
   try:
     for partition in computer.getComputerPartitionList():
       # Note: Internal use of API, as there is no reflexion interface in SLAP
-      partition_list.append((partition.getId(), partition._connection_dict.copy(),
-                              partition._parameter_dict.copy()))
+      partition_list.append((partition.getId(), partition._connection_dict.copy()))
   except Exception:
     pass
   if partition_list:
@@ -444,6 +473,14 @@ def getProjectTitle(config):
     software = project[len(project) - 2]
     return software + " (" + string.join(project[:(len(project) - 2)], '/') + ")"
   return "No Profile"
+
+def getSoftwareReleaseName(config):
+  sr_profile = os.path.join(config['runner_workdir'], ".project")
+  if os.path.exists(sr_profile):
+    project = open(sr_profile, "r").read().split("/")
+    software = project[len(project) - 2]
+    return software.replace(' ', '_')
+  return "No_name"
 
 def loadSoftwareData(runner_dir):
   import pickle

@@ -109,6 +109,7 @@ def run():
 
 def serve(config):
   from views import app
+  #import FlaskRealmDigestDB
   workdir = os.path.join(config.runner_workdir, 'project')
   app.config.update(**config.__dict__)
   app.config.update(
@@ -121,5 +122,9 @@ def serve(config):
   )
   if not os.path.exists(workdir):
     os.mkdir(workdir)
+  #authDB = FlaskRealmDigestDB('SlaposWebRunner')
+  #user_dict = authDB.toDict()
+  #if not user_dict['db']:
+  #  authDB.add_user('admin', 'root')
   app.run(host=config.runner_host, port=int(config.runner_port),
       debug=config.debug, threaded=True)

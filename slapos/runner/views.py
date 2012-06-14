@@ -11,6 +11,9 @@ app = Flask(__name__)
 
 @app.before_request
 def before_request():
+  if not session.has_key('account') and request.path != '/login' \
+    and request.path != '/doLogin' and not  request.path.startswith('/static'):
+    return redirect(url_for('login'))
   session['title'] = getProjectTitle(app.config)
 
 # general views
@@ -20,10 +23,23 @@ def home():
     return redirect(url_for('configRepo'))
   return render_template('index.html')
 
+@app.route("/login")
+def login():
+  return render_template('login.html')
+
 @app.route('/configRepo')
 def configRepo():
   public_key = open(app.config['public_key'], 'r').read()
   return render_template('cloneRepository.html', workDir='workspace', public_key=public_key)
+
+@app.route("/doLogin", methods=['POST'])
+def doLogin():
+  check_user = checkLogin(app.config, request.form['clogin'], request.form['cpwd'])
+  if not check_user:
+    return jsonify(code=0, result="Login or password is incorrect, please check it!")
+  else:
+    session['account'] = check_user
+    return jsonify(code=1, result=check_user)
 
 # software views
 @app.route('/editSoftwareProfile')
@@ -88,10 +104,25 @@ def inspectInstance():
     file_content = 'instance_root'
     result = getSvcStatus(app.config)
     if len(result) == 0:
-      result = []  
+      result = []
   return render_template('instanceInspect.html',
       file_path=file_content, supervisor=result, slap_status=getSlapStatus(app.config),
       supervisore=result, partition_amount=app.config['partition_amount'])
+
+@app.route('/supervisordStatus', methods=['GET'])
+def supervisordStatus():
+  result = getSvcStatus(app.config)
+  if not (result):
+    return jsonify(code=0, result="")
+  html = "<tr><th>Partition and Process name</th><th>Status</th><th>Process PID </th><th> UpTime</th><th></th></tr>"
+  for item in result:
+    html += "<tr>"
+    html +="<td  class='first'><b><a href='" + url_for('tailProcess', process=item[0])+"'>"+item[0]+"</a></b></td>"
+    html +="<td align='center'><a href='"+url_for('startStopProccess', process=item[0], action=item[1])+"'>"+item[1]+"</a></td>"
+    html +="<td align='center'>"+item[3]+"</td><td>"+item[5]+"</td>"
+    html +="<td align='center'><a href='"+url_for('startStopProccess', process=item[0], action='RESTART')+"'>Restart</a></td>"
+    html +="</tr>"
+  return jsonify(code=1, result=html)
 
 @app.route('/removeInstance')
 def removeInstance():
@@ -360,7 +391,7 @@ def getPath():
     return jsonify(code=1, result=realfile)
 
 @app.route("/saveParameterXml", methods=['POST'])
-def redParameterXml():
+def saveParameterXml():
   project = os.path.join(app.config['runner_workdir'], ".project")
   if not os.path.exists(project):
     return jsonify(code=0, result="Please first open a Software Release")
@@ -370,20 +401,23 @@ def redParameterXml():
   f.write(content)
   f.close()
   result = readParameters(param_path)
+  software_type = None
+  if(request.form['software_type']):
+    software_type = request.form['software_type']
   if type(result) == type(''):
     return jsonify(code=0, result="XML Error: " + result)
   else:
     try:
-      updateProxy(app.config)
-    except Exeption:
-      return jsonify(code=0, result="An error occurred while applying your settings!")
+      updateInstanceParameter(app.config, software_type)
+    except Exception, e:
+      return jsonify(code=0, result="An error occurred while applying your settings!<br/>" + str(e))
     return jsonify(code=1, result="")
 
 @app.route("/getParameterXml", methods=['GET'])
 def getParameterXml():
   param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
-  if os.path.exists(param_path):
-    content = open(param_path, 'r').read()
-    return html_escape(content)
+  parameters = readParameters(param_path)
+  if type(parameters) != type(''):
+    return jsonify(code=1, result=parameters)
   else:
-    return "&lt;?xml version='1.0' encoding='utf-8'?&gt;"
+    return jsonify(code=0, result=parameters)
