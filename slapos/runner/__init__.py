@@ -5,6 +5,7 @@ import logging.handlers
 import os
 import sys
 import subprocess
+import hashlib
 
 class Parser(OptionParser):
   """
@@ -109,7 +110,6 @@ def run():
 
 def serve(config):
   from views import app
-  #import FlaskRealmDigestDB
   workdir = os.path.join(config.runner_workdir, 'project')
   app.config.update(**config.__dict__)
   app.config.update(
@@ -122,9 +122,11 @@ def serve(config):
   )
   if not os.path.exists(workdir):
     os.mkdir(workdir)
-  #authDB = FlaskRealmDigestDB('SlaposWebRunner')
-  #user_dict = authDB.toDict()
-  #if not user_dict['db']:
-  #  authDB.add_user('admin', 'root')
+  if not os.path.exists(os.path.join(config.runner_workdir, '.users')):
+    #set default user and password
+    salt = "runner81" #to be changed
+    pwd = hashlib.md5( salt + "insecure" ).hexdigest()
+    user = "root;"+pwd+";Slaprunner Administrator;1"
+    open(os.path.join(config.runner_workdir, '.users'), 'w').write(user)
   app.run(host=config.runner_host, port=int(config.runner_port),
       debug=config.debug, threaded=True)

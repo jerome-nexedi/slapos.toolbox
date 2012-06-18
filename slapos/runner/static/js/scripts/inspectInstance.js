@@ -39,7 +39,7 @@ $(document).ready( function() {
   });
   $("#add_attribute").click(function(){
     var size = Number($("#partitionParameter > tbody > tr").last().attr('id').split('_')[1]) + 1;
-    var row="<tr id='row_"+size+"'><td class='propertie first'><input type='text' name='txt_"+size+"' id='txt_"+size+"'></td>"+
+    var row="<tr id='row_"+size+"'><td class='first'><input type='text' name='txt_"+size+"' id='txt_"+size+"'></td>"+
             "<td style='padding:6px'><textarea class='slap' id='value_"+size+"'></textarea>"+
             "</td><td valign='middle'><span style='margin-left: 10px;' id='btn_"+size+"' class='close'></span></td></tr>";
     $("#partitionParameter").append(row);
@@ -53,6 +53,51 @@ $(document).ready( function() {
   $("#updateParameters").click(function(){
     updateParameter();
     return false;
+  });
+  $("#xmlview").click(function(){
+		var content = '<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">' +
+			'INSTANCE PARAMETERS: Load XML file</h2><p id="xmllog" class="message"><br/></p>';
+		content += '<div class="main_content" style="height:230px"><pre id="editor"></pre></div>'+
+      '<input type=submit value="Load" id="loadxml" class="button">';
+    $.ajax({
+    type: "GET",
+    url: $SCRIPT_ROOT + '/getParameterXml/xml',
+    success: function(data){
+  	  if(data.code == 1){
+        $("#inline_content").html(content);
+      	setupEditor(true);
+    		$(".inline").colorbox({inline:true, width: "600px", height: "410px", onComplete:function(){
+          editor.getSession().setValue(data.result);
+    		}});
+    		$(".inline").click();
+        $("#loadxml").click(function(){
+          //Parse XML file
+          try{
+            var xmlDoc = $.parseXML(editor.getSession().getValue()), $xml = $( xmlDoc );
+            if($xml.find("parsererror").length !== 0){$("p#xmllog").html("Error: Invalid XML document!<br/>");return false;}
+          } catch(err) {
+            $("p#xmllog").html("Error: Invalid XML document!<br/>");return false;
+          }
+          $.ajax({
+            type: "POST",
+            url: $SCRIPT_ROOT + '/saveParameterXml',
+          	data: {software_type:"", parameter:editor.getSession().getValue()},
+          	success: function(data){
+          	  if(data.code == 1){
+                location.href = $SCRIPT_ROOT + '/inspectInstance#tab3';
+                location.reload();
+          	  }
+              else{$("p#xmllog").html(data.result);}
+          	}
+          });
+          return false;
+        });
+  	  }
+      else{
+        $("#error").Popup(data.result, {type:'error', duration:5000});
+  	  }
+  	}
+    });
   });
   //Load previous instance parameters
   loadParameter();
@@ -172,7 +217,7 @@ $(document).ready( function() {
   function loadParameter(){
     $.ajax({
     type: "GET",
-    url: $SCRIPT_ROOT + '/getParameterXml',
+    url: $SCRIPT_ROOT + '/getParameterXml/dict',
   	success: function(data){
   	  if(data.code == 1){
         var dict=data.result['instance'];
@@ -218,7 +263,7 @@ $(document).ready( function() {
       $("#softwareTypeHead").addClass("hide");
     }
   }
-  function setupEditor(){
+  function setupEditor(editable){
     editor = ace.edit("editor");
     editor.setTheme("ace/theme/crimson_editor");
 
@@ -227,7 +272,7 @@ $(document).ready( function() {
     editor.getSession().setTabSize(2);
     editor.getSession().setUseSoftTabs(true);
     editor.renderer.setHScrollBarAlwaysVisible(false);
-    editor.setReadOnly(true);
+    if(!editable){editor.setReadOnly(true);}
   }
   function setupSlappart(){
     for(var i=0; i<partitionAmount; i++){

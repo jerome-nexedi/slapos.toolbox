@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
+
 from flask import Flask, request, redirect, url_for, \
          render_template, flash, jsonify, session
 from utils import *
 import os
 import shutil
 import md5
+import codecs
 from gittools import cloneRepo, gitStatus, switchBranch, addBranch, getDiff, \
      gitPush, gitPull
 
@@ -397,15 +400,18 @@ def saveParameterXml():
     return jsonify(code=0, result="Please first open a Software Release")
   content = request.form['parameter']
   param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
-  f = open(param_path, 'w')
-  f.write(content)
-  f.close()
-  result = readParameters(param_path)
+  try:
+    f = open(param_path, 'w')
+    f.write(content)
+    f.close()
+    result = readParameters(param_path)
+  except Exception, e:
+      result = str(e)
   software_type = None
   if(request.form['software_type']):
     software_type = request.form['software_type']
   if type(result) == type(''):
-    return jsonify(code=0, result="XML Error: " + result)
+    return jsonify(code=0, result=result)
   else:
     try:
       updateInstanceParameter(app.config, software_type)
@@ -413,11 +419,18 @@ def saveParameterXml():
       return jsonify(code=0, result="An error occurred while applying your settings!<br/>" + str(e))
     return jsonify(code=1, result="")
 
-@app.route("/getParameterXml", methods=['GET'])
-def getParameterXml():
+@app.route("/getParameterXml/<request>", methods=['GET'])
+def getParameterXml(request):
   param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
-  parameters = readParameters(param_path)
-  if type(parameters) != type(''):
-    return jsonify(code=1, result=parameters)
+  if not os.path.exists(param_path):
+    default = '<?xml version="1.0" encoding="utf-8"?>\n'
+    default += '<instance>\n</instance>'
+    return jsonify(code=1, result=default)
+  if request == "xml":
+    parameters = open(param_path, 'r').read()
   else:
+    parameters = readParameters(param_path)
+  if type(parameters) == type('') and request != "xml":
     return jsonify(code=0, result=parameters)
+  else:
+    return jsonify(code=1, result=parameters)

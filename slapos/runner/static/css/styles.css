@@ -4,7 +4,6 @@ blockquote, q {quotes: none;}
 blockquote:before, blockquote:after, q:before, q:after {content: none;}
 :focus {outline: 0 none;}
 img{border:0}
-
 a{
     text-decoration: none;
     color: #19485C;
@@ -15,12 +14,12 @@ a:hover {
 }
 
 table {
-    margin: 0;
-    padding:0;
+    margin: 0;padding:0;
     border-right: none;
     border-bottom: none;
     font-size: 14px;
     background: #fff;
+    border-spacing:0;
 }
 td{
     padding: 4px;

@@ -1,3 +1,5 @@
+# -*- coding: iso-8859-1 -*-
+
 import slapos.slap
 import time
 import subprocess
@@ -118,7 +120,6 @@ def writePid(file, pid):
 def updateInstanceParameter(config, software_type=None):
   slap = slapos.slap.slap()
   slap.initializeConnection(config['master_url'])
-  partition_list = []
   #Get current software release profile
   try:
     software_folder = open(os.path.join(config['runner_workdir'],
