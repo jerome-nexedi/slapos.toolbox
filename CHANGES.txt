@@ -1,7 +1,7 @@
 0.25 (unreleased)
 =================
 
- * No changes yet.
+ * slapmonitor is fully functional. [Mohamadou Mbengue]
 
 0.24 (2012-04-19)
 =================
