@@ -444,3 +444,23 @@ def getParameterXml(request):
     return jsonify(code=0, result=parameters)
   else:
     return jsonify(code=1, result=parameters)
+
+@app.route("/updateAccount", methods=['POST'])
+def updateAccount():
+  account = session['account']
+  user = os.path.join(app.config['runner_workdir'], '.users')
+  try:
+    if request.form['username'].strip():
+      account[0] = request.form['username'].strip()
+      account[2] = request.form['email'].strip()
+      account[3] = request.form['name'].strip().encode("utf-8")
+    if request.form['password'].strip():
+      account[1] = request.form['password'].strip()
+    #save new account data
+    open(user, 'w').write(';'.join(account))
+    session['account'] = account
+    return jsonify(code=1, result="")
+  except Exception, e:
+    os.remove(user)
+    open(user, 'w').write(';'.join(session['account']))
+    return jsonify(code=0, result=str(e))

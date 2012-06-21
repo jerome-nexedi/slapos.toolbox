@@ -126,7 +126,7 @@ def serve(config):
     #set default user and password
     salt = "runner81" #to be changed
     pwd = hashlib.md5( salt + "insecure" ).hexdigest()
-    user = "root;"+pwd+";Slaprunner Administrator;1"
+    user = "root;"+pwd+";;Slaprunner Administrator"
     open(os.path.join(config.runner_workdir, '.users'), 'w').write(user)
   app.run(host=config.runner_host, port=int(config.runner_port),
       debug=config.debug, threaded=True)

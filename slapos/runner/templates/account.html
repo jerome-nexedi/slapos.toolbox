@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block title %}Update your account{% endblock %}
+{% block head %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/scripts/account.js') }}" type="text/javascript" charset="utf-8"></script>
+{% endblock %}
+{% block body %}
+<h2 class='title'>Your personal informations</h2><br/>
+<form>
+  <div class='form'>
+    <label for="name">Your name: </label>
+    <input type='text' name='name' id='name' value='{{name}}'/>
+    <div class='clear'></div>
+    <label for="email">Your email adress: </label>
+    <input type='text' name='email' id='email' value='{{email}}'/>
+    <div class='clear'></div>
+    <label for="username">User name: </label>
+    <input type='text' name='username' id='username' value='{{username}}'/>
+    <div class='clear'></div>
+    <label for="password">Password: </label>
+    <input type='password' name='password' id='password' value=''/>
+    <div class='clear'></div>
+    <label for="cpassword">Confirm Password: </label>
+    <input type='password' name='cpassword' id='cpassword' value=''/>
+    <div class='clear'></div>
+    <br/>
+    <label></label>
+    <input type="submit" name="update" id ="update" value="Update" class="button"/>
+    <div class='clear'></div>
+    <br/><br/><br/>
+  </div>
+  <div id="file_info" class="file_info">leave passwords blank to preserve your current password...</div>
+  <br/>
+</form>
+{% endblock %}
