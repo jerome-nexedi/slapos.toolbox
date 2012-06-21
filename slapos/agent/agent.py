@@ -224,6 +224,15 @@ def main(*args):
           now - agent.installed_software_dict[computer][installed_software] > agent.software_live_duration:
         if agent.requestSoftwareReleaseCleanupOnComputer(computer, installed_software):
           del agent.installed_software_dict[computer][installed_software]
+    for installed_software in installed_software_list:
+      if agent.getSoftwareReleaseUsageOnComputer(computer, installed_software) == 0:
+        for i in range(3):
+          reference = "%s_%s_%s" % (installed_software, str(now), str(i))
+          if agent.requestSoftwareInstanceStartedOnComputer(reference, computer, software):
+            agent.logger.info("Successfully requested stated a instance of %s on %s", (software, computer))
+      else:
+        # agent.requestSoftwareInstanceDestroyedOnComputer()
+
   agent.writeState()
 
   if pidfile:
