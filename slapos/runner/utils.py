@@ -41,9 +41,17 @@ def html_escape(text):
   return "".join(html_escape_table.get(c,c) for c in text)
 
 def checkLogin(config, login, pwd):
-  if not os.path.exists(os.path.join(config['runner_workdir'], '.users')):
-    return False
-  user = open(os.path.join(config['runner_workdir'], '.users'), 'r').read().split(';')
+  user_path = os.path.join(config['runner_workdir'], '.users')
+  user = ""
+  if os.path.exists(user_path):
+    user = open(user_path, 'r').read().split(';')
+  if type(user) == type(""):
+    #Error: try to restore data from backup
+    if os.path.exists(user_path+'.back'):
+      os.rename(user_path+'.back', user_path)
+      user = open(user_path, 'r').read().split(';')
+    else:
+      return False
   salt = "runner81" #to be changed
   current_pwd = hashlib.md5( salt + pwd ).hexdigest()
   if current_pwd == user[1]:
@@ -102,8 +110,6 @@ def updateProxy(config):
   sr_request = slap.registerOpenOrder().request(profile, partition_reference=getSoftwareReleaseName(config),
                 partition_parameter_kw=partition_parameter_kw, software_type=None,
                 filter_kw=None, state=None, shared=False)
-  #open(param_path, 'w').write(xml_marshaller.dumps(sr_request.
-  #                      getInstanceParameterDict()))
   return True
 
 def readPid(file):

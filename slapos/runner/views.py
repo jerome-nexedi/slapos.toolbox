@@ -17,7 +17,10 @@ def before_request():
     and request.path != '/login' \
     and request.path != '/doLogin' and not  request.path.startswith('/static'):
     return redirect(url_for('login'))
-  session['title'] = getProjectTitle(app.config)
+  if session.has_key('account') and session['account']:
+    session['title'] = getProjectTitle(app.config)
+    session['account'] = open(os.path.join(app.config['runner_workdir'], '.users'),
+                            'r').read().split(';')
 
 # general views
 @app.route('/')
@@ -33,7 +36,7 @@ def login():
 @app.route("/myAccount")
 def myAccount():
   return render_template('account.html', username=session['account'][0],
-                    email=session['account'][2], name=session['account'][3])
+      email=session['account'][2], name=session['account'][3].decode('utf-8'))
 
 @app.route("/logout")
 def logout():
@@ -447,20 +450,23 @@ def getParameterXml(request):
 
 @app.route("/updateAccount", methods=['POST'])
 def updateAccount():
-  account = session['account']
+  account = session['account'][:] #copy session data
   user = os.path.join(app.config['runner_workdir'], '.users')
   try:
     if request.form['username'].strip():
       account[0] = request.form['username'].strip()
       account[2] = request.form['email'].strip()
-      account[3] = request.form['name'].strip().encode("utf-8")
+      account[3] = request.form['name'].strip()
     if request.form['password'].strip():
-      account[1] = request.form['password'].strip()
+      salt = "runner81" #to be changed
+      account[1] = hashlib.md5(salt + request.form['password'].strip()).hexdigest()
+    #backup previous data
+    open(user+'.back', 'w').write(';'.join(session['account']))
     #save new account data
-    open(user, 'w').write(';'.join(account))
+    open(user, 'w').write((';'.join(account)).encode("utf-8"))
     session['account'] = account
     return jsonify(code=1, result="")
   except Exception, e:
     os.remove(user)
-    open(user, 'w').write(';'.join(session['account']))
+    os.rename(user+'.back', user)
     return jsonify(code=0, result=str(e))
