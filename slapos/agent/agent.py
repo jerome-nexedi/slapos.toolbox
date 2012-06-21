@@ -104,6 +104,48 @@ class Agent:
       self.logger.info("Failed to request to install %s on %s." % (software, computer))
       return False
 
+  def requestSoftwareInstanceStartedOnComputer(self, reference, computer, software):
+    try:
+      self.slap.registerOpenOrder().request(
+        software_release=software,
+        partition_reference=reference,
+        filter_kw={'computer_guid': computer},
+        state='started'
+      )
+      self.logger.info("Successfully requested to start a instance of %s on %s.", (software, computer))
+      return True
+    except:
+      self.logger.info("Failed to request to start a instance of %s on %s.", (software, computer))
+      return False
+
+  def requestSoftwareInstanceStoppedOnComputer(self, reference, computer, software):
+    try:
+      self.slap.registerOpenOrder().request(
+        software_release=software,
+        partition_reference=reference,
+        filter_kw={'computer_guid': computer},
+        state='stopped'
+      )
+      self.logger.info("Successfully requested to stop a instance of %s on %s.", (software, computer))
+      return True
+    except:
+      self.logger.info("Failed to request to stop a instance of %s on %s.", (software, computer))
+      return False
+
+  def requestSoftwareInstanceDestroyedOnComputer(self, reference, computer, software):
+    try:
+      self.slap.registerOpenOrder().request(
+        software_release=software,
+        partition_reference=reference,
+        filter_kw={'computer_guid': computer},
+        state='destroyed'
+      )
+      self.logger.info("Successfully requested to destroy a instance of %s on %s.", (software, computer))
+      return True
+    except:
+      self.logger.info("Failed to request to destroy a instance of %s on %s.", (software, computer))
+      return False
+
   def writeState(self):
     state = ConfigParser.SafeConfigParser()
     for computer in self.computer_list:
