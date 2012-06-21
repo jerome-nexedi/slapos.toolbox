@@ -39,6 +39,7 @@ th{
 table.small th{padding: 4px;font-size: 16px;}
 textarea {
 	width:762px;
+  font-family: 'Helvetica Neue',Tahoma,Helvetica,Arial,sans-serif;
 }
 
 body {
@@ -650,8 +651,8 @@ a.lshare img{
 .form{padding:10px; padding-left:20px;}
 .form label{display:block; float:left; width:150px; padding-top:10px;}
 .form input[type=text] ,.form input[type=password] {float:left; width:190px;margin:5px;}
-.hiddendiv {display: none;white-space: pre-wrap;min-height: 18px;font-family: Arial, sans-serif;font-size: 13px;
-  padding:3px;word-wrap: break-word;width:430px; max-height:120px;}
+.hiddendiv {display: none;white-space: pre-wrap;min-height: 18px;font-size: 13px;
+  padding:3px;word-wrap: break-word;width:430px; max-height:120px;font-family: 'Helvetica Neue',Tahoma,Helvetica,Arial,sans-serif;}
 .list{background: url(../images/menu_dropdown.png) left center no-repeat; padding-left:10px;}
 .slidebox{padding:10px; }
 .alert_message{ background: url(../images/alert.png) center no-repeat; height: 26px;}

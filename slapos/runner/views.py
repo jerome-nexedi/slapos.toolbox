@@ -19,8 +19,7 @@ def before_request():
     return redirect(url_for('login'))
   if session.has_key('account') and session['account']:
     session['title'] = getProjectTitle(app.config)
-    session['account'] = open(os.path.join(app.config['runner_workdir'], '.users'),
-                            'r').read().split(';')
+    session['account'] = getSession(app.config)
 
 # general views
 @app.route('/')
@@ -46,7 +45,9 @@ def logout():
 @app.route('/configRepo')
 def configRepo():
   public_key = open(app.config['public_key'], 'r').read()
-  return render_template('cloneRepository.html', workDir='workspace', public_key=public_key)
+  return render_template('cloneRepository.html', workDir='workspace',
+            public_key=public_key, name=session['account'][3].decode('utf-8'),
+            email=session['account'][2])
 
 @app.route("/doLogin", methods=['POST'])
 def doLogin():
@@ -450,23 +451,14 @@ def getParameterXml(request):
 
 @app.route("/updateAccount", methods=['POST'])
 def updateAccount():
-  account = session['account'][:] #copy session data
+  account = []
   user = os.path.join(app.config['runner_workdir'], '.users')
-  try:
-    if request.form['username'].strip():
-      account[0] = request.form['username'].strip()
-      account[2] = request.form['email'].strip()
-      account[3] = request.form['name'].strip()
-    if request.form['password'].strip():
-      salt = "runner81" #to be changed
-      account[1] = hashlib.md5(salt + request.form['password'].strip()).hexdigest()
-    #backup previous data
-    open(user+'.back', 'w').write(';'.join(session['account']))
-    #save new account data
-    open(user, 'w').write((';'.join(account)).encode("utf-8"))
-    session['account'] = account
+  account.append(request.form['username'].strip())
+  account.append(request.form['password'].strip())
+  account.append(request.form['email'].strip())
+  account.append(request.form['name'].strip())
+  result = saveSession(app.config, session, account)
+  if type(result) == type(""):
+    return jsonify(code=0, result=result)
+  else:
     return jsonify(code=1, result="")
-  except Exception, e:
-    os.remove(user)
-    os.rename(user+'.back', user)
-    return jsonify(code=0, result=str(e))

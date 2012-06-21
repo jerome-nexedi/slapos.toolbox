@@ -41,6 +41,14 @@ def html_escape(text):
   return "".join(html_escape_table.get(c,c) for c in text)
 
 def checkLogin(config, login, pwd):
+  user = getSession(config)
+  salt = "runner81" #to be changed
+  current_pwd = hashlib.md5( salt + pwd ).hexdigest()
+  if current_pwd == user[1]:
+    return user
+  return False
+
+def getSession(config):
   user_path = os.path.join(config['runner_workdir'], '.users')
   user = ""
   if os.path.exists(user_path):
@@ -52,11 +60,29 @@ def checkLogin(config, login, pwd):
       user = open(user_path, 'r').read().split(';')
     else:
       return False
-  salt = "runner81" #to be changed
-  current_pwd = hashlib.md5( salt + pwd ).hexdigest()
-  if current_pwd == user[1]:
-    return user
-  return False
+  return user
+
+def saveSession(config, session, account):
+  user = os.path.join(config['runner_workdir'], '.users')
+  try:
+    if account[1]:
+      salt = "runner81" #to be changed
+      account[1] = hashlib.md5(salt + account[1]).hexdigest()
+    else:
+      account[1] = session['account'][1]
+    #backup previous data
+    open(user+'.back', 'w').write(';'.join(session['account']))
+    #save new account data
+    open(user, 'w').write((';'.join(account)).encode("utf-8"))
+    session['account'] = account
+    return True
+  except Exception, e:
+    try:
+      os.remove(user)
+      os.rename(user+'.back', user)
+    except:
+      pass
+    return str(e)
 
 def updateProxy(config):
   if not os.path.exists(config['instance_root']):
