@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import slapos.slap
 import time
 import subprocess
@@ -34,7 +36,7 @@ def cloneRepo(data):
     config_writer = repo.config_writer()
     config_writer.add_section("user")
     if data["user"] != "":
-      config_writer.set_value("user", "name", data["user"])
+      config_writer.set_value("user", "name", data["user"].encode("utf-8"))
     if data["email"] != "":
       config_writer.set_value("user", "email", data["email"])
     code = 1

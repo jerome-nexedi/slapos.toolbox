@@ -9,12 +9,9 @@
 
 #tabContaier textarea {
 	width:702px;
-  resize: none;
-  white-space: pre-wrap;
-  word-wrap: break-word;
 }
-
-#tabContaier textarea.slap{color: #6F6F6F;width:430px; max-height:120px; height:18px;padding:3px;}
+#tabContaier textarea.slap{white-space: pre-wrap;word-wrap: break-word;overflow: hidden;color: #6F6F6F;width:430px; max-height:120px;
+  resize: none; height:18px;padding:3px;min-height:18px;}
 #tabContaier > ul{
 	overflow:hidden;
 	height:34px;

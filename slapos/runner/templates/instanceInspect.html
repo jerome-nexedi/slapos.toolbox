@@ -20,7 +20,7 @@
     <ul>
       <li><a href="#tab1" class="active">Slapgrid Supervisor</a></li>
       <li><a href="#tab2">SLAP Response</a></li>
-      <li><a href="#tab3">Parameters</a></li>
+      <li><a href="#tab3" id="parameterTab">Parameters</a></li>
       <li><a href="#tab4" id="instancetabfiles">Partitions Content</a></li>
     </ul><!-- //Tab buttons -->
     <div class="tabDetails">
@@ -57,7 +57,7 @@
         <div id="box{{item[0]}}" style="display:none;">
         {% if item[1] %}
           <h2><span style="float:left; margin-left:10px;" id="{{item[0]}}title">Slap Response for {{item[0]}}</span>
-            <a href="#" id="{{item[0]}}Parameter" rel="{{item[0]}}" class="lshare simple" style="float:right">Parameters</a>
+            <a href="#" id="{{item[0]}}Parameter" rel="{{item[0]}}" class="lshare simple" style="float:right" title='Restart all partition process'>Restart</a>
             <a href="#" id="{{item[0]}}Files" rel="{{item[0]}}" class="lshare simple no-right-border" style="float:right">Files</a>
           </h2>
           <div class="clear"></div><br/>
@@ -124,7 +124,7 @@
         </div><!-- end tab3 -->
       <div id="tab4" class="tabContents">
       <h2>File content for all your partitions</h2>
-      <div id="fileTree" class="file_tree_tabs" alt="Double click to open file"></div>
+      <div id="fileTree" class="file_tree_tabs" title="Double click to open file"></div>
       <br/>
       <a href="#" id="reloadfiles" class="lshare simple">Reload Files</a>
         </div><!-- end tab4 -->
@@ -137,4 +137,5 @@
 
 </div>
 </div>
+{{instance}}
 {% endblock %}

@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 
 import slapos.slap
 import time
@@ -95,6 +95,8 @@ def updateProxy(config):
   xml_result = readParameters(param_path)
   partition_parameter_kw = None
   if type(xml_result) != type('') and xml_result.has_key('instance'):
+    for item in xml_result['instance'].keys():
+      xml_result['instance'][item] = xml_result['instance'][item].decode('utf-8')
     partition_parameter_kw = xml_result['instance']
   computer.updateConfiguration(xml_marshaller.dumps(slap_config))
   sr_request = slap.registerOpenOrder().request(profile, partition_reference=getSoftwareReleaseName(config),
@@ -133,6 +135,8 @@ def updateInstanceParameter(config, software_type=None):
   xml_result = readParameters(param_path)
   partition_parameter_kw = None
   if type(xml_result) != type('') and xml_result.has_key('instance'):
+    #for item in xml_result['instance'].keys():
+    #  xml_result['instance'][item] = xml_result['instance'][item].decode('utf-8')
     partition_parameter_kw = xml_result['instance']
   slap.registerOpenOrder().request(profile, partition_reference=getSoftwareReleaseName(config),
           partition_parameter_kw=partition_parameter_kw, software_type=software_type,
@@ -634,8 +638,7 @@ def readParameters(path):
         sub_object = {}
         for subnode in elt.childNodes:
           if subnode.nodeType != subnode.TEXT_NODE:
-            sub_object[str(subnode.getAttribute('id'))] = str(subnode.
-	                                                 childNodes[0].data)
+            sub_object[str(subnode.getAttribute('id'))] = subnode.childNodes[0].data #.decode('utf-8').decode('utf-8')
 	    object[str(elt.tagName)] = sub_object
       return object
     except Exception, e:

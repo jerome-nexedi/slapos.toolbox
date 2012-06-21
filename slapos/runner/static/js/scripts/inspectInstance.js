@@ -44,6 +44,7 @@ $(document).ready( function() {
             "</td><td valign='middle'><span style='margin-left: 10px;' id='btn_"+size+"' class='close'></span></td></tr>";
     $("#partitionParameter").append(row);
     setInput($("input#txt_"+size));
+    setupTextarea($("textarea#value_"+size));
     $("#btn_"+size).click(function(){
       var index = $(this).attr('id').split('_')[1];
       $("tr#row_"+index).remove();
@@ -101,6 +102,12 @@ $(document).ready( function() {
   });
   //Load previous instance parameters
   loadParameter();
+  $("a#parameterTab").click(function(){
+    var size = $("#partitionParameter > tbody > tr").length;
+    for(var i=2; i<=size; i++){
+      $("textarea#value_"+i).keyup();
+    }
+  });
 
   function setupFileTree(path){
     var root = $("input#root").val();
@@ -214,6 +221,20 @@ $(document).ready( function() {
   	}
     });
   }
+  function setupTextarea($txt){
+    var size = Number($txt.attr('id').split('_')[1]);
+    var hiddenDiv = $(document.createElement('div')),
+    content = null;
+    hiddenDiv.attr('id', 'div_'+size);
+    hiddenDiv.addClass('hiddendiv');
+    $('div#parameterkw').append(hiddenDiv);
+    $txt.keyup(function() {
+      content = $txt.val().replace(/\n/g, '<br>');
+      hiddenDiv.html(content);
+      if(hiddenDiv.height() > $txt.height() && hiddenDiv.height() > 120){return}
+      $txt.css('height', hiddenDiv.height()+"px");
+    });
+  }
   function loadParameter(){
     $.ajax({
     type: "GET",
@@ -226,6 +247,7 @@ $(document).ready( function() {
           var size = Number($("#partitionParameter > tbody > tr").last().attr('id').split('_')[1]);
           $("input#txt_"+size).val(propertie);
           $("textarea#value_"+size).val(dict[propertie]);
+          $("textarea#value_"+size).keyup();
         }
   	  }
       else{

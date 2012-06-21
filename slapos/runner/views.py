@@ -6,7 +6,6 @@ from utils import *
 import os
 import shutil
 import md5
-import codecs
 from gittools import cloneRepo, gitStatus, switchBranch, addBranch, getDiff, \
      gitPush, gitPull
 
@@ -14,7 +13,8 @@ app = Flask(__name__)
 
 @app.before_request
 def before_request():
-  if not session.has_key('account') and request.path != '/login' \
+  if (not session.has_key('account') or not session['account']) \
+    and request.path != '/login' \
     and request.path != '/doLogin' and not  request.path.startswith('/static'):
     return redirect(url_for('login'))
   session['title'] = getProjectTitle(app.config)
@@ -29,6 +29,16 @@ def home():
 @app.route("/login")
 def login():
   return render_template('login.html')
+
+@app.route("/myAccount")
+def myAccount():
+  return render_template('account.html', username=session['account'][0],
+                    email=session['account'][2], name=session['account'][3])
+
+@app.route("/logout")
+def logout():
+  session['account'] = None
+  return redirect(url_for('login'))
 
 @app.route('/configRepo')
 def configRepo():
@@ -290,7 +300,7 @@ def getFileContent():
 def saveFileContent():
   file_path = realpath(app.config, request.form['file'])
   if file_path:
-    open(file_path, 'w').write(request.form['content'])
+    open(file_path, 'w').write(request.form['content'].encode("utf-8"))
     return jsonify(code=1, result="")
   else:
     return jsonify(code=0, result="Error: No such file!")
@@ -398,7 +408,7 @@ def saveParameterXml():
   project = os.path.join(app.config['runner_workdir'], ".project")
   if not os.path.exists(project):
     return jsonify(code=0, result="Please first open a Software Release")
-  content = request.form['parameter']
+  content = request.form['parameter'].encode("utf-8")
   param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
   try:
     f = open(param_path, 'w')
