@@ -64,6 +64,7 @@ def getSession(config):
 
 def saveSession(config, session, account):
   user = os.path.join(config['runner_workdir'], '.users')
+  backup = False
   try:
     if account[1]:
       salt = "runner81" #to be changed
@@ -72,14 +73,16 @@ def saveSession(config, session, account):
       account[1] = session['account'][1]
     #backup previous data
     open(user+'.back', 'w').write(';'.join(session['account']))
+    backup = True
     #save new account data
     open(user, 'w').write((';'.join(account)).encode("utf-8"))
     session['account'] = account
     return True
   except Exception, e:
     try:
-      os.remove(user)
-      os.rename(user+'.back', user)
+      if backup:
+        os.remove(user)
+        os.rename(user+'.back', user)
     except:
       pass
     return str(e)
