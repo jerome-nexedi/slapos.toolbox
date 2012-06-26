@@ -36,9 +36,6 @@ class Agent:
         key_file=None, cert_file=None,
       ):
     self.portal_url = portal_url
-    master_url = master_url
-    key_file = key_file
-    cert_file = cert_file
     self.maximum_software_installation_duration = \
       maximum_software_installation_duration
     self.software_live_duration = software_live_duration
@@ -175,7 +172,7 @@ def main(*args):
   configuration.readfp(argument_option_instance.pop("configuration_file")[0])
   configuration_dict = dict(configuration.items("agent"))
   configuration_dict.update(argument_option_instance.__dict__)
-  pidfile = option_dict.get("pidfile")
+  pidfile = configuration_dict.get("pidfile")
   if pidfile:
     setRunning(pidfile)
   agent = Agent(
