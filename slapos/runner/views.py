@@ -11,6 +11,7 @@ from gittools import cloneRepo, gitStatus, switchBranch, addBranch, getDiff, \
 
 app = Flask(__name__)
 
+#Access Control: Only static files and login pages are allowed to guest
 @app.before_request
 def before_request():
   if (not session.has_key('account') or not session['account']) \
@@ -146,6 +147,9 @@ def removeInstance():
   if isInstanceRunning(app.config):
     flash('Instantiation in progress, cannot remove')
   else:
+    stopProxy(app.config)
+    removeProxyDb(app.config)
+    startProxy(app.config)
     removeInstanceRoot(app.config)
     flash('Instance removed')
   return redirect(url_for('inspectInstance'))
@@ -286,7 +290,11 @@ def removeFile():
 
 @app.route("/removeSoftwareDir", methods=['POST'])
 def removeSoftwareDir():
-  return removeSoftwareByName(app.config, request.form['name'])
+  try:
+    data = removeSoftwareByName(app.config, request.form['name'])
+    return jsonify(code=1, result=data)
+  except Exception, e:
+    return jsonify(code=0, result=str(e))
 
 @app.route("/getFileContent", methods=['POST'])
 def getFileContent():

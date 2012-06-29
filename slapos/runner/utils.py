@@ -108,8 +108,7 @@ def updateProxy(config):
  'address': config['ipv4_address'],
  'instance_root': config['instance_root'],
  'netmask': '255.255.255.255',
- 'partition_list': [
-                    ],
+ 'partition_list': [],
  'reference': config['computer_id'],
  'software_root': config['software_root']}
   for i in xrange(0, int(config['partition_amount'])):
@@ -170,8 +169,6 @@ def updateInstanceParameter(config, software_type=None):
   xml_result = readParameters(param_path)
   partition_parameter_kw = None
   if type(xml_result) != type('') and xml_result.has_key('instance'):
-    #for item in xml_result['instance'].keys():
-    #  xml_result['instance'][item] = xml_result['instance'][item].decode('utf-8')
     partition_parameter_kw = xml_result['instance']
   slap.registerOpenOrder().request(profile, partition_reference=getSoftwareReleaseName(config),
           partition_parameter_kw=partition_parameter_kw, software_type=software_type,
@@ -542,10 +539,10 @@ def writeSoftwareData(runner_dir, data):
 
 def removeSoftwareByName(config, folderName):
   if isSoftwareRunning(config) or isInstanceRunning(config):
-    return jsonify(code=0, result="Software installation or instantiation in progress, cannot remove")
+    raise Exception("Software installation or instantiation in progress, cannot remove")
   path = os.path.join(config['software_root'], folderName)
   if not os.path.exists(path):
-    return jsonify(code=0, result="Can not remove software: No such file or directory")
+    raise Exception("Cannot remove software Release: No such file or directory")
   svcStopAll(config)
   shutil.rmtree(path)
   #update compiled software list
@@ -557,7 +554,7 @@ def removeSoftwareByName(config, folderName):
       writeSoftwareData(config['runner_workdir'], data)
       break
     i = i+1
-  return jsonify(code=1, result=data)
+  return data
 
 def tail(f, lines=20):
   """
