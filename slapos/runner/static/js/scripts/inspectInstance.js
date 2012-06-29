@@ -13,7 +13,8 @@ $(document).ready( function() {
   	  configRadio();
 	  });
   });
-  lastli.css("border-bottom", "none");
+  if(lastli){lastli.css("border-bottom", "none");}
+
   $("#parameterkw").slideBox("show");
   setupSlappart();
   $("#softwareType").slideBox();
