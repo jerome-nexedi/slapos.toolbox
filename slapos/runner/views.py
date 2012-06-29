@@ -77,6 +77,7 @@ def inspectSoftware():
   return render_template('runResult.html', softwareRoot='software_root',
                          softwares=loadSoftwareData(app.config['runner_workdir']))
 
+#remove content of compiled software release
 @app.route('/removeSoftware')
 def removeSoftware():
   file_config = os.path.join(app.config['runner_workdir'], ".softdata")
@@ -114,6 +115,7 @@ def editInstanceProfile():
   return render_template('updateInstanceProfile.html', workDir='workspace',
       profile=profile, projectList=getProjectList(app.config['workspace']))
 
+# get status of all computer partitions and process state
 @app.route('/inspectInstance', methods=['GET'])
 def inspectInstance():
   file_content = ''
@@ -127,6 +129,7 @@ def inspectInstance():
       file_path=file_content, supervisor=result, slap_status=getSlapStatus(app.config),
       supervisore=result, partition_amount=app.config['partition_amount'])
 
+#Reload instance process ans returns new value to ajax
 @app.route('/supervisordStatus', methods=['GET'])
 def supervisordStatus():
   result = getSvcStatus(app.config)
@@ -253,6 +256,7 @@ def getProjectStatus():
   else:
     return jsonify(code=0, result="Can not read folder: Permission Denied")
 
+#view for current software release files
 @app.route("/editCurrentProject")
 def editCurrentProject():
   project = os.path.join(app.config['runner_workdir'], ".project")
@@ -262,6 +266,7 @@ def editCurrentProject():
                            projectList=getProjectList(app.config['workspace']))
   return redirect(url_for('configRepo'))
 
+#create file or directory
 @app.route("/createFile", methods=['POST'])
 def createFile():
   path = realpath(app.config, request.form['file'], False)
@@ -277,6 +282,7 @@ def createFile():
   except Exception, e:
     return jsonify(code=0, result=str(e))
 
+#remove file or directory
 @app.route("/removeFile", methods=['POST'])
 def removeFile():
   try:
@@ -296,6 +302,7 @@ def removeSoftwareDir():
   except Exception, e:
     return jsonify(code=0, result=str(e))
 
+#read file and return content to ajax
 @app.route("/getFileContent", methods=['POST'])
 def getFileContent():
   file_path = realpath(app.config, request.form['file'])
@@ -379,6 +386,7 @@ def getmd5sum():
   else:
     return jsonify(code=0, result="Can not get md5sum for this file!")
 
+#return informations about state of slapgrid process
 @app.route("/slapgridResult", methods=['POST'])
 def slapgridResult():
   software_state = isSoftwareRunning(app.config)
@@ -415,6 +423,7 @@ def getPath():
   else:
     return jsonify(code=1, result=realfile)
 
+#update instance parameter into a local xml file
 @app.route("/saveParameterXml", methods=['POST'])
 def saveParameterXml():
   project = os.path.join(app.config['runner_workdir'], ".project")
@@ -441,6 +450,7 @@ def saveParameterXml():
       return jsonify(code=0, result="An error occurred while applying your settings!<br/>" + str(e))
     return jsonify(code=1, result="")
 
+#read instance parameters into the local xml file and return a dict
 @app.route("/getParameterXml/<request>", methods=['GET'])
 def getParameterXml(request):
   param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
@@ -457,6 +467,7 @@ def getParameterXml(request):
   else:
     return jsonify(code=1, result=parameters)
 
+#update user account data
 @app.route("/updateAccount", methods=['POST'])
 def updateAccount():
   account = []

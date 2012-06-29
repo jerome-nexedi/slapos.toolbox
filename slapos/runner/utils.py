@@ -41,6 +41,17 @@ def html_escape(text):
   return "".join(html_escape_table.get(c,c) for c in text)
 
 def checkLogin(config, login, pwd):
+  """
+  User authentication method
+
+  Args:
+    config: Slaprunner configuration.
+    login: username of the user.
+    pwd: password associate to username.
+
+  Returns:
+    a list of user informations or False if authentication fail.
+  """
   user = getSession(config)
   salt = "runner81" #to be changed
   current_pwd = hashlib.md5( salt + pwd ).hexdigest()
@@ -49,6 +60,11 @@ def checkLogin(config, login, pwd):
   return False
 
 def getSession(config):
+  """
+  Get the session data of current user.
+  Returns:
+    a list of user informations or False if fail to read data.
+  """
   user_path = os.path.join(config['runner_workdir'], '.users')
   user = ""
   if os.path.exists(user_path):
@@ -63,6 +79,17 @@ def getSession(config):
   return user
 
 def saveSession(config, session, account):
+  """
+  Save account information for the current user
+
+  Args:
+    config: Slaprunner configuration
+    session: Flask session
+    account: New session data to be save
+
+  Returns:
+    True if all goes well or str (error message) if fail
+  """
   user = os.path.join(config['runner_workdir'], '.users')
   backup = False
   try:
@@ -88,6 +115,10 @@ def saveSession(config, session, account):
     return str(e)
 
 def updateProxy(config):
+  """
+  Configure Slapos Node computer and partitions.
+  Send current Software Release to Slapproxy for compilation and deployment.
+  """
   if not os.path.exists(config['instance_root']):
     os.mkdir(config['instance_root'])
   slap = slapos.slap.slap()
@@ -141,6 +172,7 @@ def updateProxy(config):
   return True
 
 def readPid(file):
+  """Read process pid from file `file`"""
   if os.path.exists(file):
     data = open(file).read().strip()
     try:
@@ -151,9 +183,17 @@ def readPid(file):
 
 
 def writePid(file, pid):
+  """Save process pid into a file `file`"""
   open(file, 'w').write(str(pid))
 
 def updateInstanceParameter(config, software_type=None):
+  """
+  Reconfigure Slapproxy to re-deploy current Software Instance with parameters.
+
+  Args:
+    config: Slaprunner configuration.
+    software_type: reconfigure Software Instance with software type.
+  """
   slap = slapos.slap.slap()
   slap.initializeConnection(config['master_url'])
   #Get current software release profile
@@ -163,7 +203,7 @@ def updateInstanceParameter(config, software_type=None):
     profile = realpath(config, os.path.join(software_folder,
                                           config['software_profile']))
   except:
-    return False
+    raise Exception("Software Release profile not found")
   #get instance parameter
   param_path = os.path.join(config['runner_workdir'], ".parameter.xml")
   xml_result = readParameters(param_path)
@@ -175,6 +215,7 @@ def updateInstanceParameter(config, software_type=None):
           filter_kw=None, state=None, shared=False)
 
 def startProxy(config):
+  """Start Slapproxy server"""
   proxy_pid = os.path.join(config['runner_workdir'], 'proxy.pid')
   pid = readPid(proxy_pid)
   running = False
@@ -193,6 +234,7 @@ def startProxy(config):
 
 
 def stopProxy(config):
+  """Stop Slapproxy server"""
   pid = readPid(os.path.join(config['runner_workdir'], 'proxy.pid'))
   if pid:
     try:
@@ -202,10 +244,15 @@ def stopProxy(config):
 
 
 def removeProxyDb(config):
+  """Remove Slapproxy database, this is use to initialize proxy for example when
+    configuring new Software Release"""
   if os.path.exists(config['database_uri']):
     os.unlink(config['database_uri'])
 
 def isSoftwareRunning(config):
+  """
+    Return True if slapgrid-sr is still running and false if slapgrid if not
+  """
   slapgrid_pid = os.path.join(config['runner_workdir'], 'slapgrid-sr.pid')
   pid = readPid(slapgrid_pid)
   if pid:
@@ -221,6 +268,10 @@ def isSoftwareRunning(config):
 
 
 def runSoftwareWithLock(config):
+  """
+    Use Slapgrid to compile current Software Release and wait until
+    compilation is done
+  """
   slapgrid_pid = os.path.join(config['runner_workdir'], 'slapgrid-sr.pid')
   if not isSoftwareRunning(config):
     if not os.path.exists(config['software_root']):
@@ -262,6 +313,9 @@ def runSoftwareWithLock(config):
 
 
 def isInstanceRunning(config):
+  """
+    Return True if slapgrid-cp is still running and false if slapgrid if not
+  """
   slapgrid_pid = os.path.join(config['runner_workdir'], 'slapgrid-cp.pid')
   pid = readPid(slapgrid_pid)
   if pid:
@@ -276,6 +330,7 @@ def isInstanceRunning(config):
   return running
 
 def killRunningSlapgrid(config, ptype):
+  """Kill slapgrid process and all running children process"""
   slapgrid_pid = os.path.join(config['runner_workdir'], ptype)
   pid = readPid(slapgrid_pid)
   if pid:
@@ -304,6 +359,10 @@ def pidppid(pid):
   return list(int(p) for p, pp in ppid if int(pp) == pid)
 
 def runInstanceWithLock(config):
+  """
+    Use Slapgrid to deploy current Software Release and wait until
+    deployment is done.
+  """
   slapgrid_pid = os.path.join(config['runner_workdir'], 'slapgrid-cp.pid')
   if not isInstanceRunning(config):
     startProxy(config)
@@ -317,13 +376,24 @@ def runInstanceWithLock(config):
     return True
   return False
 
-def getProfilePath(peojectDir, profile):
-  if not os.path.exists(os.path.join(peojectDir, ".project")):
+def getProfilePath(projectDir, profile):
+  """
+  Return the path of the current Software Release `profile`
+
+  Args:
+    projectDir: Slaprunner workspace location.
+    profile: file to search into the workspace.
+
+  Returns:
+    String, path of current Software Release profile
+  """
+  if not os.path.exists(os.path.join(projectDir, ".project")):
     return False
-  projectFolder = open(os.path.join(peojectDir, ".project")).read()
+  projectFolder = open(os.path.join(projectDir, ".project")).read()
   return os.path.join(projectFolder, profile)
 
 def getSlapStatus(config):
+  """Return all Slapos Partitions with associate informations"""
   slap = slapos.slap.slap()
   slap.initializeConnection(config['master_url'])
   partition_list = []
@@ -354,10 +424,12 @@ def runBuildoutAnnotate(config):
   return False
 
 def svcStopAll(config):
+  """Stop all Instance process on this computer"""
   return Popen([config['supervisor'], config['configuration_file_path'],
                 'shutdown']).communicate()[0]
 
 def removeInstanceRoot(config):
+  """Clean instance directory and stop all its running process"""
   if os.path.exists(config['instance_root']):
     svcStopAll(config)
     for root, dirs, files in os.walk(config['instance_root']):
@@ -369,6 +441,7 @@ def removeInstanceRoot(config):
     shutil.rmtree(config['instance_root'])
 
 def getSvcStatus(config):
+  """Return all Softwares Instances process Informations"""
   result = Popen([config['supervisor'], config['configuration_file_path'],
                   'status']).communicate()[0]
   regex = "(^unix:.+\.socket)|(^error:).*$"
@@ -382,15 +455,40 @@ def getSvcStatus(config):
   return supervisord
 
 def getSvcTailProcess(config, process):
+  """Get log for the specifie process
+
+  Args:
+    config: Slaprunner configuration
+    process: process name. this value is pass to supervisord.
+  Returns:
+    a string that contains the log of the process.
+  """
   return Popen([config['supervisor'], config['configuration_file_path'],
                 "tail", process]).communicate()[0]
 
 def svcStartStopProcess(config, process, action):
+  """Send start or stop process command to supervisord
+
+  Args:
+    config: Slaprunner configuration.
+    process: process to start or stop.
+    action: current state which is used to generate the new process state.
+  """
   cmd = {"RESTART":"restart", "STOPPED":"start", "RUNNING":"stop", "EXITED":"start", "STOP":"stop"}
   return Popen([config['supervisor'], config['configuration_file_path'],
                 cmd[action], process]).communicate()[0]
 
 def getFolderContent(config, folder):
+  """
+  Read all file and folder into specified directory
+
+  Args:
+    config: Slaprunner configuration.
+    folder: the directory to read.
+
+  Returns:
+    Html formated string or error message when fail.
+  """
   r=['<ul class="jqueryFileTree" style="display: none;">']
   try:
     folder = str(folder)
@@ -418,6 +516,16 @@ def getFolderContent(config, folder):
   return jsonify(result=''.join(r))
 
 def getFolder(config, folder):
+  """
+  Read list of folder for the specified directory
+
+  Args:
+    config: Slaprunner configuration.
+    folder: the directory to read.
+
+  Returns:
+    Html formated string or error message when fail.
+  """
   r=['<ul class="jqueryFileTree" style="display: none;">']
   try:
     folder = str(folder)
@@ -442,6 +550,13 @@ def getFolder(config, folder):
   return jsonify(result=''.join(r))
 
 def getProjectList(folder):
+  """Return the list of projet (folder) into the workspace
+
+  Agrs:
+    folder: path of the workspace
+  Returns:
+    a list that contains each folder name.
+  """
   project = []
   project_list = sorted(os.listdir(folder), key=str.lower)
   for elt in project_list:
@@ -449,6 +564,14 @@ def getProjectList(folder):
   return project
 
 def configNewSR(config, projectpath):
+  """Configure a Software Release as current Software Release
+
+  Args:
+    config: slaprunner configuration
+    projectpath: path of the directory that contains the software realease to configure
+  Returns:
+    True if all is done well, otherwise return false.
+  """
   folder = realpath(config, projectpath)
   if folder:
     if isInstanceRunning(config):
@@ -465,6 +588,13 @@ def configNewSR(config, projectpath):
     return False
 
 def newSoftware(folder, config, session):
+  """
+  Create a new Software Release folder with default profiles
+
+  Args:
+    folder: directory of the new software release
+    config: slraprunner configuration
+    session: Flask session directory"""
   json = ""
   code = 0
   runner_dir = config['runner_workdir']
@@ -498,12 +628,14 @@ def newSoftware(folder, config, session):
   return jsonify(code=code, result=json)
 
 def checkSoftwareFolder(path, config):
+  """Check id `path` is a valid Software Release folder"""
   realdir = realpath(config, path)
   if realdir and os.path.exists(os.path.join(realdir, config['software_profile'])):
     return jsonify(result=path)
   return jsonify(result="")
 
 def getProjectTitle(config):
+  """Generate the name of the current software Release (for slaprunner UI)"""
   conf = os.path.join(config['runner_workdir'], ".project")
   if os.path.exists(conf):
     project = open(conf, "r").read().split("/")
@@ -512,6 +644,7 @@ def getProjectTitle(config):
   return "No Profile"
 
 def getSoftwareReleaseName(config):
+  """Get the name of the current Software Release"""
   sr_profile = os.path.join(config['runner_workdir'], ".project")
   if os.path.exists(sr_profile):
     project = open(sr_profile, "r").read().split("/")
@@ -520,6 +653,12 @@ def getSoftwareReleaseName(config):
   return "No_name"
 
 def loadSoftwareData(runner_dir):
+  """Get All Compiled Softwares Releases name and directory
+
+  Agrs:
+    runner_dir: base directory of slapos web runner.
+  Returns:
+    a dictionnary that contains all compiled Software Release with path"""
   import pickle
   file_path = os.path.join(runner_dir, '.softdata')
   if not os.path.exists(file_path):
@@ -530,6 +669,12 @@ def loadSoftwareData(runner_dir):
   return data
 
 def writeSoftwareData(runner_dir, data):
+  """Save the list of compiled Software Release into a file
+
+  Args:
+    runner_dir: base directory of slapos web runner.
+    data: dictionnary data about real name and directory of each software release
+  """
   import pickle
   file_path = os.path.join(runner_dir, '.softdata')
   pkl_file = open(file_path, 'wb')
@@ -538,6 +683,11 @@ def writeSoftwareData(runner_dir, data):
   pkl_file.close()
 
 def removeSoftwareByName(config, folderName):
+  """Remove all content of the specified software release
+
+  Args:
+    config: slaprunner configuration
+    foldername: the name given to the software release"""
   if isSoftwareRunning(config) or isInstanceRunning(config):
     raise Exception("Software installation or instantiation in progress, cannot remove")
   path = os.path.join(config['software_root'], folderName)
@@ -662,6 +812,13 @@ def realpath(config, path, check_exist=True):
   return False
 
 def readParameters(path):
+  """Read Instance parameters stored into a local file.
+
+  Agrs:
+    path: path of the xml file that contains parameters
+
+  Return:
+    a dictionnary of instance parameters."""
   if os.path.exists(path):
     try:
       xmldoc = minidom.parse(path)
