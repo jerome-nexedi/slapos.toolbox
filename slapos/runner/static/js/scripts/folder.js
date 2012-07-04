@@ -97,7 +97,13 @@ $(document).ready( function() {
 				$("#clone").empty();
 				$("#clone").append("Clone");
 				send = false;
-			}
+			},
+      error: function(request,error) {
+        $("#error").Popup("unable to clone your project, please check your internet connection", {type:'error', duration:3000});
+        $("#imgwaitting").hide();
+  			$("#clone").empty();
+				$("#clone").append("Clone");
+      }
 		});
 		return false;
 	});

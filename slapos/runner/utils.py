@@ -51,6 +51,7 @@ def checkLogin(config, login, pwd):
 
   Returns:
     a list of user informations or False if authentication fail.
+    list=[username, password, email, complete_name]
   """
   user = getSession(config)
   salt = "runner81" #to be changed
@@ -162,8 +163,6 @@ def updateProxy(config):
   xml_result = readParameters(param_path)
   partition_parameter_kw = None
   if type(xml_result) != type('') and xml_result.has_key('instance'):
-    for item in xml_result['instance'].keys():
-      xml_result['instance'][item] = xml_result['instance'][item].decode('utf-8')
     partition_parameter_kw = xml_result['instance']
   computer.updateConfiguration(xml_marshaller.dumps(slap_config))
   sr_request = slap.registerOpenOrder().request(profile, partition_reference=getSoftwareReleaseName(config),
@@ -582,6 +581,9 @@ def configNewSR(config, projectpath):
     removeProxyDb(config)
     startProxy(config)
     removeInstanceRoot(config)
+    param_path = os.path.join(config['runner_workdir'], ".parameter.xml")
+    if os.path.exists(param_path):
+      os.remove(param_path)
     open(os.path.join(config['runner_workdir'], ".project"), 'w').write(projectpath)
     return True
   else:

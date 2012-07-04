@@ -25,8 +25,6 @@ def before_request():
 # general views
 @app.route('/')
 def home():
-  if not os.path.exists(app.config['workspace']) or len(os.listdir(app.config['workspace'])) == 0:
-    return redirect(url_for('configRepo'))
   return render_template('index.html')
 
 @app.route("/login")
@@ -154,6 +152,9 @@ def removeInstance():
     removeProxyDb(app.config)
     startProxy(app.config)
     removeInstanceRoot(app.config)
+    param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
+    if os.path.exists(param_path):
+      os.remove(param_path)
     flash('Instance removed')
   return redirect(url_for('inspectInstance'))
 

@@ -106,7 +106,7 @@ function setRunningState(data){
       $current.css("color", "#000");
       $current = undefined;
       currentState = false;
-      $("#error").Popup("Successfully run " + processType + " Profile", {type:'info', duration:3000});
+      $("#error").Popup("Slapgrid completely finish running your " + processType + " Profile", {type:'info', duration:3000});
     }
   }
   currentState = data.result;

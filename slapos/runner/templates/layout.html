@@ -53,6 +53,8 @@
                     <a href="{{ url_for('home') }}" style="float:left;" id="home" {% if request.path != '/' %}rel="tooltip"{% endif %} title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
 		    <div class="line"></div>
 		    <a href="{{ url_for('editCurrentProject') }}" style="float:left" title="Edit your current project"><img alt="" src="{{ url_for('static', filename='images/project.png') }}" /></a>
+        <div class="line"></div>
+  	    <a href="{{ url_for('logout') }}" style="float:left" title="Close your session"><img alt="" src="{{ url_for('static', filename='images/logout.png') }}" /></a>
 		    <div class="line"></div>
                     <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
 		    <div class="run"><span id="running" style="display:none"><img alt="" src="{{ url_for('static', filename='images/ajax_roller.gif') }}"
@@ -121,9 +123,9 @@
           <div style="margin-top:3px;border-bottom: 1px dashed #666666; heigth:1px"></div>
           <ul>
             <li><a href="{{ url_for('manageProject')}}">Manage Repositories</a></li>
+            <li><a href="{{ url_for('configRepo')}}" >Clone your repository</a></li>
             <li><a href="{{ url_for('openProject', method='open')}}">Open Software Release</a></li>
             <li><a href="{{ url_for('openProject', method='new')}}">Create Software Release</a></li>
-            <li><a href="{{ url_for('logout')}}" >Close your session</a></li>
           </ul>
       </div>
     </body>

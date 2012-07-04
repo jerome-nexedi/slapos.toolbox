@@ -1,5 +1,7 @@
 $(document).ready( function() {
   var send = false;
+  //change background
+  $("body").css("background", "#9C9C9C");
 	$("#login").click(function(){
     if (send) return false;
 		if($("input#clogin").val() === "" || !$("input#clogin").val().match(/^[\w\d\.-]+$/)){
