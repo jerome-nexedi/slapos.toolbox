@@ -5,6 +5,7 @@ import logging.handlers
 import os
 import sys
 import subprocess
+import hashlib
 
 class Parser(OptionParser):
   """
@@ -121,5 +122,11 @@ def serve(config):
   )
   if not os.path.exists(workdir):
     os.mkdir(workdir)
+  if not os.path.exists(os.path.join(config.runner_workdir, '.users')):
+    #set default user and password
+    salt = "runner81" #to be changed
+    pwd = hashlib.md5( salt + "insecure" ).hexdigest()
+    user = "root;"+pwd+";;Slaprunner Administrator"
+    open(os.path.join(config.runner_workdir, '.users'), 'w').write(user)
   app.run(host=config.runner_host, port=int(config.runner_port),
       debug=config.debug, threaded=True)

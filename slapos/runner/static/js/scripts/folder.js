@@ -1,7 +1,7 @@
 $(document).ready( function() {
 	var send = false;
 	var cloneRequest;
-	$('#fileTree').fileTree({ root: $("input#workdir").val(), script: $SCRIPT_ROOT + '/readFolder', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false }, function(file) { 
+	$('#fileTree').fileTree({ root: $("input#workdir").val(), script: $SCRIPT_ROOT + '/readFolder', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false }, function(file) {
 		selectFile(file);
 	});
 	configRadio();
@@ -22,12 +22,12 @@ $(document).ready( function() {
 			$("#clone").append("Clone");
 			send = false;
 			return;
-		}		
+		}
 		var repo_url = $("input#repo").val();
 		var email = "";
 		var name = ""
 		/* /^(ht|f)tps?:\/\/[a-z0-9-\.]+\.[a-z]{2,4}\/?([^\s<>\#%"\,\{\}\\|\\\^\[\]`]+)?$/ */
-		if($("input#repo").val() == "" || !repo_url.match(/^[\w\d\.\/:~@_-]+$/)){						
+		if($("input#repo").val() == "" || !repo_url.match(/^[\w\d\.\/:~@_-]+$/)){
 			$("#error").Popup("Invalid url for the repository", {type:'alert', duration:3000});
 			return false;
 		}
@@ -35,7 +35,7 @@ $(document).ready( function() {
 			$("#error").Popup("Invalid project name", {type:'alert', duration:3000});
 			return false;
 		}
-		if($("input#user").val() != "" && $("input#user").val() != "Enter your name..."){
+		if($("input#user").val() !== ""){
 			name = $("input#user").val();
 		}
 		if($("input#email").val() != "" && $("input#email").val() != "Enter your email adress..."){
@@ -86,7 +86,7 @@ $(document).ready( function() {
 					$("#error").Popup("Your repository is cloned!", {type:'confirm', duration:3000});
 					$("input#repo").val("Enter the url of your repository...");
 					$("input#name").val("Enter the project name...");
-					$('#fileTree').fileTree({ root: $("input#workdir").val(), script: $SCRIPT_ROOT + '/readFolder', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false }, function(file) { 
+					$('#fileTree').fileTree({ root: $("input#workdir").val(), script: $SCRIPT_ROOT + '/readFolder', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false }, function(file) {
 						selectFile(file);
 					});
 				}
@@ -97,15 +97,21 @@ $(document).ready( function() {
 				$("#clone").empty();
 				$("#clone").append("Clone");
 				send = false;
-			}
+			},
+      error: function(request,error) {
+        $("#error").Popup("unable to clone your project, please check your internet connection", {type:'error', duration:3000});
+        $("#imgwaitting").hide();
+  			$("#clone").empty();
+				$("#clone").append("Clone");
+      }
 		});
 		return false;
 	});
 	function configRadio(){
-		$("#modelist li").each(function(index) {			
+		$("#modelist li").each(function(index) {
 			var boxselector = "#box" + index;
 			if($(this).hasClass('checked')){
-				$(this).removeClass('checked');				
+				$(this).removeClass('checked');
 				$(boxselector).slideUp("normal");
 			}
 			if($(this).find("input:radio").is(':checked')){
@@ -119,7 +125,7 @@ $(document).ready( function() {
 			}
 		});
 	}
-	
+
 	function selectFile(file){
 		//nothing
 		return;

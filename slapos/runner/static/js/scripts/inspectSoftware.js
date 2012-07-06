@@ -9,27 +9,33 @@ $(document).ready( function() {
 		$("#info").append("Please select your file or folder into the box...");
 		fillContent();
 	});
-	
+
 	function selectFile(file){
 		var relativeFile = file.replace(runnerDir + "/" + $("#softwarelist").val(), "");
 		$("#info").empty();
 		$("#info").append("Selection: " + relativeFile);
 		return;
 	}
-	
+
 	function fillContent(){
 		var folder = $("#softwarelist").val();
 		var elt = $("option:selected", $("#softwarelist"));
-		$('#fileTree').fileTree({ root: runnerDir + "/" + folder, script: $SCRIPT_ROOT + '/readFolder', 
-			folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function(file) { 
-			selectFile(file);
-		}, function(file){ viewFile(file)});
-		$("#softcontent").empty();		
-		$("#softcontent").append("File content: " + elt.attr('title'));
+      if(elt.val() !== "No Software Release found"){
+    		$('#fileTree').fileTree({ root: runnerDir + "/" + folder, script: $SCRIPT_ROOT + '/readFolder',
+    			folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function(file) {
+    			selectFile(file);
+    		}, function(file){ viewFile(file)});
+    		$("#softcontent").empty();
+    		$("#softcontent").append("File content: " + elt.attr('title'));
+      }
 	}
-	
-	$("#open").click(function(){
+
+	$("#open").click(function(){        
 		var elt = $("option:selected", $("#softwarelist"));
+    if(elt.val() === "No Software Release found"){
+        $("#error").Popup("Please select your Software Release", {type:'alert', duration:5000});
+        return false;
+    }
 		$.ajax({
 			type: "POST",
 			url: $SCRIPT_ROOT + '/setCurrentProject',
@@ -39,14 +45,18 @@ $(document).ready( function() {
 					location.href = $SCRIPT_ROOT + '/editSoftwareProfile'
 				}
 				else{
-					$("#error").Popup(data.result, {type:'error'});
+					$("#error").Popup(data.result, {type:'error', duration:5000});
 				}
 			}
 		});
 		return false;
 	});
-	
+
 	$("#delete").click(function(){
+    if($("#softwarelist").val() === "No Software Release found"){
+        $("#error").Popup("Please select your Software Release", {type:'alert', duration:5000});
+        return false;
+    }
 		if(send) return;
 		send = false;
 		$.ajax({
@@ -55,21 +65,27 @@ $(document).ready( function() {
 			data: "name=" + $("#softwarelist").val(),
 			success: function(data){
 				if(data.code == 1){
-					var folder = $("#softwarelist").val();
-					$('#fileTree').fileTree({ root: runnerDir + "/" + folder, script: $SCRIPT_ROOT + '/readFolder', folderEvent: 'click', expandSpeed: 750,
-						collapseSpeed: 750, multiFolder: false, selectFolder: true }, function(file) { 
-					selectFile(file);
-					setupFileTree(runnerDir);
-					}, function(file){ viewFile(file)});
+					var folder = $("#softwarelist").val();					
 					$("input#file").val("");
 					$("#info").empty();
 					$("#info").append("Please select your file or folder into the box...");
 					$("#softwarelist").empty();
 					for(i=0; i<data.result.length; i++){
-						$("#softwarelist").append('<option value="' + data.result[i]["md5"] + 
-							'" title="' + data.result[i]["title"] +'" rel="' + 
+						$("#softwarelist").append('<option value="' + data.result[i]["md5"] +
+							'" title="' + data.result[i]["title"] +'" rel="' +
 							data.result[i]["path"] +'">' + data.result[i]["title"] + '</option>');
 					}
+          if(data.result.length < 1){
+             $("#softwarelist").append('<option>No Software Release found</option>');
+             $('#fileTree').empty();
+          }
+          else{
+            folder = $("#softwarelist").val();
+            $('#fileTree').fileTree({ root: runnerDir + "/" + folder, script: $SCRIPT_ROOT + '/readFolder', folderEvent: 'click', expandSpeed: 750,
+    					collapseSpeed: 750, multiFolder: false, selectFolder: true }, function(file) {
+  					selectFile(file);
+  					}, function(file){ viewFile(file)});
+          }
 					$("#error").Popup("Operation complete, Selected Software Release has been delete!", {type:'confirm', duration:5000});
 				}
 				else{
@@ -78,15 +94,15 @@ $(document).ready( function() {
 				send = false;
 			}
 		});
-		return false;	
+		return false;
 	});
-	
+
 	function viewFile(file){
 		//User have double click on file in to the fileTree
 		var name = file.replace(runnerDir + "/" + $("#softwarelist").val(), "/software");
 		loadFileContent(file, name);
 	}
-	
+
 	function loadFileContent(file, filename){
 	    $.ajax({
 		  type: "POST",
@@ -99,14 +115,14 @@ $(document).ready( function() {
 			type: "POST",
 			url: $SCRIPT_ROOT + '/getFileContent',
 			data: {file:file, truncate:1500},
-			success: function(data){	
+			success: function(data){
 				if(data.code == 1){
 					$("#inline_content").empty();
 					$("#inline_content").append('<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">Inspect Software Content: ' +
 						filename +'</h2>');
 					$("#inline_content").append('<br/><div class="main_content"><pre id="editor"></pre></div>');
 					setupEditor();
-					$(".inline").colorbox({inline:true, width: "847px", onComplete:function(){						
+					$(".inline").colorbox({inline:true, width: "847px", onComplete:function(){
 						editor.getSession().setValue(data.result);
 					}});
 					$(".inline").click();
@@ -128,11 +144,11 @@ $(document).ready( function() {
 		  }
 	      });
 	}
-	
-	function setupEditor(){		
+
+	function setupEditor(){
 		editor = ace.edit("editor");
 		editor.setTheme("ace/theme/crimson_editor");
-	
+
 		var CurentMode = require("ace/mode/text").Mode;
 		editor.getSession().setMode(new CurentMode());
 		editor.getSession().setTabSize(2);

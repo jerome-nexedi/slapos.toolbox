@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from flask import Flask, request, redirect, url_for, \
          render_template, flash, jsonify, session
 from utils import *
@@ -9,21 +11,51 @@ from gittools import cloneRepo, gitStatus, switchBranch, addBranch, getDiff, \
 
 app = Flask(__name__)
 
+#Access Control: Only static files and login pages are allowed to guest
 @app.before_request
 def before_request():
-  session['title'] = getProjectTitle(app.config)
+  if (not session.has_key('account') or not session['account']) \
+    and request.path != '/login' \
+    and request.path != '/doLogin' and not  request.path.startswith('/static'):
+    return redirect(url_for('login'))
+  if session.has_key('account') and session['account']:
+    session['title'] = getProjectTitle(app.config)
+    session['account'] = getSession(app.config)
 
 # general views
 @app.route('/')
 def home():
-  if not os.path.exists(app.config['workspace']) or len(os.listdir(app.config['workspace'])) == 0:
-    return redirect(url_for('configRepo'))
   return render_template('index.html')
+
+@app.route("/login")
+def login():
+  return render_template('login.html')
+
+@app.route("/myAccount")
+def myAccount():
+  return render_template('account.html', username=session['account'][0],
+      email=session['account'][2], name=session['account'][3].decode('utf-8'))
+
+@app.route("/logout")
+def logout():
+  session['account'] = None
+  return redirect(url_for('login'))
 
 @app.route('/configRepo')
 def configRepo():
   public_key = open(app.config['public_key'], 'r').read()
-  return render_template('cloneRepository.html', workDir='workspace', public_key=public_key)
+  return render_template('cloneRepository.html', workDir='workspace',
+            public_key=public_key, name=session['account'][3].decode('utf-8'),
+            email=session['account'][2])
+
+@app.route("/doLogin", methods=['POST'])
+def doLogin():
+  check_user = checkLogin(app.config, request.form['clogin'], request.form['cpwd'])
+  if not check_user:
+    return jsonify(code=0, result="Login or password is incorrect, please check it!")
+  else:
+    session['account'] = check_user
+    return jsonify(code=1, result=check_user)
 
 # software views
 @app.route('/editSoftwareProfile')
@@ -43,6 +75,7 @@ def inspectSoftware():
   return render_template('runResult.html', softwareRoot='software_root',
                          softwares=loadSoftwareData(app.config['runner_workdir']))
 
+#remove content of compiled software release
 @app.route('/removeSoftware')
 def removeSoftware():
   file_config = os.path.join(app.config['runner_workdir'], ".softdata")
@@ -80,6 +113,7 @@ def editInstanceProfile():
   return render_template('updateInstanceProfile.html', workDir='workspace',
       profile=profile, projectList=getProjectList(app.config['workspace']))
 
+# get status of all computer partitions and process state
 @app.route('/inspectInstance', methods=['GET'])
 def inspectInstance():
   file_content = ''
@@ -88,17 +122,39 @@ def inspectInstance():
     file_content = 'instance_root'
     result = getSvcStatus(app.config)
     if len(result) == 0:
-      result = []  
+      result = []
   return render_template('instanceInspect.html',
       file_path=file_content, supervisor=result, slap_status=getSlapStatus(app.config),
       supervisore=result, partition_amount=app.config['partition_amount'])
+
+#Reload instance process ans returns new value to ajax
+@app.route('/supervisordStatus', methods=['GET'])
+def supervisordStatus():
+  result = getSvcStatus(app.config)
+  if not (result):
+    return jsonify(code=0, result="")
+  html = "<tr><th>Partition and Process name</th><th>Status</th><th>Process PID </th><th> UpTime</th><th></th></tr>"
+  for item in result:
+    html += "<tr>"
+    html +="<td  class='first'><b><a href='" + url_for('tailProcess', process=item[0])+"'>"+item[0]+"</a></b></td>"
+    html +="<td align='center'><a href='"+url_for('startStopProccess', process=item[0], action=item[1])+"'>"+item[1]+"</a></td>"
+    html +="<td align='center'>"+item[3]+"</td><td>"+item[5]+"</td>"
+    html +="<td align='center'><a href='"+url_for('startStopProccess', process=item[0], action='RESTART')+"'>Restart</a></td>"
+    html +="</tr>"
+  return jsonify(code=1, result=html)
 
 @app.route('/removeInstance')
 def removeInstance():
   if isInstanceRunning(app.config):
     flash('Instantiation in progress, cannot remove')
   else:
+    stopProxy(app.config)
+    removeProxyDb(app.config)
+    startProxy(app.config)
     removeInstanceRoot(app.config)
+    param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
+    if os.path.exists(param_path):
+      os.remove(param_path)
     flash('Instance removed')
   return redirect(url_for('inspectInstance'))
 
@@ -201,6 +257,7 @@ def getProjectStatus():
   else:
     return jsonify(code=0, result="Can not read folder: Permission Denied")
 
+#view for current software release files
 @app.route("/editCurrentProject")
 def editCurrentProject():
   project = os.path.join(app.config['runner_workdir'], ".project")
@@ -210,6 +267,7 @@ def editCurrentProject():
                            projectList=getProjectList(app.config['workspace']))
   return redirect(url_for('configRepo'))
 
+#create file or directory
 @app.route("/createFile", methods=['POST'])
 def createFile():
   path = realpath(app.config, request.form['file'], False)
@@ -225,6 +283,7 @@ def createFile():
   except Exception, e:
     return jsonify(code=0, result=str(e))
 
+#remove file or directory
 @app.route("/removeFile", methods=['POST'])
 def removeFile():
   try:
@@ -238,8 +297,13 @@ def removeFile():
 
 @app.route("/removeSoftwareDir", methods=['POST'])
 def removeSoftwareDir():
-  return removeSoftwareByName(app.config, request.form['name'])
+  try:
+    data = removeSoftwareByName(app.config, request.form['name'])
+    return jsonify(code=1, result=data)
+  except Exception, e:
+    return jsonify(code=0, result=str(e))
 
+#read file and return content to ajax
 @app.route("/getFileContent", methods=['POST'])
 def getFileContent():
   file_path = realpath(app.config, request.form['file'])
@@ -256,7 +320,7 @@ def getFileContent():
 def saveFileContent():
   file_path = realpath(app.config, request.form['file'])
   if file_path:
-    open(file_path, 'w').write(request.form['content'])
+    open(file_path, 'w').write(request.form['content'].encode("utf-8"))
     return jsonify(code=1, result="")
   else:
     return jsonify(code=0, result="Error: No such file!")
@@ -323,6 +387,7 @@ def getmd5sum():
   else:
     return jsonify(code=0, result="Can not get md5sum for this file!")
 
+#return informations about state of slapgrid process
 @app.route("/slapgridResult", methods=['POST'])
 def slapgridResult():
   software_state = isSoftwareRunning(app.config)
@@ -359,31 +424,61 @@ def getPath():
   else:
     return jsonify(code=1, result=realfile)
 
+#update instance parameter into a local xml file
 @app.route("/saveParameterXml", methods=['POST'])
-def redParameterXml():
+def saveParameterXml():
   project = os.path.join(app.config['runner_workdir'], ".project")
   if not os.path.exists(project):
     return jsonify(code=0, result="Please first open a Software Release")
-  content = request.form['parameter']
+  content = request.form['parameter'].encode("utf-8")
   param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
-  f = open(param_path, 'w')
-  f.write(content)
-  f.close()
-  result = readParameters(param_path)
+  try:
+    f = open(param_path, 'w')
+    f.write(content)
+    f.close()
+    result = readParameters(param_path)
+  except Exception, e:
+      result = str(e)
+  software_type = None
+  if(request.form['software_type']):
+    software_type = request.form['software_type']
   if type(result) == type(''):
-    return jsonify(code=0, result="XML Error: " + result)
+    return jsonify(code=0, result=result)
   else:
     try:
-      updateProxy(app.config)
-    except Exeption:
-      return jsonify(code=0, result="An error occurred while applying your settings!")
+      updateInstanceParameter(app.config, software_type)
+    except Exception, e:
+      return jsonify(code=0, result="An error occurred while applying your settings!<br/>" + str(e))
     return jsonify(code=1, result="")
 
-@app.route("/getParameterXml", methods=['GET'])
-def getParameterXml():
+#read instance parameters into the local xml file and return a dict
+@app.route("/getParameterXml/<request>", methods=['GET'])
+def getParameterXml(request):
   param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
-  if os.path.exists(param_path):
-    content = open(param_path, 'r').read()
-    return html_escape(content)
+  if not os.path.exists(param_path):
+    default = '<?xml version="1.0" encoding="utf-8"?>\n'
+    default += '<instance>\n</instance>'
+    return jsonify(code=1, result=default)
+  if request == "xml":
+    parameters = open(param_path, 'r').read()
   else:
-    return "&lt;?xml version='1.0' encoding='utf-8'?&gt;"
+    parameters = readParameters(param_path)
+  if type(parameters) == type('') and request != "xml":
+    return jsonify(code=0, result=parameters)
+  else:
+    return jsonify(code=1, result=parameters)
+
+#update user account data
+@app.route("/updateAccount", methods=['POST'])
+def updateAccount():
+  account = []
+  user = os.path.join(app.config['runner_workdir'], '.users')
+  account.append(request.form['username'].strip())
+  account.append(request.form['password'].strip())
+  account.append(request.form['email'].strip())
+  account.append(request.form['name'].strip())
+  result = saveSession(app.config, session, account)
+  if type(result) == type(""):
+    return jsonify(code=0, result=result)
+  else:
+    return jsonify(code=1, result="")

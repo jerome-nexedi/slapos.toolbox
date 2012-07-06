@@ -16,6 +16,7 @@
 <input type="hidden" name="runnerdir" id="runnerdir" value="{{softwareRoot}}" />
 <label for='softwarelist'>Select software: </label>
 <select name="softwarelist" id="softwarelist">
+{%if not softwares %}<option >No Software Release found</option>{% endif %}
 {%for soft in softwares %}
 <option value="{{soft['md5']}}" title="{{soft['title']}}" rel="{{soft['path']}}">{{soft['title']}}</option>
 {%endfor%}
@@ -23,8 +24,8 @@
 &nbsp;&nbsp;<button id ="delete" class="button" title="Remove this software">Remove</button>
 &nbsp;&nbsp;<button id ="open" class="button" title="Set this software as current software release">Open</button>
 <br/><br/>
-<h2 id="softcontent">No content to displays</h2>
-<div id="fileTree" class="file_tree" style='height:200px;'></div>
+<h2 id="softcontent">No file or folder to display</h2>
+<div id="fileTree" class="file_tree" style='height:200px;' title="Double click to open file"></div>
 <div id="file_info" class="file_info">
 <span id="info">Please select your file or folder into the box...</span></div>
 <!-- This contains the hidden content for inline calls -->
