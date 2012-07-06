@@ -45,14 +45,13 @@ setup(name=name,
       extras_require = {
         'lampconfigure':  ["mysql-python"], #needed for MySQL Database access
         'zodbpack': ['ZODB3'], # needed to play with ZODB
+        'agent': ['erp5.util'],
       },
       zip_safe=False, # proxy depends on Flask, which has issues with
                       # accessing templates
       entry_points={
         'console_scripts': [
-          'agent = slapos.agent.agent:main',
-          'report_start = slapos.agent.report_start:main',
-          'report_stop = slapos.agent.report_stop:main',
+          'agent = slapos.agent.agent:main [agent]',
           'clouddestroy = slapos.cloudmgr.destroy:main',
           'cloudgetprivatekey = slapos.cloudmgr.getprivatekey:main',
           'cloudgetpubliciplist = slapos.cloudmgr.getpubliciplist:main',
