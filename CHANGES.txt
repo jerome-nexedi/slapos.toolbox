@@ -1,7 +1,10 @@
-0.26 (Unreleased)
+0.26 (2012-07-06)
 =================
 
- * No change yet.
+ * slaprunner now supports authentication and instance parameters.
+   [Alain Takoudjou]
+ * Redisign of Test Agent so that it supports proper instantiation test and
+   report. [Vincent Pelletier]
 
 0.25 (2012-06-19)
 =================
