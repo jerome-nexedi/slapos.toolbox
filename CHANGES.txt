@@ -1,7 +1,7 @@
-0.27 (Unreleased)
+0.26.1 (2012-07-09)
 =================
 
- * No change yet.
+ * runner: Add support to slapos.core 0.26.2 [Cedric de Saint Martin]
 
 0.26 (2012-07-06)
 =================
