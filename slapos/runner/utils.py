@@ -285,7 +285,7 @@ def runSoftwareWithLock(config):
     environment = os.environ.copy()
     environment['MAKEFLAGS'] = '-j%r' % multiprocessing.cpu_count()
     slapgrid = Popen([config['slapgrid_sr'], '-vc',
-        config['configuration_file_path'], '--now'],
+        config['configuration_file_path'], '--now', '--develop'],
         stdout=logfile, env=environment)
     writePid(slapgrid_pid, slapgrid.pid)
     slapgrid.wait()
