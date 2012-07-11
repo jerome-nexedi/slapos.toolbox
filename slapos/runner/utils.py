@@ -56,8 +56,15 @@ def checkLogin(config, login, pwd):
   user = getSession(config)
   salt = "runner81" #to be changed
   current_pwd = hashlib.md5( salt + pwd ).hexdigest()
-  if current_pwd == user[1]:
+  if user and current_pwd == user[1] and login == user[0]:
     return user
+  return False
+
+def checkSession(config, session, account):
+  """Return True if current user is connected with rigth data"""
+  if 'account' in session and account:
+    return (session['account'][0] == account[0] and
+              session['account'][1] == account[1])
   return False
 
 def getSession(config):
@@ -99,9 +106,10 @@ def saveSession(config, session, account):
       account[1] = hashlib.md5(salt + account[1]).hexdigest()
     else:
       account[1] = session['account'][1]
-    #backup previous data
-    open(user+'.back', 'w').write(';'.join(session['account']))
-    backup = True
+    if 'account' in session:
+      #backup previous data
+      open(user+'.back', 'w').write(';'.join(session['account']))
+      backup = True
     #save new account data
     open(user, 'w').write((';'.join(account)).encode("utf-8"))
     session['account'] = account

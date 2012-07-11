@@ -14,6 +14,10 @@ $(document).ready( function() {
 			$("#error").Popup("Please enter a valid email adress!", {type:'alert', duration:3000});
 			return false;
 		}
+    if($("input#hasAccount").val() === "" && !$("input#password").val().match(/^[\w\d\._-]+$/)){
+      $("#error").Popup("Please enter your new password!", {type:'alert', duration:3000});
+      return false;
+    }
     if($("input#password").val() !== ""){
       if($("input#password").val() === "" || !$("input#password").val().match(/^[\w\d\._-]+$/)){
       	$("#error").Popup("Please enter your new password!", {type:'alert', duration:3000});
@@ -34,7 +38,7 @@ $(document).ready( function() {
 				password:((haspwd) ? $("input#password").val():"")},
 			success: function(data){
         if(data.code ==1){
-          $("#error").Popup("Your account informations has been saved!", {type:'confirm', duration:3000});
+          location.href = $SCRIPT_ROOT+"/"
         }
         else{
           $("#error").Popup(data.result, {type:'error', duration:5000});

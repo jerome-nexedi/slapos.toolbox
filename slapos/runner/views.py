@@ -14,13 +14,18 @@ app = Flask(__name__)
 #Access Control: Only static files and login pages are allowed to guest
 @app.before_request
 def before_request():
-  if (not session.has_key('account') or not session['account']) \
-    and request.path != '/login' \
-    and request.path != '/doLogin' and not  request.path.startswith('/static'):
-    return redirect(url_for('login'))
-  if session.has_key('account') and session['account']:
-    session['title'] = getProjectTitle(app.config)
-    session['account'] = getSession(app.config)
+  if not request.path.startswith('/static'):
+    account = getSession(app.config)
+    if account:
+      if request.path != '/login' and request.path != '/doLogin' and \
+          not checkSession(app.config, session, account):
+        return redirect(url_for('login'))
+      session['title'] = getProjectTitle(app.config)
+    else:
+      session.pop('account', None)
+      session['title'] = "No account is defined"
+      if request.path != "/updateAccount" and request.path != "/myAccount":
+        return redirect(url_for('myAccount'))
 
 # general views
 @app.route('/')
@@ -33,12 +38,15 @@ def login():
 
 @app.route("/myAccount")
 def myAccount():
-  return render_template('account.html', username=session['account'][0],
+  if 'account' in session:
+    return render_template('account.html', username=session['account'][0],
       email=session['account'][2], name=session['account'][3].decode('utf-8'))
+  else:
+    return render_template('account.html')
 
 @app.route("/logout")
 def logout():
-  session['account'] = None
+  session.pop('account', None)
   return redirect(url_for('login'))
 
 @app.route('/configRepo')

@@ -29,7 +29,10 @@
     <div class='clear'></div>
     <br/><br/><br/>
   </div>
-  <div id="file_info" class="file_info">leave passwords blank to preserve your current password...</div>
+  <div id="file_info" class="file_info">{% if username %}leave passwords blank to preserve your current password...{%else%}
+    Before starting, please fill your personal informations... {%endif%}
+  </div>
   <br/>
+  <input type="hidden" name="hasAccount" id="hasAccount" value="{{name}}"/>
 </form>
 {% endblock %}
