@@ -14,18 +14,11 @@ app = Flask(__name__)
 #Access Control: Only static files and login pages are allowed to guest
 @app.before_request
 def before_request():
-  if not request.path.startswith('/static'):
-    account = getSession(app.config)
-    if account:
-      if request.path != '/login' and request.path != '/doLogin' and \
-          not checkSession(app.config, session, account):
-        return redirect(url_for('login'))
-      session['title'] = getProjectTitle(app.config)
-    else:
-      session.pop('account', None)
-      session['title'] = "No account is defined"
-      if request.path != "/updateAccount" and request.path != "/myAccount":
-        return redirect(url_for('myAccount'))
+  if not 'account' in session and request.path != '/login' \
+      and request.path != '/doLogin' and not request.path.startswith('/static'):
+    return redirect(url_for('login'))
+  if 'account' in session:
+    session['title'] = getProjectTitle(app.config)
 
 # general views
 @app.route('/')
@@ -36,14 +29,6 @@ def home():
 def login():
   return render_template('login.html')
 
-@app.route("/myAccount")
-def myAccount():
-  if 'account' in session:
-    return render_template('account.html', username=session['account'][0],
-      email=session['account'][2], name=session['account'][3].decode('utf-8'))
-  else:
-    return render_template('account.html')
-
 @app.route("/logout")
 def logout():
   session.pop('account', None)
@@ -53,17 +38,15 @@ def logout():
 def configRepo():
   public_key = open(app.config['public_key'], 'r').read()
   return render_template('cloneRepository.html', workDir='workspace',
-            public_key=public_key, name=session['account'][3].decode('utf-8'),
-            email=session['account'][2])
+            public_key=public_key)
 
 @app.route("/doLogin", methods=['POST'])
 def doLogin():
-  check_user = checkLogin(app.config, request.form['clogin'], request.form['cpwd'])
-  if not check_user:
+  if not checkSession(app.config, request.form['cpwd']):
     return jsonify(code=0, result="Login or password is incorrect, please check it!")
   else:
-    session['account'] = check_user
-    return jsonify(code=1, result=check_user)
+    session['account'] = "logged in"
+    return jsonify(code=1, result="")
 
 # software views
 @app.route('/editSoftwareProfile')
@@ -475,18 +458,3 @@ def getParameterXml(request):
     return jsonify(code=0, result=parameters)
   else:
     return jsonify(code=1, result=parameters)
-
-#update user account data
-@app.route("/updateAccount", methods=['POST'])
-def updateAccount():
-  account = []
-  user = os.path.join(app.config['runner_workdir'], '.users')
-  account.append(request.form['username'].strip())
-  account.append(request.form['password'].strip())
-  account.append(request.form['email'].strip())
-  account.append(request.form['name'].strip())
-  result = saveSession(app.config, session, account)
-  if type(result) == type(""):
-    return jsonify(code=0, result=result)
-  else:
-    return jsonify(code=1, result="")

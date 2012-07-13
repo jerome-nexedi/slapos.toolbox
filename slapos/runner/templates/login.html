@@ -5,27 +5,21 @@
 {% endblock %}
 {% block body %}
 <form method="POST" action="">
-  <h2>Login to Slapos Web Runner</h2>
+  <h2>Welcome to SlapOS Web Runner</h2>
   <div class="login-content"><br/>
-    <div class="login-element login-label"><label for="clogin">Your login&nbsp; : </label></div>
-    <div class="login-element"><input type="text" class="login-input" name="clogin" id="clogin" value="Enter login..." /></div><br/><br/>
-    <div class="clear"></div>
-    <div class="login-element login-label"><label for="cpwd">Password : </label></div>
+    <div class="login-element login-label"><label for="cpwd">Enter your password : </label></div>
     <div class="login-element"><input type="password" class="idleField login-input" name="cpwd" id="cpwd" value="******" /></div>
+    <div class="clear"></div><br/>
+    <div class="login-element login-label"><label for="cpwd"><a href="#" id="information" rel="tooltip">I need for help</a><br/></label></div>
     <div class="clear"></div>
-    <!--<br/><a href="#" id="information" rel="tooltip">do you need help?</a><br/>-->
   </div>
   <div style="text-align:center; margin-top:7px;">
-    <input type="reset" class="button" value="reset" />
-    <input type="submit" class="button" id="login" value="login" />
+    <input type="submit" class="button" id="login" value="Open Session" />
   </div>
 </form>
-<!--
 <div id="tooltip-information" style="display:none">
 <p style="font-size:12px;">
-If it is your first connexion, use default parameters:<br/>
-login: <strong>root</strong>, password: <strong>insecure</strong> and set your
-one<br/> parameters at <strong>home->Your Account</strong>.
+Please find this information in your slaprunner<br/> instance parameters.
 </p>
-</div>-->
+</div>
 {% endblock %}

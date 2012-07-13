@@ -706,9 +706,9 @@ input[type=radio]:hover {
 /* Login Css region *******/
 #login-page{width:429px; height:236px; margin:130px auto 0px; background:url(../images/loginBox.png) no-repeat;
 padding:10px; font-size:14px; color:#03406A}
-#login-page h2{color:#fff; font-size:26px; font-weight:normal; text-indent:50px;}
+#login-page h2{color:#fff; font-size:26px; font-weight:normal; text-indent:30px;}
 .login-content{position:relative;margin:10px; margin-top:30px; margin-bottom:0;}
 .login-button{width:140px; margin:0 auto;}
 .login-element{float:left; min-width:120px;}
 .login-label{padding:5px; font-size:16px;}
-.login-input{width:220px;}
+.login-input{width:160px;}

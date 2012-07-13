@@ -118,6 +118,7 @@ def serve(config):
     workspace = workdir,
     instance_profile='instance.cfg',
     software_profile='software.cfg',
+    password=os.path.join(config.etc, '.passwd'),
     SECRET_KEY=os.urandom(24),
   )
   if not os.path.exists(workdir):
