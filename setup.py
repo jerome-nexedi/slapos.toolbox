@@ -41,6 +41,7 @@ setup(name=name,
         'slapos.core', # as it provides library for slap
         'xml_marshaller', # needed to dump information
         'GitPython', #needed for git manipulation into slaprunner
+        'lockfile', #needed for interprocess exclusion (in slapcontainer)
       ] + additional_install_requires,
       extras_require = {
         'lampconfigure':  ["mysql-python"], #needed for MySQL Database access
@@ -73,6 +74,7 @@ setup(name=name,
           'pubsubnotifier = slapos.pubsub.notifier:main',
           'slaprunnertest = slapos.runner.testRunner:run',
           'zodbpack = slapos.zodbpack:run [zodbpack]',
+          'slapcontainer = slapos.container:main',
         ]
       },
     )
