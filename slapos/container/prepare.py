@@ -83,12 +83,9 @@ def stop(sr_directory, partition_path, conf):
 
 
 def create(sr_directory, partition_path, conf):
-    failure = 0
-
-    # TODO : Create container
-
-    return failure
-
+    lxc_debian = os.path.join(sr_directory,
+                              'parts/lxc/lib/lxc/templates/lxc-debian')
+    return call([lxc_debian, '-p', partition_path])
 
 
 def destroy(partition_path, conf):
