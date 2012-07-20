@@ -2,6 +2,7 @@
 
 import ConfigParser
 import os
+import subprocess
 
 import lockfile
 
@@ -96,3 +97,10 @@ def destroy(partition_path, conf):
     # TODO: Destroy container
 
     return failure
+
+
+def call(command_line):
+    process = subprocess.Popen(command_line, stdin=subprocess.PIPE)
+    process.stdin.flush()
+    process.stdin.close()
+    return process.wait()
