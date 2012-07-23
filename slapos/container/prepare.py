@@ -26,25 +26,30 @@ def main(sr_directory, partition_list):
                 lock.acquire(timeout=0)
                 slapcontainer_conf = ConfigParser.ConfigParser()
                 slapcontainer_conf.read(slapcontainer_filename)
+                try:
 
-                requested_status = slapcontainer_conf.get('requested', 'status')
+                    requested_status = slapcontainer_conf.get('requested',
+                                                              'status')
 
-                if not slapcontainer_conf.has_section('current'):
-                    slapcontainer_conf.add_section('current')
-                if not slapcontainer_conf.has_option('current', 'created'):
-                    slapcontainer_conf.set('current', 'created', 'no')
-                if not slapcontainer_conf.has_option('current', 'status'):
-                    slapcontainer_conf.set('current', 'status', 'stopped')
+                    if not slapcontainer_conf.has_section('current'):
+                        slapcontainer_conf.add_section('current')
+                    if not slapcontainer_conf.has_option('current', 'created'):
+                        slapcontainer_conf.set('current', 'created', 'no')
+                    if not slapcontainer_conf.has_option('current', 'status'):
+                        slapcontainer_conf.set('current', 'status', 'stopped')
 
-                if requested_status == 'started':
-                    start(sr_directory, partition_path,
-                          slapcontainer_conf)
-                else:
-                    stop(sr_directory, partition_path,
-                         slapcontainer_conf)
-
-                with open(slapcontainer_filename, 'w') as slapcontainer_fp:
-                    slapcontainer_conf.write(slapcontainer_fp)
+                    if requested_status == 'started':
+                        if slapcontainer_conf.get('current', 'created') == 'no':
+                            create(sr_directory, partition_path, slapcontainer_conf)
+                        slapcontainer_conf.set('current', 'created', 'yes')
+                        start(sr_directory, partition_path,
+                              slapcontainer_conf)
+                    else:
+                        stop(sr_directory, partition_path,
+                             slapcontainer_conf)
+                finally:
+                    with open(slapcontainer_filename, 'w') as slapcontainer_fp:
+                        slapcontainer_conf.write(slapcontainer_fp)
             except lockfile.LockTimeout:
                 # Can't do anything, we'll see on the next run
                 pass
@@ -54,11 +59,6 @@ def main(sr_directory, partition_list):
 
 
 def start(sr_directory, partition_path, conf):
-    if conf.get('current', 'created') == 'no':
-        create(sr_directory, partition_path, conf)
-
-    conf.set('current', 'created', 'yes')
-
     lxc_start = os.path.join(sr_directory,
                              'parts/lxc/bin/lxc-start')
     config_filename = os.path.join(partition_path, 'config')
