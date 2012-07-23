@@ -57,9 +57,14 @@ def start(sr_directory, partition_path, conf):
 
     if failure:
         return failure
-    else:
-        conf.set('current', 'created', 'yes')
 
+    conf.set('current', 'created', 'yes')
+
+    lxc_start = os.path.join(sr_directory,
+                             'parts/lxc/bin/lxc-start')
+    config_filename = os.path.join(partition_path, 'config')
+
+    failure |= call([lxc_start, '-f', config_filename])
     # TODO: Check if container is started,
     #       Start container
 
