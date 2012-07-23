@@ -6,6 +6,8 @@ import subprocess
 
 import lockfile
 
+from .config import LXCConfig
+
 class SlapContainerError(Exception):
     """This exception is thrown, if there is
     any failure during slapcontainer preparation,
@@ -82,7 +84,21 @@ def stop(sr_directory, partition_path, conf):
 def create(sr_directory, partition_path, conf):
     lxc_debian = os.path.join(sr_directory,
                               'parts/lxc/lib/lxc/templates/lxc-debian')
-    return call([lxc_debian, '-p', partition_path])
+    call([lxc_debian, '-p', partition_path])
+
+    lxc_filename = os.path.join(partition_path, 'config')
+    lxc = LXCConfig(lxc_filename)
+    lxc.utsname = os.path.basename(partition_path)
+    lxc.network.vlan.type = 'vlan'
+    lxc.network.link = conf.get('information', 'interface')
+    lxc.network.name = 'eth0'
+    # XXX: Hardcoded netmasks
+    lxc.network.ipv4 = '%s/32' % conf.get('information', 'ipv4')
+    lxc.network.ipv6 = '%s/128' % conf.get('information', 'ipv6')
+    lxc.network.flags = 'up'
+
+    with open(lxc_filename, 'w') as lxc_file:
+        lxc_file.write(str(lxc))
 
 
 def destroy(partition_path, conf):
