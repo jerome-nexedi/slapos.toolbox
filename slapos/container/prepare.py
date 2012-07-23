@@ -6,14 +6,19 @@ import subprocess
 
 import lockfile
 
+class SlapContainerError(Exception):
+    """This exception is thrown, if there is
+    any failure during slapcontainer preparation,
+    starting or stopping process"""
+
+
+
 def main(sr_directory, partition_list):
 
-    overall_failure = 0
     for partition_path in partition_list:
         slapcontainer_filename = os.path.join(partition_path,
                                               '.slapcontainer')
         if os.path.isfile(slapcontainer_filename):
-            failure = 0
             lock = lockfile.FileLock(slapcontainer_filename)
             try:
                 lock.acquire(timeout=0)
@@ -30,11 +35,11 @@ def main(sr_directory, partition_list):
                     slapcontainer_conf.set('current', 'status', 'stopped')
 
                 if requested_status == 'started':
-                    failure |= start(sr_directory, partition_path,
-                                     slapcontainer_conf)
+                    start(sr_directory, partition_path,
+                          slapcontainer_conf)
                 else:
-                    failure |= stop(sr_directory, partition_path,
-                                    slapcontainer_conf)
+                    stop(sr_directory, partition_path,
+                         slapcontainer_conf)
 
                 with open(slapcontainer_filename, 'w') as slapcontainer_fp:
                     slapcontainer_conf.write(slapcontainer_fp)
@@ -44,19 +49,11 @@ def main(sr_directory, partition_list):
             finally:
                 lock.release()
 
-            overall_failure |= failure
-
-        return overall_failure
-
 
 
 def start(sr_directory, partition_path, conf):
-    failure = 0
     if conf.get('current', 'created') == 'no':
-        failure |= create(sr_directory, partition_path, conf)
-
-    if failure:
-        return failure
+        create(sr_directory, partition_path, conf)
 
     conf.set('current', 'created', 'yes')
 
@@ -64,26 +61,21 @@ def start(sr_directory, partition_path, conf):
                              'parts/lxc/bin/lxc-start')
     config_filename = os.path.join(partition_path, 'config')
 
-    failure |= call([lxc_start, '-f', config_filename])
+    call([lxc_start, '-f', config_filename])
     # TODO: Check if container is started,
     #       Start container
 
     conf.set('current', 'status', 'started')
 
-    return failure
-
 
 
 def stop(sr_directory, partition_path, conf):
-    failure = 0
 
     # TODO : Check if container is stopped
     #        Stop container
 
     if conf.get('current', 'created') == 'yes':
-        failure |= destroy(partition_path, conf)
-
-    return failure
+        destroy(partition_path, conf)
 
 
 
@@ -94,15 +86,14 @@ def create(sr_directory, partition_path, conf):
 
 
 def destroy(partition_path, conf):
-    failure = 0
-
     # TODO: Destroy container
-
-    return failure
+    pass
 
 
 def call(command_line):
     process = subprocess.Popen(command_line, stdin=subprocess.PIPE)
     process.stdin.flush()
     process.stdin.close()
-    return process.wait()
+
+    if process.wait() != 0:
+        raise SlapContainerError("Subprocess call failed")
