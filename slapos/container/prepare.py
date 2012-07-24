@@ -22,34 +22,23 @@ def main(sr_directory, partition_list):
                                               '.slapcontainer')
         if os.path.isfile(slapcontainer_filename):
             lock = lockfile.FileLock(slapcontainer_filename)
+            lock.acquire(timeout=0)
+            slapcontainer_conf = ConfigParser.ConfigParser()
+            slapcontainer_conf.read(slapcontainer_filename)
             try:
-                lock.acquire(timeout=0)
-                slapcontainer_conf = ConfigParser.ConfigParser()
-                slapcontainer_conf.read(slapcontainer_filename)
-                try:
 
-                    requested_status = slapcontainer_conf.get('requested',
-                                                              'status')
+                requested_status = slapcontainer_conf.get('requested',
+                                                          'status')
 
-                    if not slapcontainer_conf.has_section('current'):
-                        slapcontainer_conf.add_section('current')
-                    if not slapcontainer_conf.has_option('current', 'created'):
-                        slapcontainer_conf.set('current', 'created', 'no')
-                    if not slapcontainer_conf.has_option('current', 'status'):
-                        slapcontainer_conf.set('current', 'status', 'stopped')
-
-                    if requested_status == 'started':
-                        if slapcontainer_conf.get('current', 'created') == 'no':
-                            create(sr_directory, partition_path, slapcontainer_conf)
-                        slapcontainer_conf.set('current', 'created', 'yes')
-                        start(sr_directory, partition_path,
-                              slapcontainer_conf)
-                    else:
-                        stop(sr_directory, partition_path,
-                             slapcontainer_conf)
-                finally:
-                    with open(slapcontainer_filename, 'w') as slapcontainer_fp:
-                        slapcontainer_conf.write(slapcontainer_fp)
+                if requested_status == 'started':
+                    if not created(partition_path):
+                        create(sr_directory, partition_path,
+                               slapcontainer_conf)
+                    if status(sr_directory, partition_path) == 'stopped':
+                        start(sr_directory, partition_path)
+                else:
+                    if status(sr_directory, partition_path) == 'started':
+                        stop(sr_directory, partition_path)
             except lockfile.LockTimeout:
                 # Can't do anything, we'll see on the next run
                 pass
@@ -58,26 +47,30 @@ def main(sr_directory, partition_list):
 
 
 
-def start(sr_directory, partition_path, conf):
+def start(sr_directory, partition_path):
     lxc_start = os.path.join(sr_directory,
                              'parts/lxc/bin/lxc-start')
     config_filename = os.path.join(partition_path, 'config')
 
-    call([lxc_start, '-f', config_filename])
-    # TODO: Check if container is started,
-    #       Start container
-
-    conf.set('current', 'status', 'started')
+    call([lxc_start, '-f', config_filename,
+          '-n', os.path.basename(partition_path),
+          '-d'])
 
 
 
-def stop(sr_directory, partition_path, conf):
+def stop(sr_directory, partition_path):
 
     # TODO : Check if container is stopped
     #        Stop container
+    pass
 
-    if conf.get('current', 'created') == 'yes':
-        destroy(partition_path, conf)
+
+
+def created(partition_path):
+    # XXX: Hardcoded
+    should_exists = ['config', 'rootfs']
+    return all((os.path.exists(os.path.join(partition_path, f))
+                for f in should_exists))
 
 
 
@@ -89,7 +82,7 @@ def create(sr_directory, partition_path, conf):
     lxc_filename = os.path.join(partition_path, 'config')
     lxc = LXCConfig(lxc_filename)
     lxc.utsname = os.path.basename(partition_path)
-    lxc.network.vlan.type = 'vlan'
+    lxc.network.type = 'vlan'
     lxc.network.link = conf.get('information', 'interface')
     lxc.network.name = 'eth0'
     # XXX: Hardcoded netmasks
@@ -101,15 +94,35 @@ def create(sr_directory, partition_path, conf):
         lxc_file.write(str(lxc))
 
 
-def destroy(partition_path, conf):
+
+def destroy(partition_path):
     # TODO: Destroy container
     pass
 
 
+
+def status(sr_directory, partition_path):
+    lxc_info = call([os.path.join(sr_directory, 'parts/lxc/bin/lxc-info'),
+                     '-n', os.path.basename(partition_path)])
+    if 'RUNNING' in lxc_info:
+        return 'started'
+    else:
+        return 'stopped'
+
+
+
 def call(command_line):
-    process = subprocess.Popen(command_line, stdin=subprocess.PIPE)
+    # for debug :
+    # print ' '.join(command_line)
+    process = subprocess.Popen(command_line, stdin=subprocess.PIPE,
+                               stdout=subprocess.PIPE)
     process.stdin.flush()
     process.stdin.close()
 
     if process.wait() != 0:
         raise SlapContainerError("Subprocess call failed")
+
+    out = process.stdout.read()
+    # for debug :
+    # print out
+    return out
