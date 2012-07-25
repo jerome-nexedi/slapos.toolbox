@@ -30,13 +30,16 @@ class LXCConfig(object):
 
 
 
-    def __init__(self, filename):
+    def __init__(self, filename=None):
         """LXCConfig init method. filename should be a string
         of the path to the filename.
         """
         self._filename = filename
-        with open(filename, 'r') as lxcconf_file:
-            self._values = self._load(lxcconf_file.read())
+        if filename is not None:
+            with open(filename, 'r') as lxcconf_file:
+                self._values = self._load(lxcconf_file.read())
+        else:
+            self._values = collections.OrderedDict()
 
     def __getattr__(self, name):
         return self._get(name)
