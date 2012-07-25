@@ -49,7 +49,6 @@ def main(sr_directory, partition_list):
 
 
 def start(sr_directory, partition_path):
-    return
     lxc_start = os.path.join(sr_directory,
                              'parts/lxc/bin/lxc-start')
     config_filename = os.path.join(partition_path, 'config')

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import collections
 import StringIO
 
 class LXCConfig(object):
@@ -39,7 +38,7 @@ class LXCConfig(object):
             with open(filename, 'r') as lxcconf_file:
                 self._values = self._load(lxcconf_file.read())
         else:
-            self._values = collections.OrderedDict()
+            self._values = dict()
 
     def __getattr__(self, name):
         return self._get(name)
@@ -51,7 +50,7 @@ class LXCConfig(object):
             self._set(name, value)
 
     def _load(self, config_string):
-        result = collections.OrderedDict()
+        result = dict()
         for line in config_string.split('\n'):
             if not line.strip().startswith('#') and line.strip() != '':
                 if '=' not in line:
