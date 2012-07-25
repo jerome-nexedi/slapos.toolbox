@@ -98,8 +98,11 @@ def extract_rootfs(partition_path, conf):
 
 def create(sr_directory, partition_path, conf):
     tmp_dir = conf.get('rootfs', 'tmp')
+    rootfs_dir = conf.get('rootfs', 'directory')
     if os.path.exists(tmp_dir):
         shutil.rmtree(tmp_dir)
+    if os.path.exists(rootfs_dir):
+        shutil.rmtree(rootfs_dir)
     extract_rootfs(partition_path, conf)
 
     lxc_filename = os.path.join(partition_path, 'config')
