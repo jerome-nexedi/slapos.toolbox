@@ -3,6 +3,7 @@
 import ConfigParser
 import os
 import subprocess
+import shutil
 
 import lockfile
 
@@ -31,7 +32,7 @@ def main(sr_directory, partition_list):
                                                           'status')
 
                 if requested_status == 'started':
-                    if not created(partition_path):
+                    if not created(partition_path, slapcontainer_conf):
                         create(sr_directory, partition_path,
                                slapcontainer_conf)
                     if status(sr_directory, partition_path) == 'stopped':
@@ -48,6 +49,7 @@ def main(sr_directory, partition_list):
 
 
 def start(sr_directory, partition_path):
+    return
     lxc_start = os.path.join(sr_directory,
                              'parts/lxc/bin/lxc-start')
     config_filename = os.path.join(partition_path, 'config')
@@ -66,29 +68,72 @@ def stop(sr_directory, partition_path):
 
 
 
-def created(partition_path):
-    # XXX: Hardcoded
-    should_exists = ['config', 'rootfs']
-    return all((os.path.exists(os.path.join(partition_path, f))
-                for f in should_exists))
+def created(partition_path, conf):
+    return os.path.exists(conf.get('rootfs', 'directory')) and \
+           os.path.exists(conf.get('config', 'file'))
+
+
+
+def extract_rootfs(partition_path, conf):
+    tmp_dir = conf.get('rootfs', 'tmp')
+    if os.path.exists(tmp_dir):
+        shutil.rmtree(tmp_dir)
+    os.mkdir(tmp_dir)
+    call([conf.get('tar', 'binary'),
+          '-xf', conf.get('tar', 'archive'),
+          '-C', tmp_dir],
+         {'PATH': '%s:%s' % (os.environ, conf.get('tar', 'path'))})
+
+    lst_tmp_dir = os.listdir(tmp_dir)
+    if len(lst_tmp_dir) > 1:
+        rootfs = tmp_dir
+    else:
+        rootfs = os.path.join(tmp_dir, lst_tmp_dir[0])
+
+    shutil.move(rootfs, conf.get('rootfs', 'directory'))
+
+    if os.path.exists(tmp_dir):
+        shutil.rmtree(tmp_dir)
 
 
 
 def create(sr_directory, partition_path, conf):
-    lxc_debian = os.path.join(sr_directory,
-                              'parts/lxc/lib/lxc/templates/lxc-debian')
-    call([lxc_debian, '-p', partition_path])
+    tmp_dir = conf.get('rootfs', 'tmp')
+    if os.path.exists(tmp_dir):
+        shutil.rmtree(tmp_dir)
+    extract_rootfs(partition_path, conf)
 
     lxc_filename = os.path.join(partition_path, 'config')
-    lxc = LXCConfig(lxc_filename)
+    lxc = LXCConfig()
     lxc.utsname = os.path.basename(partition_path)
     lxc.network.type = 'vlan'
-    lxc.network.link = conf.get('information', 'interface')
+    lxc.network.link = conf.get('network', 'interface')
     lxc.network.name = 'eth0'
     # XXX: Hardcoded netmasks
-    lxc.network.ipv4 = '%s/32' % conf.get('information', 'ipv4')
-    lxc.network.ipv6 = '%s/128' % conf.get('information', 'ipv6')
+    lxc.network.ipv4 = '%s/32' % conf.get('network', 'ipv4')
+    lxc.network.ipv6 = '%s/128' % conf.get('network', 'ipv6')
     lxc.network.flags = 'up'
+    # XXX: Hardcoded stuff
+    lxc.tty = '4'
+    lxc.pts = '1024'
+    lxc.cgroup.devices.deny = 'a'
+    lxc.cgroup.devices.allow = [
+        'c 1:3 rwm',
+        'c 1:5 rwm',
+        'c 5:1 rwm',
+        'c 5:0 rwm',
+        'c 4:0 rwm',
+        'c 4:1 rwm',
+        'c 1:9 rwm',
+        'c 1:8 rwm',
+        'c 136:* rwm',
+        'c 5:2 rwm',
+        'c 254:0 rwm',
+    ]
+    lxc.mount.entry = [
+        'proc %s proc nodev,noexec,nosuid 0 0' % os.path.join(partition_path, 'proc'),
+        'sysfs %s sysfs defaults 0 0' % os.path.join(partition_path, 'sys'),
+    ]
 
     with open(lxc_filename, 'w') as lxc_file:
         lxc_file.write(str(lxc))
@@ -111,11 +156,13 @@ def status(sr_directory, partition_path):
 
 
 
-def call(command_line):
+def call(command_line, override_environ={}):
     # for debug :
     # print ' '.join(command_line)
+    environ = dict(os.environ)
+    environ.update(override_environ)
     process = subprocess.Popen(command_line, stdin=subprocess.PIPE,
-                               stdout=subprocess.PIPE)
+                               stdout=subprocess.PIPE, env=environ)
     process.stdin.flush()
     process.stdin.close()
 
