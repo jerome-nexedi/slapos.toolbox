@@ -195,6 +195,7 @@ class SoftwareReleaseTester(RPCRetry):
             if self.url in self._retryRPC(method_id, (self.computer_guid,
                     [self.url])):
                 return state
+        return SOFTWARE_STATE_UNKNOWN
 
     def _getInstanceState(self):
         # TODO: replace with simpler slap-based API
