@@ -136,6 +136,7 @@ def create(sr_directory, partition_path, conf):
         'proc %s proc nodev,noexec,nosuid 0 0' % os.path.join(partition_path, 'proc'),
         'sysfs %s sysfs defaults 0 0' % os.path.join(partition_path, 'sys'),
     ]
+    lxc.rootfs = rootfs_dir
 
     with open(lxc_filename, 'w') as lxc_file:
         lxc_file.write(str(lxc))
