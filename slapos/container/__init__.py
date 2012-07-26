@@ -21,5 +21,6 @@ def main():
     partition_base_path = os.path.join(instance_root, partition_base_name)
     partition_list = ['%s%d' % (partition_base_path, i)
                       for i in range(partition_amount)]
+    bridge_name = slapos_conf.get('slapformat', 'interface_name')
 
-    prepare.main(sr_directory, partition_list)
+    prepare.main(sr_directory, partition_list, bridge_name)

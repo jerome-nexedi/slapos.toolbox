@@ -16,7 +16,7 @@ class SlapContainerError(Exception):
 
 
 
-def main(sr_directory, partition_list):
+def main(sr_directory, partition_list, bridge_name):
 
     for partition_path in partition_list:
         slapcontainer_filename = os.path.join(partition_path,
@@ -34,7 +34,7 @@ def main(sr_directory, partition_list):
                 if requested_status == 'started':
                     if not created(partition_path, slapcontainer_conf):
                         create(sr_directory, partition_path,
-                               slapcontainer_conf)
+                               slapcontainer_conf, bridge_name)
                     if status(sr_directory, partition_path) == 'stopped':
                         start(sr_directory, partition_path)
                 else:
@@ -96,7 +96,7 @@ def extract_rootfs(partition_path, conf):
 
 
 
-def create(sr_directory, partition_path, conf):
+def create(sr_directory, partition_path, conf, bridge_name):
     tmp_dir = conf.get('rootfs', 'tmp')
     rootfs_dir = conf.get('rootfs', 'directory')
     if os.path.exists(tmp_dir):
@@ -108,12 +108,10 @@ def create(sr_directory, partition_path, conf):
     lxc_filename = os.path.join(partition_path, 'config')
     lxc = LXCConfig()
     lxc.utsname = os.path.basename(partition_path)
-    lxc.network.type = 'vlan'
-    lxc.network.link = conf.get('network', 'interface')
+    lxc.network.type = 'veth'
+    lxc.network.link = bridge_name
+    lxc.network.veth.pair = 'lxc%s' % conf.get('network', 'interface')
     lxc.network.name = 'eth0'
-    # XXX: Hardcoded netmasks
-    lxc.network.ipv4 = '%s/32' % conf.get('network', 'ipv4')
-    lxc.network.ipv6 = '%s/128' % conf.get('network', 'ipv6')
     lxc.network.flags = 'up'
     # XXX: Hardcoded stuff
     lxc.tty = '4'
