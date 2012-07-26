@@ -133,8 +133,8 @@ def create(sr_directory, partition_path, conf):
         'c 254:0 rwm',
     ]
     lxc.mount.entry = [
-        'proc %s proc nodev,noexec,nosuid 0 0' % os.path.join(partition_path, 'proc'),
-        'sysfs %s sysfs defaults 0 0' % os.path.join(partition_path, 'sys'),
+        'proc %s proc nodev,noexec,nosuid 0 0' % os.path.join(rootfs_dir, 'proc'),
+        'sysfs %s sysfs defaults 0 0' % os.path.join(rootfs_dir, 'sys'),
     ]
     lxc.rootfs = rootfs_dir
 
