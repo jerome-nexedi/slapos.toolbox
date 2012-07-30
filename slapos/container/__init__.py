@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import ConfigParser
+import argparse
 
 import sys
 import os
@@ -8,8 +9,13 @@ import os
 from . import prepare
 
 def main():
+    parser = argparse.ArgumentParser(description="Slapcontainer binary")
+    parser.add_argument('configuration_file', type=str,
+                        help="SlapOS configuration file.")
+    args = parser.parse_args()
+
     slapos_conf = ConfigParser.ConfigParser()
-    slapos_conf.read(sys.argv[1])
+    slapos_conf.read(args.configuration_file)
 
     current_binary = os.path.join(os.getcwd(), sys.argv[0])
     binary_directory = os.path.dirname(current_binary)
