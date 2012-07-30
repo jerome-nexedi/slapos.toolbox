@@ -3,7 +3,6 @@
 import ConfigParser
 import os
 import subprocess
-import shutil
 
 import lockfile
 
@@ -32,9 +31,8 @@ def main(sr_directory, partition_list, bridge_name):
                                                           'status')
 
                 if requested_status == 'started':
-                    if not created(partition_path, slapcontainer_conf):
-                        create(sr_directory, partition_path,
-                               slapcontainer_conf, bridge_name)
+                    create(sr_directory, partition_path,
+                           slapcontainer_conf, bridge_name)
                     if status(sr_directory, partition_path) == 'stopped':
                         start(sr_directory, partition_path)
                 else:
@@ -67,47 +65,10 @@ def stop(sr_directory, partition_path):
 
 
 
-def created(partition_path, conf):
-    return os.path.exists(conf.get('rootfs', 'directory')) and \
-           os.path.exists(conf.get('config', 'file'))
-
-
-
-def extract_rootfs(partition_path, conf):
-    tmp_dir = conf.get('rootfs', 'tmp')
-    if os.path.exists(tmp_dir):
-        shutil.rmtree(tmp_dir)
-    os.mkdir(tmp_dir)
-    call([conf.get('tar', 'binary'),
-          '-xf', conf.get('tar', 'archive'),
-          '-C', tmp_dir],
-         {'PATH': '%s:%s' % (os.environ, conf.get('tar', 'path'))})
-
-    lst_tmp_dir = os.listdir(tmp_dir)
-    if len(lst_tmp_dir) > 1:
-        rootfs = tmp_dir
-    else:
-        rootfs = os.path.join(tmp_dir, lst_tmp_dir[0])
-
-    shutil.move(rootfs, conf.get('rootfs', 'directory'))
-
-    if os.path.exists(tmp_dir):
-        shutil.rmtree(tmp_dir)
-
-
-
 def create(sr_directory, partition_path, conf, bridge_name):
-    tmp_dir = conf.get('rootfs', 'tmp')
-    rootfs_dir = conf.get('rootfs', 'directory')
-    if os.path.exists(tmp_dir):
-        shutil.rmtree(tmp_dir)
-    if os.path.exists(rootfs_dir):
-        shutil.rmtree(rootfs_dir)
-    extract_rootfs(partition_path, conf)
-
-    lxc_filename = os.path.join(partition_path, 'config')
+    lxc_filename = conf.get('config', 'file')
     lxc = LXCConfig()
-    lxc.utsname = os.path.basename(partition_path)
+    lxc.utsname = conf.get('requested', 'name')
     lxc.network.type = 'veth'
     lxc.network.link = bridge_name
     lxc.network.veth.pair = 'lxc%s' % conf.get('network', 'interface')
@@ -130,11 +91,13 @@ def create(sr_directory, partition_path, conf, bridge_name):
         'c 5:2 rwm',
         'c 254:0 rwm',
     ]
-    lxc.mount.entry = [
-        'proc %s proc nodev,noexec,nosuid 0 0' % os.path.join(rootfs_dir, 'proc'),
-        'sysfs %s sysfs defaults 0 0' % os.path.join(rootfs_dir, 'sys'),
-    ]
-    lxc.rootfs = rootfs_dir
+    # XXX : This is a relic of previous code, even if it is versionned
+    #       this could be usefull in future
+    # lxc.mount.entry = [
+    #     'proc %s proc nodev,noexec,nosuid 0 0' % os.path.join(rootfs_dir, 'proc'),
+    #     'sysfs %s sysfs defaults 0 0' % os.path.join(rootfs_dir, 'sys'),
+    # ]
+    lxc.rootfs = conf.get('rootfs', 'image')
 
     with open(lxc_filename, 'w') as lxc_file:
         lxc_file.write(str(lxc))
