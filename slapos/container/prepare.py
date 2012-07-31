@@ -17,7 +17,7 @@ class SlapContainerError(Exception):
 
 def main(sr_directory, partition_list, bridge_name):
 
-    started_containers = set()
+    to_start = set()
     for partition_path in partition_list:
         slapcontainer_filename = os.path.join(partition_path,
                                               '.slapcontainer')
@@ -38,9 +38,9 @@ def main(sr_directory, partition_list, bridge_name):
                               slapcontainer_conf) == 'stopped':
                         start(sr_directory, partition_path,
                               slapcontainer_conf)
-                        started_containers.add(
-                            slapcontainer_conf.get('requested', 'name')
-                        )
+                    to_start.add(
+                        slapcontainer_conf.get('requested', 'name')
+                    )
                 else:
                     if status(sr_directory, partition_path,
                               slapcontainer_conf) == 'started':
@@ -59,7 +59,7 @@ def main(sr_directory, partition_list, bridge_name):
     except SlapContainerError:
         active_containers = set()
 
-    to_stop = active_containers - started_containers
+    to_stop = active_containers - to_start
 
     for container in to_stop:
         try:
