@@ -54,8 +54,7 @@ def checkLogin(config, login, pwd):
     list=[username, password, email, complete_name]
   """
   user = getSession(config)
-  salt = "runner81" #to be changed
-  current_pwd = hashlib.md5( salt + pwd ).hexdigest()
+  current_pwd = hashlib.md5( pwd ).hexdigest()
   if user and current_pwd == user[1] and login == user[0]:
     return user
   return False
@@ -73,17 +72,12 @@ def getSession(config):
   Returns:
     a list of user informations or False if fail to read data.
   """
-  user_path = os.path.join(config['runner_workdir'], '.users')
+  user_path = os.path.join(config['etc_dir'], '.users')
   user = ""
   if os.path.exists(user_path):
     user = open(user_path, 'r').read().split(';')
   if type(user) == type(""):
-    #Error: try to restore data from backup
-    if os.path.exists(user_path+'.back'):
-      os.rename(user_path+'.back', user_path)
-      user = open(user_path, 'r').read().split(';')
-    else:
-      return False
+    return False
   return user
 
 def saveSession(config, session, account):
@@ -98,12 +92,11 @@ def saveSession(config, session, account):
   Returns:
     True if all goes well or str (error message) if fail
   """
-  user = os.path.join(config['runner_workdir'], '.users')
+  user = os.path.join(config['etc_dir'], '.users')
   backup = False
   try:
     if account[1]:
-      salt = "runner81" #to be changed
-      account[1] = hashlib.md5(salt + account[1]).hexdigest()
+      account[1] = hashlib.md5(account[1]).hexdigest()
     else:
       account[1] = session['account'][1]
     if 'account' in session:

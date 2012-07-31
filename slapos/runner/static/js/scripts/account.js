@@ -6,6 +6,10 @@ $(document).ready( function() {
   		$("#error").Popup("Invalid user name. Please check it!", {type:'alert', duration:3000});
 			return false;
 		}
+    else if ($("input#username").val().length <6){
+      $("#error").Popup("Username must have at least 6 characters", {type:'alert', duration:3000});
+      return false;
+    }
 		if($("input#name").val() === ""){
 			$("#error").Popup("Please enter your name and surname!", {type:'alert', duration:3000});
   		return false;
@@ -16,6 +20,10 @@ $(document).ready( function() {
 		}
     if($("input#hasAccount").val() === "" && !$("input#password").val().match(/^[\w\d\._-]+$/)){
       $("#error").Popup("Please enter your new password!", {type:'alert', duration:3000});
+      return false;
+    }
+    if ($("input#password").val() !== "" && $("input#password").val().length <6){
+      $("#error").Popup("The password must have at least 6 characters", {type:'alert', duration:3000});
       return false;
     }
     if($("input#password").val() !== ""){
@@ -29,13 +37,17 @@ $(document).ready( function() {
       }
       haspwd = true;
     }
+    if(!$("input#rcode").val().match(/^[\w\d]+$/)){
+    	$("#error").Popup("Please enter your password recovery code.", {type:'alert', duration:3000});
+			return false;
+		}
     if(send) return false;
     send = true;
     $.ajax({
   		type: "POST",
 			url: $SCRIPT_ROOT + '/updateAccount',
 			data: {name: $("input#name").val(), username:$("input#username").val(), email:$("input#email").val(),
-				password:((haspwd) ? $("input#password").val():"")},
+				password:((haspwd) ? $("input#password").val():""), rcode:$("input#rcode").val()},
 			success: function(data){
         if(data.code ==1){
           location.href = $SCRIPT_ROOT+"/"

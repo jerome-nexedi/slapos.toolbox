@@ -18,7 +18,7 @@ def before_request():
     account = getSession(app.config)
     if account:
       if request.path != '/login' and request.path != '/doLogin' and \
-          not checkSession(app.config, session, account):
+          not 'account' in session:
         return redirect(url_for('login'))
       session['title'] = getProjectTitle(app.config)
     else:
@@ -485,6 +485,10 @@ def updateAccount():
   account.append(request.form['password'].strip())
   account.append(request.form['email'].strip())
   account.append(request.form['name'].strip())
+  code = request.form['rcode'].strip()
+  recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"), "r").read()
+  if code != recovery_code:
+    return jsonify(code=0, result="Your password recovery code is not valid!")
   result = saveSession(app.config, session, account)
   if type(result) == type(""):
     return jsonify(code=0, result=result)

@@ -5,7 +5,7 @@ import logging.handlers
 import os
 import sys
 import subprocess
-import hashlib
+from datetime import timedelta
 
 class Parser(OptionParser):
   """
@@ -118,7 +118,8 @@ def serve(config):
     workspace = workdir,
     instance_profile='instance.cfg',
     software_profile='software.cfg',
-    SECRET_KEY=os.urandom(24),
+    SECRET_KEY="123456",
+    PERMANENT_SESSION_LIFETIME=timedelta(days=31),
   )
   if not os.path.exists(workdir):
     os.mkdir(workdir)

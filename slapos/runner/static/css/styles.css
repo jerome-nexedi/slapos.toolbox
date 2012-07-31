@@ -43,7 +43,7 @@ textarea {
 }
 
 body {
-	background: #2281C1;/*url("../images/1307251316-background-stripes.gif") repeat #9C9C9C;*/
+	background: #1E73BD;/*#1862C4 url("../images/1307251316-background-stripes.gif") repeat #9C9C9C;*/
 	font-family: 'Helvetica Neue',Tahoma,Helvetica,Arial,sans-serif;
 	color: #000000;
 	font-size: 13px;
@@ -712,3 +712,5 @@ padding:10px; font-size:14px; color:#03406A}
 .login-element{float:left; min-width:120px;}
 .login-label{padding:5px; font-size:16px;}
 .login-input{width:220px;}
+.information{display:block; float:left; height:16px; margin-top:10px; margin-left:10px; font-weight:bold}
+.account{margin-left:60px;}
