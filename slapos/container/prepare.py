@@ -33,10 +33,13 @@ def main(sr_directory, partition_list, bridge_name):
                 if requested_status == 'started':
                     create(sr_directory, partition_path,
                            slapcontainer_conf, bridge_name)
-                    if status(sr_directory, partition_path) == 'stopped':
-                        start(sr_directory, partition_path)
+                    if status(sr_directory, partition_path,
+                              slapcontainer_conf) == 'stopped':
+                        start(sr_directory, partition_path,
+                              slapcontainer_conf)
                 else:
-                    if status(sr_directory, partition_path) == 'started':
+                    if status(sr_directory, partition_path,
+                              slapcontainer_conf) == 'started':
                         stop(sr_directory, partition_path)
             except lockfile.LockTimeout:
                 # Can't do anything, we'll see on the next run
@@ -46,13 +49,13 @@ def main(sr_directory, partition_list, bridge_name):
 
 
 
-def start(sr_directory, partition_path):
+def start(sr_directory, partition_path, conf):
     lxc_start = os.path.join(sr_directory,
                              'parts/lxc/bin/lxc-start')
-    config_filename = os.path.join(partition_path, 'config')
+    config_filename = conf.get('config', 'file')
 
     call([lxc_start, '-f', config_filename,
-          '-n', os.path.basename(partition_path),
+          '-n', conf.get('requested', 'name'),
           '-d'])
 
 
@@ -110,9 +113,9 @@ def destroy(partition_path):
 
 
 
-def status(sr_directory, partition_path):
+def status(sr_directory, partition_path, conf):
     lxc_info = call([os.path.join(sr_directory, 'parts/lxc/bin/lxc-info'),
-                     '-n', os.path.basename(partition_path)])
+                     '-n', conf.get('requested', 'name')])
     if 'RUNNING' in lxc_info:
         return 'started'
     else:
