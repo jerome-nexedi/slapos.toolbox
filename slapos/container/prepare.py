@@ -3,6 +3,7 @@
 import ConfigParser
 import os
 import subprocess
+import logging
 
 import lockfile
 
@@ -16,6 +17,8 @@ class SlapContainerError(Exception):
 
 
 def main(sr_directory, partition_list, bridge_name):
+
+    logger = logging.getLogger()
 
     to_start = set()
     for partition_path in partition_list:
@@ -51,25 +54,30 @@ def main(sr_directory, partition_list, bridge_name):
             finally:
                 lock.release()
 
+    logger.debug('Container to start %s.', ', '.join(to_start))
     try:
         active_containers = set(call(
             [os.path.join(sr_directory, 'parts/lxc/bin/lxc-ls'),
              '--active']
         ).split('\n'))
+        logger.debug('Active containers are %s.', ', '.join(active_containers))
     except SlapContainerError:
         active_containers = set()
 
     to_stop = active_containers - to_start
+    if to_stop:
+        logger.debug('Stopping containers %s.', ', '.join(to_stop))
 
     for container in to_stop:
         try:
+            logger.info('Stopping container %s.', container)
             call(
                 [os.path.join(sr_directory, 'parts/lxc/bin/lxc-stop'),
                  '-n', container
                 ]
             )
         except SlapContainerError:
-            pass # TODO : put some log
+            logger.fatal('Impossible to stop %s.', container)
 
 
 
@@ -142,8 +150,9 @@ def status(sr_directory, partition_path, conf):
 
 
 def call(command_line, override_environ={}):
-    # for debug :
-    # print ' '.join(command_line)
+    logger = logging.getLogger()
+    logger.debug('Call %s', ' '.join(command_line))
+
     environ = dict(os.environ)
     environ.update(override_environ)
     process = subprocess.Popen(command_line, stdin=subprocess.PIPE,
@@ -152,9 +161,9 @@ def call(command_line, override_environ={}):
     process.stdin.close()
 
     if process.wait() != 0:
+        logger.debug('Failed')
         raise SlapContainerError("Subprocess call failed")
 
     out = process.stdout.read()
-    # for debug :
-    # print out
+    logger.debug('Output : %s.', out)
     return out
