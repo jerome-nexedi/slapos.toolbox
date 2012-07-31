@@ -23,13 +23,18 @@
     <img src="{{ url_for('static', filename='images/manage_repo.png') }}" />
 </div>
 <div class="clear"></div>
-<div class="lmenu">
+<div class="lmenu smaller">
     <h2><a href="{{ url_for('openProject', method='new')}}">Create your Software Release</a></h2>
-    <p><br/>To create a new Software Release, choose the project directory in which you want to create your software.<!-- You will then be able to edit and
+    <p>To create a new Software Release, choose the project directory in which you want to create your software.<!-- You will then be able to edit and
     run the new software release.-->
     </p>
     <img src="{{ url_for('static', filename='images/folder_blue.png') }}" />
     <div class="clear"></div>
+</div>
+<div class="umenu">
+  <h2><a href="{{ url_for('myAccount')}}">Your Account</a></h2>
+  <p>Update your account informations</p>
+  <img src="{{ url_for('static', filename='images/user_card.png') }}" />
 </div>
 <div class="clear"></div>
 </div>

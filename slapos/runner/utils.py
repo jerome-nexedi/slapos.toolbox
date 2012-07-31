@@ -40,14 +40,88 @@ def html_escape(text):
   """Produce entities within text."""
   return "".join(html_escape_table.get(c,c) for c in text)
 
-def checkSession(config, password):
-  """Return True if given `password` is correct"""
-  if not os.path.exists(config['password']):
-    return False
-  pwd_file = open(config['password'], 'r')
-  pwd = pwd_file.read()
-  pwd_file.close()
-  return pwd == password
+def checkLogin(config, login, pwd):
+  """
+  User authentication method
+
+  Args:
+    config: Slaprunner configuration.
+    login: username of the user.
+    pwd: password associate to username.
+
+  Returns:
+    a list of user informations or False if authentication fail.
+    list=[username, password, email, complete_name]
+  """
+  user = getSession(config)
+  salt = "runner81" #to be changed
+  current_pwd = hashlib.md5( salt + pwd ).hexdigest()
+  if user and current_pwd == user[1] and login == user[0]:
+    return user
+  return False
+
+def checkSession(config, session, account):
+  """Return True if current user is connected with rigth data"""
+  if 'account' in session and account:
+    return (session['account'][0] == account[0] and
+              session['account'][1] == account[1])
+  return False
+
+def getSession(config):
+  """
+  Get the session data of current user.
+  Returns:
+    a list of user informations or False if fail to read data.
+  """
+  user_path = os.path.join(config['runner_workdir'], '.users')
+  user = ""
+  if os.path.exists(user_path):
+    user = open(user_path, 'r').read().split(';')
+  if type(user) == type(""):
+    #Error: try to restore data from backup
+    if os.path.exists(user_path+'.back'):
+      os.rename(user_path+'.back', user_path)
+      user = open(user_path, 'r').read().split(';')
+    else:
+      return False
+  return user
+
+def saveSession(config, session, account):
+  """
+  Save account information for the current user
+
+  Args:
+    config: Slaprunner configuration
+    session: Flask session
+    account: New session data to be save
+
+  Returns:
+    True if all goes well or str (error message) if fail
+  """
+  user = os.path.join(config['runner_workdir'], '.users')
+  backup = False
+  try:
+    if account[1]:
+      salt = "runner81" #to be changed
+      account[1] = hashlib.md5(salt + account[1]).hexdigest()
+    else:
+      account[1] = session['account'][1]
+    if 'account' in session:
+      #backup previous data
+      open(user+'.back', 'w').write(';'.join(session['account']))
+      backup = True
+    #save new account data
+    open(user, 'w').write((';'.join(account)).encode("utf-8"))
+    session['account'] = account
+    return True
+  except Exception, e:
+    try:
+      if backup:
+        os.remove(user)
+        os.rename(user+'.back', user)
+    except:
+      pass
+    return str(e)
 
 def updateProxy(config):
   """

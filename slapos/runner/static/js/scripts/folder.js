@@ -35,7 +35,7 @@ $(document).ready( function() {
 			$("#error").Popup("Invalid project name", {type:'alert', duration:3000});
 			return false;
 		}
-		if($("input#user").val() !== "" && $("input#user").val() !== "Enter your name..."){
+		if($("input#user").val() !== ""){
 			name = $("input#user").val();
 		}
 		if($("input#email").val() != "" && $("input#email").val() != "Enter your email adress..."){
