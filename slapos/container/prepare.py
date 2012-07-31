@@ -17,6 +17,7 @@ class SlapContainerError(Exception):
 
 def main(sr_directory, partition_list, bridge_name):
 
+    started_containers = set()
     for partition_path in partition_list:
         slapcontainer_filename = os.path.join(partition_path,
                                               '.slapcontainer')
@@ -37,6 +38,9 @@ def main(sr_directory, partition_list, bridge_name):
                               slapcontainer_conf) == 'stopped':
                         start(sr_directory, partition_path,
                               slapcontainer_conf)
+                        started_containers.add(
+                            slapcontainer_conf.get('requested', 'name')
+                        )
                 else:
                     if status(sr_directory, partition_path,
                               slapcontainer_conf) == 'started':
@@ -46,6 +50,26 @@ def main(sr_directory, partition_list, bridge_name):
                 pass
             finally:
                 lock.release()
+
+    try:
+        active_containers = set(call(
+            [os.path.join(sr_directory, 'parts/lxc/bin/lxc-ls'),
+             '--active']
+        ).split('\n'))
+    except SlapContainerError:
+        active_containers = set()
+
+    to_stop = active_containers - started_containers
+
+    for container in to_stop:
+        try:
+            call(
+                [os.path.join(sr_directory, 'parts/lxc/bin/lxc-stop'),
+                 '-n', container
+                ]
+            )
+        except SlapContainerError:
+            pass # TODO : put some log
 
 
 
@@ -104,12 +128,6 @@ def create(sr_directory, partition_path, conf, bridge_name):
 
     with open(lxc_filename, 'w') as lxc_file:
         lxc_file.write(str(lxc))
-
-
-
-def destroy(partition_path):
-    # TODO: Destroy container
-    pass
 
 
 
