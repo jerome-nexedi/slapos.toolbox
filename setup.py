@@ -46,6 +46,7 @@ setup(name=name,
         'lampconfigure':  ["mysql-python"], #needed for MySQL Database access
         'zodbpack': ['ZODB3'], # needed to play with ZODB
         'agent': ['erp5.util'],
+        'flask_auth' : ["Flask-Auth"],
       },
       zip_safe=False, # proxy depends on Flask, which has issues with
                       # accessing templates

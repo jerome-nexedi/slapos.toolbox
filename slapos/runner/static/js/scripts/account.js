@@ -2,6 +2,7 @@ $(document).ready( function() {
   var send = false;
   $("#update").click(function(){
     var haspwd = false;
+    var hasAccount = !($("input#hasAccount").val() === "");
     if($("input#username").val() === "" || !$("input#username").val().match(/^[\w\d\._-]+$/)){
   		$("#error").Popup("Invalid user name. Please check it!", {type:'alert', duration:3000});
 			return false;
@@ -18,7 +19,7 @@ $(document).ready( function() {
 			$("#error").Popup("Please enter a valid email adress!", {type:'alert', duration:3000});
 			return false;
 		}
-    if($("input#hasAccount").val() === "" && !$("input#password").val().match(/^[\w\d\._-]+$/)){
+    if(!hasAccount && !$("input#password").val().match(/^[\w\d\._-]+$/)){
       $("#error").Popup("Please enter your new password!", {type:'alert', duration:3000});
       return false;
     }
@@ -45,7 +46,7 @@ $(document).ready( function() {
     send = true;
     $.ajax({
   		type: "POST",
-			url: $SCRIPT_ROOT + '/updateAccount',
+			url: $SCRIPT_ROOT + ((hasAccount)? '/updateAccount':'/configAccount'),
 			data: {name: $("input#name").val(), username:$("input#username").val(), email:$("input#email").val(),
 				password:((haspwd) ? $("input#password").val():""), rcode:$("input#rcode").val()},
 			success: function(data){

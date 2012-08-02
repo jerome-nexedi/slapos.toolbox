@@ -40,32 +40,6 @@ def html_escape(text):
   """Produce entities within text."""
   return "".join(html_escape_table.get(c,c) for c in text)
 
-def checkLogin(config, login, pwd):
-  """
-  User authentication method
-
-  Args:
-    config: Slaprunner configuration.
-    login: username of the user.
-    pwd: password associate to username.
-
-  Returns:
-    a list of user informations or False if authentication fail.
-    list=[username, password, email, complete_name]
-  """
-  user = getSession(config)
-  current_pwd = hashlib.md5( pwd ).hexdigest()
-  if user and current_pwd == user[1] and login == user[0]:
-    return user
-  return False
-
-def checkSession(config, session, account):
-  """Return True if current user is connected with rigth data"""
-  if 'account' in session and account:
-    return (session['account'][0] == account[0] and
-              session['account'][1] == account[1])
-  return False
-
 def getSession(config):
   """
   Get the session data of current user.
@@ -75,12 +49,14 @@ def getSession(config):
   user_path = os.path.join(config['etc_dir'], '.users')
   user = ""
   if os.path.exists(user_path):
-    user = open(user_path, 'r').read().split(';')
+    f = open(user_path, 'r')
+    user = f.read().split(';')
+    f.close()
   if type(user) == type(""):
     return False
   return user
 
-def saveSession(config, session, account):
+def saveSession(config, account):
   """
   Save account information for the current user
 
@@ -95,17 +71,17 @@ def saveSession(config, session, account):
   user = os.path.join(config['etc_dir'], '.users')
   backup = False
   try:
-    if account[1]:
-      account[1] = hashlib.md5(account[1]).hexdigest()
-    else:
-      account[1] = session['account'][1]
-    if 'account' in session:
+    if os.path.exists(user):
+      f = open(user, 'r')
       #backup previous data
-      open(user+'.back', 'w').write(';'.join(session['account']))
+      data = f.read()
+      open(user+'.back', 'w').write(data)
+      f.close()
       backup = True
+      if not account[1]:
+        account[1] = data.split(';')[1]
     #save new account data
     open(user, 'w').write((';'.join(account)).encode("utf-8"))
-    session['account'] = account
     return True
   except Exception, e:
     try:

@@ -54,7 +54,7 @@
 		    <div class="line"></div>
 		    <a href="{{ url_for('editCurrentProject') }}" style="float:left" title="Edit your current project"><img alt="" src="{{ url_for('static', filename='images/project.png') }}" /></a>
         <div class="line"></div>
-  	    <a href="{{ url_for('logout') }}" style="float:left" title="Close your session"><img alt="" src="{{ url_for('static', filename='images/logout.png') }}" /></a>
+  	    <a href="{{ url_for('dologout') }}" style="float:left" title="Close your session"><img alt="" src="{{ url_for('static', filename='images/logout.png') }}" /></a>
 		    <div class="line"></div>
                     <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
 		    <div class="run"><span id="running" style="display:none"><img alt="" src="{{ url_for('static', filename='images/ajax_roller.gif') }}"
