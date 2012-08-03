@@ -8,7 +8,7 @@ import shutil
 import md5
 from gittools import cloneRepo, gitStatus, switchBranch, addBranch, getDiff, \
      gitPush, gitPull
-from flaskext.auth import * #Auth, AuthUser, login_required, logout
+from flaskext.auth import Auth, AuthUser, login_required, logout
 
 app = Flask(__name__)
 auth = Auth(app, login_url_name='login')
@@ -525,8 +525,8 @@ app.add_url_rule('/', 'home', home)
 app.add_url_rule('/editSoftwareProfile', 'editSoftwareProfile', editSoftwareProfile)
 app.add_url_rule('/inspectSoftware', 'inspectSoftware', inspectSoftware)
 app.add_url_rule('/removeSoftware', 'removeSoftware', removeSoftware)
-app.add_url_rule('/runSoftwareProfile', 'runSoftwareProfile', methods=['POST'])
-app.add_url_rule('/viewSoftwareLog', 'viewSoftwareLog', runSoftwareProfile, methods=['GET'])
+app.add_url_rule('/runSoftwareProfile', 'runSoftwareProfile', runSoftwareProfile, methods=['POST'])
+app.add_url_rule('/viewSoftwareLog', 'viewSoftwareLog', viewSoftwareLog, methods=['GET'])
 app.add_url_rule('/editInstanceProfile', 'editInstanceProfile', editInstanceProfile)
 app.add_url_rule('/inspectInstance', 'inspectInstance', inspectInstance, methods=['GET'])
 app.add_url_rule('/supervisordStatus', 'supervisordStatus', supervisordStatus, methods=['GET'])
