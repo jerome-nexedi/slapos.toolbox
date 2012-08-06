@@ -254,6 +254,7 @@ class SoftwareReleaseTester(RPCRetry):
         """
         Interrupt a running test sequence, putting it in idle state.
         """
+        self._logger.info('Invoking TearDown for %s@%s' % self.url, self.name)
         if self.request_kw is not None:
             self.destroy()
         self.uninstall()
@@ -386,6 +387,7 @@ def main():
         ran_test_set = set()
         running_test_dict = {}
         more_tests = True
+        logger.info('Starting Test Agent run %s ' % node_title)
         while True:
             # Get up to parallel_task_count tasks to execute
             while len(running_test_dict) < parallel_task_count and \
@@ -453,7 +455,7 @@ def main():
                 try:
                     deadline = tester.tic(now)
                 except Exception:
-                    logger.exception('test failed')
+                    logger.exception('Test execution fail for  %s' % (section))
                     test_line.stop(
                         test_count=1,
                         error_count=1,
@@ -472,7 +474,7 @@ def main():
                     logger.info('%r', tester)
                     if deadline is None:
                         # TODO: report how long each step took.
-                        logger.info('Finished !')
+                        logger.info('Test execution finished for  %s' % (section))
                         test_line.stop(
                             test_count=1,
                             error_count=0,
