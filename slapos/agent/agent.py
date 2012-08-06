@@ -380,7 +380,7 @@ def main():
             test_title=test_title,
             project_title=project_title,
         )
-        test_result.watcher_period = 60
+        test_result.watcher_period = 300
         if log:
             test_result.addWatch(log, log_file, max_history_bytes=10000)
         assert test_result is not None
