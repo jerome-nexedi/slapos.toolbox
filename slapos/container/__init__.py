@@ -5,13 +5,19 @@ import argparse
 
 import sys
 import os
+import logging
 
-from . import prepare
+from . import process
 
 def main():
     parser = argparse.ArgumentParser(description="Slapcontainer binary")
     parser.add_argument('configuration_file', type=str,
                         help="SlapOS configuration file.")
+    log_lvls = [lvl for lvl in logging._levelNames.keys()
+                if isinstance(lvl, basestring)]
+    parser.add_argument('--log', nargs=1, default=['INFO'],
+                        choices=log_lvls,
+                        metavar='lvl')
     args = parser.parse_args()
 
     slapos_conf = ConfigParser.ConfigParser()
@@ -27,6 +33,7 @@ def main():
     partition_base_path = os.path.join(instance_root, partition_base_name)
     partition_list = ['%s%d' % (partition_base_path, i)
                       for i in range(partition_amount)]
-    bridge_name = slapos_conf.get('slapformat', 'interface_name')
 
-    prepare.main(sr_directory, partition_list, bridge_name)
+    logging.basicConfig(level=logging.getLevelName(args.log[0]))
+
+    process.main(sr_directory, partition_list)
