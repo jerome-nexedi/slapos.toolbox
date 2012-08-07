@@ -24,15 +24,15 @@ def main():
   parser.add_argument('-f', '--feed', nargs=1, required=True,
                       dest='feed_url', help="Url of the feed.")
   parser.add_argument('--notification-url', dest='notification_url',
-                      nargs=1, required=True,
+                      nargs='*', required=True,
                       help="Notification url")
-  parser.add_argument('executable', nargs=1,
+  parser.add_argument('--executable', nargs=1, dest='executable',
                       help="Executable to wrap")
 
   args = parser.parse_args()
 
   with open(os.devnull) as devnull:
-    command = subprocess.Popen(args.executable,
+    command = subprocess.Popen(args.executable[0],
                                stdin=subprocess.PIPE,
                                stdout=devnull,
                                stderr=subprocess.PIPE,
@@ -61,24 +61,23 @@ def main():
     ])
 
   feed = urllib2.urlopen(args.feed_url[0])
+  for notif_url in args.notification_url:
+    notification_url = urlparse(notif_url)
+    notification_port = notification_url.port
+    if notification_port is None:
+      notification_port = socket.getservbyname(notification_url.scheme)
 
-  notification_url = urlparse(args.notification_url[0])
-  notification_port = notification_url.port
-  if notification_port is None:
-    notification_port = socket.getservbyname(notification_url.scheme)
+    headers = {'Content-Type': feed.info().getheader('Content-Type')}
+    notification = httplib.HTTPConnection(notification_url.hostname,
+                                                 notification_port)
+    notification.request('POST', notification_url.path, feed.read(), headers)
+    response = notification.getresponse()
 
-  headers = {'Content-Type': feed.info().getheader('Content-Type')}
-  notification = httplib.HTTPConnection(notification_url.hostname,
-                                               notification_port)
-  notification.request('POST', notification_url.path, feed.read(), headers)
-  response = notification.getresponse()
-
-  if 200 <= response.status < 300:
+    if not (200 <= response.status < 300):
+      print >> sys.stderr, "The remote server didn't send a successfull reponse."
+      print >> sys.stderr, "It's response was %r" % response.reason
+      return 1
     return 0
-  else:
-    print >> sys.stderr, "The remote server didn't send a successfull reponse."
-    print >> sys.stderr, "It's response was %r" % response.reason
-    return 1
 
 if __name__ == '__main__':
   main()
