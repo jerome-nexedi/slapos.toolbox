@@ -1,7 +1,7 @@
-0.27.1 (Unreleased)
+0.28 (2012-08-09)
 =================
 
- * No change yet.
+ * slaprunner: add support for authentication management. [Alain Takoudjou]
 
 0.27 (2012-08-07)
 =================
