@@ -5,7 +5,7 @@ import logging.handlers
 import os
 import sys
 import subprocess
-import hashlib
+from datetime import timedelta
 
 class Parser(OptionParser):
   """
@@ -118,15 +118,10 @@ def serve(config):
     workspace = workdir,
     instance_profile='instance.cfg',
     software_profile='software.cfg',
-    SECRET_KEY='123',
+    SECRET_KEY="123456",
+    PERMANENT_SESSION_LIFETIME=timedelta(days=31),
   )
   if not os.path.exists(workdir):
     os.mkdir(workdir)
-  if not os.path.exists(os.path.join(config.runner_workdir, '.users')):
-    #set default user and password
-    salt = "runner81" #to be changed
-    pwd = hashlib.md5( salt + "insecure" ).hexdigest()
-    user = "root;"+pwd+";;Slaprunner Administrator"
-    open(os.path.join(config.runner_workdir, '.users'), 'w').write(user)
   app.run(host=config.runner_host, port=int(config.runner_port),
       debug=config.debug, threaded=True)

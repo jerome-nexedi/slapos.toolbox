@@ -43,7 +43,7 @@ textarea {
 }
 
 body {
-	background: #2281C1;/*url("../images/1307251316-background-stripes.gif") repeat #9C9C9C;*/
+	background: #1E73BD;/*#1862C4 url("../images/1307251316-background-stripes.gif") repeat #9C9C9C;*/
 	font-family: 'Helvetica Neue',Tahoma,Helvetica,Arial,sans-serif;
 	color: #000000;
 	font-size: 13px;
@@ -72,6 +72,7 @@ overflow-y: scroll;
     text-align: left;
     padding-left: 20px;
     height: 30px;
+    position:relative;
 }
 
 #header .run{
@@ -617,6 +618,8 @@ a.lshare img{
     border-radius: 0 0 4px 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     text-align: center;
+    position: relative;
+    z-index: 170;
 }
 
 #error table{
@@ -706,8 +709,10 @@ input[type=radio]:hover {
 #login-page{width:429px; height:236px; margin:130px auto 0px; background:url(../images/loginBox.png) no-repeat;
 padding:10px; font-size:14px; color:#03406A}
 #login-page h2{color:#fff; font-size:26px; font-weight:normal; text-indent:50px;}
-.login-content{margin:10px; margin-top:40px; margin-bottom:0; height:90px;}
+.login-content{position:relative;margin:10px; margin-top:30px; margin-bottom:0;}
 .login-button{width:140px; margin:0 auto;}
 .login-element{float:left; min-width:120px;}
 .login-label{padding:5px; font-size:16px;}
 .login-input{width:220px;}
+.information{display:block; float:left; height:16px; margin-top:10px; margin-left:10px; font-weight:bold}
+.account{margin-left:60px;}

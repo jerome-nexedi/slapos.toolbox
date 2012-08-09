@@ -9,25 +9,17 @@ $(function () {
     $('a[rel=tooltip], a[rel=tooltip-min], .popup').mouseover(function () {
         var height = $(this).height();
         var top = $(this).offset().top + height;
-        var left = $(this).offset().left - ($(this).width() /2);
+        var left = $(this).offset().left +($(this).width()/2)-30;
         var content = "#tooltip-" + $(this).attr('id');
         if (hideDelayTimer) clearTimeout(hideDelayTimer);
         if (beingShown || shown) {
             return;
-        } else {                  
+        } else {
             $('#jqtooltip').empty();
             var contentValue = $(content).clone(true, true);
-            /*$(contentValue).find("*").each(function(index, element) {
-              if(element.id){element.id = "jqt_" + element.id;}
-               if($(this).attr('for')){$(this).attr('for', 'jqt_' + $(this).attr('for'))}
-               //var events = $(content).get[0];
-               //for (var type in events)
-  		          // for (var handler in events[type])
-				          // jQuery.event.add(this, type, events[type][handler], events[type][handler].data);
-            });*/
             $(contentValue).appendTo('#jqtooltip');
             $('#jqtooltip ' + content).show();
-            // reset position of info box    
+            // reset position of info box
             beingShown = true;
             $('.popup').css({
                 top: top,
@@ -49,7 +41,7 @@ $(function () {
                 $('.popup').animate({
                     top: '-=' + distance + 'px',
                     opacity: 0
-                }, time, 'swing', function () {                    
+                }, time, 'swing', function () {
                     $('.popup').css('display', 'none');
                     shown = false;
                 });
