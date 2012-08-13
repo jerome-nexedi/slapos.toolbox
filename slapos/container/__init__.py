@@ -2,6 +2,7 @@
 
 import ConfigParser
 import argparse
+import gdbm
 
 import sys
 import os
@@ -13,13 +14,33 @@ def main():
     parser = argparse.ArgumentParser(description="Slapcontainer binary")
     parser.add_argument('configuration_file', type=str,
                         help="SlapOS configuration file.")
+    parser.add_argument('database', type=str,
+                        help='slapcontainer database')
     log_lvls = [lvl for lvl in logging._levelNames.keys()
                 if isinstance(lvl, basestring)]
     parser.add_argument('--log', nargs=1, default=['INFO'],
                         choices=log_lvls,
-                        metavar='lvl')
+                        metavar='lvl', help='Log level')
+    parser.add_argument('--pid', nargs=1, help='pid file path')
     args = parser.parse_args()
 
+    if args.pid is not None:
+        pid_filename = args.pid[0]
+        if os.path.exists(pid_filename):
+            print >> sys.stderr, "Already running"
+            return 127
+        with open(pid_filename, 'w') as pid_file:
+            pid_file.write(str(os.getpid()))
+
+        try:
+            run(args)
+        finally:
+            os.remove(pid_filename)
+
+    else:
+        run(args)
+
+def run(args):
     slapos_conf = ConfigParser.ConfigParser()
     slapos_conf.read(args.configuration_file)
 
@@ -36,4 +57,9 @@ def main():
 
     logging.basicConfig(level=logging.getLevelName(args.log[0]))
 
-    process.main(sr_directory, partition_list)
+    database = gdbm.open(args.database, 'c', 0600)
+    try:
+        process.main(sr_directory, partition_list, database)
+    finally:
+        database.sync()
+        database.close()

@@ -3,6 +3,7 @@
 import os
 import subprocess
 import logging
+import signal
 
 class SlapContainerError(Exception):
     """This exception is thrown, if there is
@@ -11,11 +12,14 @@ class SlapContainerError(Exception):
 
 
 
-def main(sr_directory, partition_list):
+def main(sr_directory, partition_list, database):
 
     logger = logging.getLogger('process')
 
-    to_start = set()
+    ######################
+    # Process partitions #
+    ######################
+    start_requested = set()
     logger.debug('Processing partitions...')
     for partition_path in partition_list:
         partition_logger = logger.getChild(
@@ -37,17 +41,25 @@ def main(sr_directory, partition_list):
             with open(lxc_conf_path, 'r') as lxc_conf_file:
                 requested_status = lxc_conf_file.readline().strip(' \n\r\t#')
 
-
             if requested_status == 'started':
+                start_requested.add(name)
 
-                current_status = status(sr_directory, partition_path, name)
-                to_start.add(name)
+            process_partition(requested_status=requested_status,
+                              sr_directory=sr_directory,
+                              partition_path=partition_path,
+                              name=name,
+                              database=database,
+                              logger=partition_logger,
+                              lxc_conf_filename=lxc_conf_path)
 
-                if requested_status != current_status:
-                    start(sr_directory, partition_path, name, lxc_conf_path)
+    if start_requested:
+        logger.debug('Container which start was requested : %s.',
+                     ', '.join(start_requested))
 
 
-    logger.debug('Container to start %s.', ', '.join(to_start))
+    ####################################
+    # Stop unwanted running containers #
+    ####################################
     try:
         active_containers = set(call(
             [os.path.join(sr_directory, 'parts/lxc/bin/lxc-ls'),
@@ -57,9 +69,12 @@ def main(sr_directory, partition_list):
     except SlapContainerError:
         active_containers = set()
 
-    to_stop = active_containers - to_start
+    ### Stop containers
+    to_stop = active_containers - start_requested
     if to_stop:
         logger.debug('Stopping containers %s.', ', '.join(to_stop))
+    else:
+        logger.debug('No extra containers to stop.')
 
     for container in to_stop:
         try:
@@ -72,26 +87,91 @@ def main(sr_directory, partition_list):
         except SlapContainerError:
             logger.fatal('Impossible to stop %s.', container)
 
-
-
-def start(sr_directory, partition_path, name, lxc_conf_path):
-    lxc_start = os.path.join(sr_directory,
-                             'parts/lxc/bin/lxc-start')
-    call([lxc_start, '-f', lxc_conf_path,
-          '-n', name,
-          '-d'])
-
-def status(sr_directory, partition_path, name):
-    logger = logging.getLogger('status')
-    logger.debug('Check status of %s', name)
-    lxc_info = call([os.path.join(sr_directory, 'parts/lxc/bin/lxc-info'),
-                     '-n', name])
-    if 'RUNNING' in lxc_info:
-        return 'started'
+    ### Stop shellinaboxes
+    active_shellinabox = set(database.keys())
+    to_stop = active_shellinabox - start_requested
+    if to_stop:
+        logger.debug('Stopping shellinaboxes %s.', ', '.join(to_stop))
     else:
-        return 'stopped'
+        logger.debug('No extra shellinabox to stop.')
+
+    for shellinabox in to_stop:
+        pid = int(database[shellinabox])
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except OSError:
+            # Shellinabox's already stopped
+            del database[shellinabox]
+        else:
+            # Stopping shellinabox
+            if not is_pid_running(pid):
+                del database[shellinabox]
 
 
+
+def process_partition(requested_status,
+                      sr_directory,
+                      partition_path,
+                      name,
+                      database,
+                      logger,
+                      lxc_conf_filename):
+
+    if requested_status == 'started':
+
+        ##############################
+        # Stateless container launch #
+        ##############################
+
+        logger.debug('Check status.')
+        lxc_info = call([os.path.join(sr_directory, 'parts/lxc/bin/lxc-info'),
+                         '-n', name])
+        ### Check if container is launched
+        if 'RUNNING' in lxc_info:
+            current_status = 'started'
+        else:
+            current_status = 'stopped'
+
+        ### If container is not launch, launch it
+        if requested_status != current_status:
+            logger.debug('Start lxc.')
+            lxc_start = os.path.join(sr_directory,
+                                     'parts/lxc/bin/lxc-start')
+            call([lxc_start, '-f', lxc_conf_filename,
+                  '-n', name,
+                  '-d'])
+
+        ################################
+        # Stateless shellinabox launch #
+        ################################
+
+        current_status = 'stopped'
+        # Check if shellinabox is started
+        if name in database:
+            pid = int(database[name])
+            if is_pid_running(pid):
+                current_status = 'started'
+
+        if current_status == 'stopped':
+            logger.debug('Start shellinabox.')
+            shellinabox_pid = call_daemonize([os.path.join(partition_path,
+                                                           'bin/shellinaboxd')])
+            database[name] = str(shellinabox_pid)
+
+
+
+def is_pid_running(pid):
+    logger = logging.getLogger('pid')
+    logger.debug('Check if pid %d is running.', pid)
+    # XXX: Magic number 0 for no special signal
+    try:
+        os.kill(pid, 0)
+        logger.debug('%d is running.', pid)
+        return True
+    except OSError:
+        # Process doesn't exists
+        logger.debug('%d is not running.', pid)
+        return False
 
 def call(command_line, override_environ={}):
     logger = logging.getLogger('commandline')
@@ -111,3 +191,16 @@ def call(command_line, override_environ={}):
     out = process.stdout.read()
     logger.debug('Output : %s.', out)
     return out
+
+
+
+def call_daemonize(command_line, override_environ={}):
+    logger = logging.getLogger('daemon')
+
+    environ = dict(os.environ)
+    environ.update(override_environ)
+
+    daemon = subprocess.Popen(command_line, env=environ)
+    logger.debug('Daemonize as pid %d : %s', daemon.pid,
+                                             ' '.join(command_line))
+    return daemon.pid
