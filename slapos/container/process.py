@@ -61,10 +61,10 @@ def main(sr_directory, partition_list, database):
     # Stop unwanted running containers #
     ####################################
     try:
-        active_containers = set(call(
+        active_containers = set((container.strip() for container in call(
             [os.path.join(sr_directory, 'parts/lxc/bin/lxc-ls'),
              '--active']
-        ).split('\n'))
+        ).split('\n') if container.strip()))
         logger.debug('Active containers are %s.', ', '.join(active_containers))
     except SlapContainerError:
         active_containers = set()
