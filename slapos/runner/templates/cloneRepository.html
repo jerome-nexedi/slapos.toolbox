@@ -18,11 +18,11 @@
   <div class="tabDetails">
     <div id="tab1" class="tabContents">
       <div id="repository" style="margin-left:40px;">
-      <label for='name'>Project name*: </label>
+      <label for='name'>Project name: </label>
       <input type="text" name="name" id="name" size='20' value="Enter the project name..." />
-      <label for='repo'>&nbsp;url*: &nbsp;&nbsp;</label>
+      <label for='repo'>&nbsp;url: &nbsp;&nbsp;</label>
       <input type="text" name="repo" id="repo" size='25' value="Enter the url of your repository..." /><br/>
-      <label for='user'>Your name: &nbsp;&nbsp;&nbsp;&nbsp;</label>
+      <label for='user'>Your name: &nbsp;&nbsp;&nbsp;</label>
       <input type="text" name="user" id="user" size='20' value="{{name}}" />
       <label for='email'>Email: </label>
       <input type="text" name="email" id="email" size='25' value="{% if not email %}Enter your email adress...{% else %}{{email}}{%endif%}" />

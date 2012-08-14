@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import glob
 import os
 
-version = '0.26.2'
+version = '0.28.1-dev'
 name = 'slapos.toolbox'
 long_description = open("README.txt").read() + "\n" + \
     open("CHANGES.txt").read() + "\n"
@@ -46,6 +46,7 @@ setup(name=name,
         'lampconfigure':  ["mysql-python"], #needed for MySQL Database access
         'zodbpack': ['ZODB3'], # needed to play with ZODB
         'agent': ['erp5.util'],
+        'flask_auth' : ["Flask-Auth"],
       },
       zip_safe=False, # proxy depends on Flask, which has issues with
                       # accessing templates
