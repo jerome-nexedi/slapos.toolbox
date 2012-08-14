@@ -279,7 +279,7 @@ class SoftwareReleaseTester(RPCRetry):
         """
         Interrupt a running test sequence, putting it in idle state.
         """
-        self._logger.info('Invoking TearDown for %s@%s' % self.url, self.name)
+        self._logger.info('Invoking TearDown for %s@%s' % (self.url, self.name))
         if self.request_kw is not None:
             self.destroy()
         self.uninstall()
@@ -419,6 +419,9 @@ def main():
                     more_tests:
                 test_line = test_result.start(
                     exclude_list=list(ran_test_set))
+                logger.info("Test Line: %s " % test_line)
+                logger.info("Ran Test Set: %s " % ran_test_set)
+                logger.info("Running test dict: %s " % running_test_dict)
                 if test_line is None:
                     more_tests = False
                     break
