@@ -1,7 +1,7 @@
-0.28.1 (Unreleased)
-=================
+0.28.1 (2012-08-15)
+===================
 
- * No change yet.
+ * Update ACE to 08.11.2012 and JQuery to 1.8.0. [Cedric de Saint Martin]
 
 0.28 (2012-08-09)
 =================
