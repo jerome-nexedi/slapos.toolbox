@@ -62,13 +62,13 @@
           </h2>
           <div class="clear"></div><br/>
           <div id="bcontent{{item[0]}}">
-            <table cellpadding="0" cellspacing="0" width="100%">
+            <table cellpadding="0" cellspacing="0" width="577">
             <tr>
         	     <th>Parameter Name</th><th>Parameter Value</th>
       	    </tr>
             {% for k in item[1] %}
             <tr>
-               <td class="propertie first">{{k}}</td><td align='left'>{{item[1][k]}}</td>
+               <td class="propertie first">{{k}}</td><td align='left'><span class="slapvalues">{{item[1][k]}}</span></td>
       	    </tr>
             {% endfor %}
             </table>
@@ -140,3 +140,4 @@
 </div>
 {{instance}}
 {% endblock %}
+
