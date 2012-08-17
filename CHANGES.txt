@@ -1,7 +1,7 @@
-0.28.2 (Unreleased)
+0.28.2 (2012-08-17)
 ===================
 
- * No change yet.
+ * Slaprunner: Move password, process pid and config files to etc_dir [Alain Takoudjou]
 
 0.28.1 (2012-08-15)
 ===================
