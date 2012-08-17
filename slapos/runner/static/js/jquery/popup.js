@@ -21,6 +21,10 @@
       }
       else{setupBox();}
       function setupBox(){
+        if (msg == undefined){
+          msg = "Cannot execute your request. Please make sure you are logged in!!"
+          option.type = "error";
+        }
         $box.empty();
         $box.css('top','-1000px');
         $box.show();

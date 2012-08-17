@@ -54,7 +54,8 @@
 	margin:34px 0 0;
 }
 .tabContents{
-	padding:20px
+	padding:20px;
+    min-height: 250px;
 }
 .tabContents p{
 	padding:0 0 10px;

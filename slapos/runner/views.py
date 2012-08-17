@@ -79,7 +79,7 @@ def doLogin():
 # software views
 @login_required()
 def editSoftwareProfile():
-  profile = getProfilePath(app.config['runner_workdir'], app.config['software_profile'])
+  profile = getProfilePath(app.config['etc_dir'], app.config['software_profile'])
   if profile == "":
     flash('Error: can not open profile, please select your project first')
   return render_template('updateSoftwareProfile.html', workDir='workspace',
@@ -92,18 +92,18 @@ def inspectSoftware():
   else:
     result = app.config['software_root']
   return render_template('runResult.html', softwareRoot='software_root',
-                         softwares=loadSoftwareData(app.config['runner_workdir']))
+                         softwares=loadSoftwareData(app.config['etc_dir']))
 
 #remove content of compiled software release
 @login_required()
 def removeSoftware():
-  file_config = os.path.join(app.config['runner_workdir'], ".softdata")
+  file_config = os.path.join(app.config['etc_dir'], ".softdata")
   if isSoftwareRunning(app.config) or isInstanceRunning(app.config):
     flash('Software installation or instantiation in progress, cannot remove')
   elif os.path.exists(file_config):
     svcStopAll(app.config)
     shutil.rmtree(app.config['software_root'])
-    os.remove(os.path.join(app.config['runner_workdir'], ".softdata"))
+    os.remove(file_config)
     flash('Software removed')
   return redirect(url_for('inspectSoftware'))
 
@@ -121,12 +121,12 @@ def viewSoftwareLog():
   else:
     result = 'Not found yet'
   return render_template('viewLog.html', type='software',
-      result=result)
+      result=result.encode("utf-8"))
 
 # instance views
 @login_required()
 def editInstanceProfile():
-  profile = getProfilePath(app.config['runner_workdir'], app.config['instance_profile'])
+  profile = getProfilePath(app.config['etc_dir'], app.config['instance_profile'])
   if profile == "":
     flash('Error: can not open instance profile for this Software Release')
   return render_template('updateInstanceProfile.html', workDir='workspace',
@@ -171,7 +171,7 @@ def removeInstance():
     removeProxyDb(app.config)
     startProxy(app.config)
     removeInstanceRoot(app.config)
-    param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
+    param_path = os.path.join(app.config['etc_dir'], ".parameter.xml")
     if os.path.exists(param_path):
       os.remove(param_path)
     flash('Instance removed')
@@ -193,7 +193,7 @@ def viewInstanceLog():
   else:
     result = 'Not found yet'
   return render_template('viewLog.html', type='instance',
-      result=result)
+      result=result.encode("utf-8"))
 
 @login_required()
 def stopAllPartition():
@@ -209,15 +209,6 @@ def tailProcess(process):
 def startStopProccess(process, action):
   svcStartStopProcess(app.config, process, action)
   return redirect(url_for('inspectInstance'))
-
-@login_required()
-def viewBuildoudAnnotate():
-  if os.path.exists(app.config['annotate_log']):
-    result = open(app.config['annotate_log'], 'r').read()
-  else:
-    result = 'Not found yet'
-  return render_template('viewLog.html', type='Instance',
-      result=result, running=isInstanceRunning(app.config))
 
 @login_required(login_redirect)
 def openProject(method):
@@ -271,7 +262,7 @@ def getProjectStatus():
 #view for current software release files
 @login_required()
 def editCurrentProject():
-  project = os.path.join(app.config['runner_workdir'], ".project")
+  project = os.path.join(app.config['etc_dir'], ".project")
   if os.path.exists(project):
     return render_template('softwareFolder.html', workDir='workspace',
                            project=open(project).read(),
@@ -438,11 +429,11 @@ def getPath():
 #update instance parameter into a local xml file
 @login_required()
 def saveParameterXml():
-  project = os.path.join(app.config['runner_workdir'], ".project")
+  project = os.path.join(app.config['etc_dir'], ".project")
   if not os.path.exists(project):
     return jsonify(code=0, result="Please first open a Software Release")
   content = request.form['parameter'].encode("utf-8")
-  param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
+  param_path = os.path.join(app.config['etc_dir'], ".parameter.xml")
   try:
     f = open(param_path, 'w')
     f.write(content)
@@ -465,7 +456,7 @@ def saveParameterXml():
 #read instance parameters into the local xml file and return a dict
 @login_required()
 def getParameterXml(request):
-  param_path = os.path.join(app.config['runner_workdir'], ".parameter.xml")
+  param_path = os.path.join(app.config['etc_dir'], ".parameter.xml")
   if not os.path.exists(param_path):
     default = '<?xml version="1.0" encoding="utf-8"?>\n'
     default += '<instance>\n</instance>'
@@ -483,7 +474,6 @@ def getParameterXml(request):
 @login_required()
 def updateAccount():
   account = []
-  user = os.path.join(app.config['runner_workdir'], '.users')
   account.append(request.form['username'].strip())
   account.append(request.form['password'].strip())
   account.append(request.form['email'].strip())
@@ -504,7 +494,6 @@ def configAccount():
   last_account = getSession(app.config)
   if not last_account:
     account = []
-    user = os.path.join(app.config['runner_workdir'], '.users')
     account.append(request.form['username'].strip())
     account.append(request.form['password'].strip())
     account.append(request.form['email'].strip())
@@ -536,7 +525,6 @@ app.add_url_rule('/viewInstanceLog', 'viewInstanceLog', viewInstanceLog, methods
 app.add_url_rule('/stopAllPartition', 'stopAllPartition', stopAllPartition, methods=['GET'])
 app.add_url_rule('/tailProcess/name/<process>', 'tailProcess', tailProcess, methods=['GET'])
 app.add_url_rule('/startStopProccess/name/<process>/cmd/<action>', 'startStopProccess', startStopProccess, methods=['GET'])
-app.add_url_rule('/viewBuildoudAnnotate', 'viewBuildoudAnnotate', viewBuildoudAnnotate, methods=['GET'])
 app.add_url_rule("/getParameterXml/<request>", 'getParameterXml', getParameterXml, methods=['GET'])
 app.add_url_rule("/stopSlapgrid", 'stopSlapgrid', stopSlapgrid, methods=['POST'])
 app.add_url_rule("/slapgridResult", 'slapgridResult', slapgridResult, methods=['POST'])

@@ -102,7 +102,7 @@ def updateProxy(config):
   slap = slapos.slap.slap()
   #Get current software release profile
   try:
-    software_folder = open(os.path.join(config['runner_workdir'],
+    software_folder = open(os.path.join(config['etc_dir'],
                                         ".project")).read()
     profile = realpath(config, os.path.join(software_folder,
                                           config['software_profile']))
@@ -136,7 +136,7 @@ def updateProxy(config):
                      'tap': {'name': partition_reference},
                      })
   #get instance parameter
-  param_path = os.path.join(config['runner_workdir'], ".parameter.xml")
+  param_path = os.path.join(config['etc_dir'], ".parameter.xml")
   xml_result = readParameters(param_path)
   partition_parameter_kw = None
   if type(xml_result) != type('') and xml_result.has_key('instance'):
@@ -174,14 +174,14 @@ def updateInstanceParameter(config, software_type=None):
   slap.initializeConnection(config['master_url'])
   #Get current software release profile
   try:
-    software_folder = open(os.path.join(config['runner_workdir'],
+    software_folder = open(os.path.join(config['etc_dir'],
                                         ".project")).read()
     profile = realpath(config, os.path.join(software_folder,
                                           config['software_profile']))
   except:
     raise Exception("Software Release profile not found")
   #get instance parameter
-  param_path = os.path.join(config['runner_workdir'], ".parameter.xml")
+  param_path = os.path.join(config['etc_dir'], ".parameter.xml")
   xml_result = readParameters(param_path)
   partition_parameter_kw = None
   if type(xml_result) != type('') and xml_result.has_key('instance'):
@@ -192,7 +192,7 @@ def updateInstanceParameter(config, software_type=None):
 
 def startProxy(config):
   """Start Slapproxy server"""
-  proxy_pid = os.path.join(config['runner_workdir'], 'proxy.pid')
+  proxy_pid = os.path.join(config['etc_dir'], 'proxy.pid')
   pid = readPid(proxy_pid)
   running = False
   if pid:
@@ -204,14 +204,14 @@ def startProxy(config):
       running = True
   if not running:
     proxy = Popen([config['slapproxy'], config['configuration_file_path']])
-    proxy_pid = os.path.join(config['runner_workdir'], 'proxy.pid')
+    proxy_pid = os.path.join(config['etc_dir'], 'proxy.pid')
     writePid(proxy_pid, proxy.pid)
     time.sleep(5)
 
 
 def stopProxy(config):
   """Stop Slapproxy server"""
-  pid = readPid(os.path.join(config['runner_workdir'], 'proxy.pid'))
+  pid = readPid(os.path.join(config['etc_dir'], 'proxy.pid'))
   if pid:
     try:
       os.kill(pid)
@@ -229,7 +229,7 @@ def isSoftwareRunning(config):
   """
     Return True if slapgrid-sr is still running and false if slapgrid if not
   """
-  slapgrid_pid = os.path.join(config['runner_workdir'], 'slapgrid-sr.pid')
+  slapgrid_pid = os.path.join(config['etc_dir'], 'slapgrid-sr.pid')
   pid = readPid(slapgrid_pid)
   if pid:
     try:
@@ -248,7 +248,7 @@ def runSoftwareWithLock(config):
     Use Slapgrid to compile current Software Release and wait until
     compilation is done
   """
-  slapgrid_pid = os.path.join(config['runner_workdir'], 'slapgrid-sr.pid')
+  slapgrid_pid = os.path.join(config['etc_dir'], 'slapgrid-sr.pid')
   if not isSoftwareRunning(config):
     if not os.path.exists(config['software_root']):
       os.mkdir(config['software_root'])
@@ -268,20 +268,20 @@ def runSoftwareWithLock(config):
     slapgrid.wait()
     #Saves the current compile software for re-use
     #This uses the new folder create by slapgrid (if not exits yet)
-    data = loadSoftwareData(config['runner_workdir'])
+    data = loadSoftwareData(config['etc_dir'])
     md5 = ""
     for path in os.listdir(config['software_root']):
       exist = False
       for val in data:
 	if val['md5'] == path:
 	  exist = True
-      conf = os.path.join(config['runner_workdir'], ".project")
+      conf = os.path.join(config['etc_dir'], ".project")
       if not exist: #save this compile software folder
 	if os.path.exists(conf):
 	  data.append({"title":getProjectTitle(config), "md5":path,
-	              "path": open(os.path.join(config['runner_workdir'],
+	              "path": open(os.path.join(config['etc_dir'],
 	                                        ".project"), 'r').read()})
-	  writeSoftwareData(config['runner_workdir'], data)
+	  writeSoftwareData(config['etc_dir'], data)
 	else:
 	  shutil.rmtree(os.path.join(config['software_root'], path))
 	break
@@ -293,7 +293,7 @@ def isInstanceRunning(config):
   """
     Return True if slapgrid-cp is still running and false if slapgrid if not
   """
-  slapgrid_pid = os.path.join(config['runner_workdir'], 'slapgrid-cp.pid')
+  slapgrid_pid = os.path.join(config['etc_dir'], 'slapgrid-cp.pid')
   pid = readPid(slapgrid_pid)
   if pid:
     try:
@@ -308,7 +308,7 @@ def isInstanceRunning(config):
 
 def killRunningSlapgrid(config, ptype):
   """Kill slapgrid process and all running children process"""
-  slapgrid_pid = os.path.join(config['runner_workdir'], ptype)
+  slapgrid_pid = os.path.join(config['etc_dir'], ptype)
   pid = readPid(slapgrid_pid)
   if pid:
       recursifKill([pid])
@@ -340,7 +340,7 @@ def runInstanceWithLock(config):
     Use Slapgrid to deploy current Software Release and wait until
     deployment is done.
   """
-  slapgrid_pid = os.path.join(config['runner_workdir'], 'slapgrid-cp.pid')
+  slapgrid_pid = os.path.join(config['etc_dir'], 'slapgrid-cp.pid')
   if not isInstanceRunning(config):
     startProxy(config)
     logfile = open(config['instance_log'], 'w')
@@ -389,18 +389,6 @@ def getSlapStatus(config):
       if not [x[0] for x in partition_list if slappart_id==x[0]]:
         partition_list.append((slappart_id, []))
   return partition_list
-
-def runBuildoutAnnotate(config):
-  slapgrid_pid = os.path.join(config['runner_workdir'], 'slapgrid-sr.pid')
-  if not isSoftwareRunning(config):
-	bin_buildout = os.path.join(config['software_root'], "bin/buildout")
-	if os.path.exists(bin_buildout):
-	  logfile = open(config['annotate_log'], 'w')
-	  buildout = Popen([bin_buildout, '-vc', config['configuration_file_path'],
-	                    "annotate"], stdout=logfile)
-	  buildout.wait()
-	  return True
-  return False
 
 def svcStopAll(config):
   """Stop all Instance process on this computer"""
@@ -561,10 +549,10 @@ def configNewSR(config, projectpath):
     removeProxyDb(config)
     startProxy(config)
     removeInstanceRoot(config)
-    param_path = os.path.join(config['runner_workdir'], ".parameter.xml")
+    param_path = os.path.join(config['etc_dir'], ".parameter.xml")
     if os.path.exists(param_path):
       os.remove(param_path)
-    open(os.path.join(config['runner_workdir'], ".project"), 'w').write(projectpath)
+    open(os.path.join(config['etc_dir'], ".project"), 'w').write(projectpath)
     return True
   else:
     return False
@@ -579,25 +567,22 @@ def newSoftware(folder, config, session):
     session: Flask session directory"""
   json = ""
   code = 0
-  runner_dir = config['runner_workdir']
+  basedir = config['etc_dir']
   try:
     folderPath = realpath(config, folder, check_exist=False)
     if folderPath and not os.path.exists(folderPath):
       os.mkdir(folderPath)
       #load software.cfg and instance.cfg from http://git.erp5.org
       software = "http://git.erp5.org/gitweb/slapos.git/blob_plain/HEAD:/software/lamp-template/software.cfg"
-      instance = "http://git.erp5.org/gitweb/slapos.git/blob_plain/HEAD:/software/lamp-template/instance.cfg"
       softwareContent = ""
-      instanceContent = ""
       try:
 	softwareContent = urllib.urlopen(software).read()
-	instanceContent = urllib.urlopen(instance).read()
       except:
 	#Software.cfg and instance.cfg content will be empty
 	pass
       open(os.path.join(folderPath, config['software_profile']), 'w').write(softwareContent)
-      open(os.path.join(folderPath, config['instance_profile']), 'w').write(instanceContent)
-      open(os.path.join(runner_dir, ".project"), 'w').write(folder + "/")
+      open(os.path.join(folderPath, config['instance_profile']), 'w').write("")
+      open(os.path.join(basedir, ".project"), 'w').write(folder + "/")
       session['title'] = getProjectTitle(config)
       code = 1
     else:
@@ -618,7 +603,7 @@ def checkSoftwareFolder(path, config):
 
 def getProjectTitle(config):
   """Generate the name of the current software Release (for slaprunner UI)"""
-  conf = os.path.join(config['runner_workdir'], ".project")
+  conf = os.path.join(config['etc_dir'], ".project")
   if os.path.exists(conf):
     project = open(conf, "r").read().split("/")
     software = project[len(project) - 2]
@@ -627,22 +612,22 @@ def getProjectTitle(config):
 
 def getSoftwareReleaseName(config):
   """Get the name of the current Software Release"""
-  sr_profile = os.path.join(config['runner_workdir'], ".project")
+  sr_profile = os.path.join(config['etc_dir'], ".project")
   if os.path.exists(sr_profile):
     project = open(sr_profile, "r").read().split("/")
     software = project[len(project) - 2]
     return software.replace(' ', '_')
   return "No_name"
 
-def loadSoftwareData(runner_dir):
+def loadSoftwareData(basedir):
   """Get All Compiled Softwares Releases name and directory
 
   Agrs:
-    runner_dir: base directory of slapos web runner.
+    basedir: base directory of slapos web runner.
   Returns:
     a dictionnary that contains all compiled Software Release with path"""
   import pickle
-  file_path = os.path.join(runner_dir, '.softdata')
+  file_path = os.path.join(basedir, '.softdata')
   if not os.path.exists(file_path):
     return []
   pkl_file = open(file_path, 'rb')
@@ -650,15 +635,15 @@ def loadSoftwareData(runner_dir):
   pkl_file.close()
   return data
 
-def writeSoftwareData(runner_dir, data):
+def writeSoftwareData(basedir, data):
   """Save the list of compiled Software Release into a file
 
   Args:
-    runner_dir: base directory of slapos web runner.
+    basedir: base directory of slapos web runner.
     data: dictionnary data about real name and directory of each software release
   """
   import pickle
-  file_path = os.path.join(runner_dir, '.softdata')
+  file_path = os.path.join(basedir, '.softdata')
   pkl_file = open(file_path, 'wb')
   # Pickle dictionary using protocol 0.
   pickle.dump(data, pkl_file)
@@ -678,12 +663,12 @@ def removeSoftwareByName(config, folderName):
   svcStopAll(config)
   shutil.rmtree(path)
   #update compiled software list
-  data = loadSoftwareData(config['runner_workdir'])
+  data = loadSoftwareData(config['etc_dir'])
   i = 0
   for p in data:
     if p['md5'] == folderName:
       del data[i]
-      writeSoftwareData(config['runner_workdir'], data)
+      writeSoftwareData(config['etc_dir'], data)
       break
     i = i+1
   return data
