@@ -74,6 +74,7 @@ setup(name=name,
           'pubsubnotifier = slapos.pubsub.notifier:main',
           'slaprunnertest = slapos.runner.testRunner:run',
           'zodbpack = slapos.zodbpack:run [zodbpack]',
+          'slapcontainer = slapos.container:main',
         ]
       },
     )
