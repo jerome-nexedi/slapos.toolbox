@@ -1,7 +1,7 @@
-0.28.3 (Unreleased)
+0.29 (2012-08-22)
 ===================
 
- * No change yet.
+ * Add slapcontainer stateless script. [Antoine Catton]
 
 0.28.2 (2012-08-17)
 ===================
