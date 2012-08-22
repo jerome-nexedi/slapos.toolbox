@@ -12,7 +12,7 @@ class SlapContainerError(Exception):
 
 
 
-def main(sr_directory, partition_list, database):
+def main(sr_directory, partition_list, database, bridge_name):
 
     logger = logging.getLogger('process')
 
@@ -38,6 +38,17 @@ def main(sr_directory, partition_list, database):
             # XXX: Hardcoded path
             lxc_conf_path = os.path.join(partition_path,
                                          'etc/lxc.conf')
+            # XXX: Avoid hacking slapos.core
+            ##########################################################
+            magic_string = '!!BRIDGE_NAME!!'
+            with open(lxc_conf_path, 'r') as lxc_conf_file:
+                lxc_conf_content = lxc_conf_file.read()
+            if magic_string in lxc_conf_content:
+                with open(lxc_conf_path, 'w') as lxc_conf_file:
+                    lxc_conf_file.write(
+                        lxc_conf_content.replace(magic_string, bridge_name)
+                    )
+            ##########################################################
             with open(lxc_conf_path, 'r') as lxc_conf_file:
                 requested_status = lxc_conf_file.readline().strip(' \n\r\t#')
 

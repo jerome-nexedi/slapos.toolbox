@@ -50,6 +50,7 @@ def run(args):
 
     partition_amount = slapos_conf.getint('slapformat', 'partition_amount')
     partition_base_name = slapos_conf.get('slapformat', 'partition_base_name')
+    bridge_name = slapos_conf.get('slapformat', 'interface_name')
     instance_root = slapos_conf.get('slapos', 'instance_root')
     partition_base_path = os.path.join(instance_root, partition_base_name)
     partition_list = ['%s%d' % (partition_base_path, i)
@@ -59,7 +60,7 @@ def run(args):
 
     database = gdbm.open(args.database, 'c', 0600)
     try:
-        process.main(sr_directory, partition_list, database)
+        process.main(sr_directory, partition_list, database, bridge_name)
     finally:
         database.sync()
         database.close()
