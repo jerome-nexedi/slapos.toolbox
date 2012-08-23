@@ -1,7 +1,7 @@
-0.30 (Unreleased)
-================
+0.29.1 (2012-08-23)
+===================
 
- * No change yet.
+ * Minor fix on slapcontainer. [Antoine Catton]
 
 0.29 (2012-08-22)
 ===================
