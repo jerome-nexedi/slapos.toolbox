@@ -38,6 +38,10 @@ def main(sr_directory, partition_list, database, bridge_name):
             # XXX: Hardcoded path
             lxc_conf_path = os.path.join(partition_path,
                                          'etc/lxc.conf')
+            lxc_state_path = os.path.join(partition_path,
+                                          '.slapcontainer.state')
+            sib_state_path = os.path.join(partition_path,
+                                          '.shellinabox.state')
             # XXX: Avoid hacking slapos.core
             ##########################################################
             magic_string = '!!BRIDGE_NAME!!'
@@ -61,7 +65,9 @@ def main(sr_directory, partition_list, database, bridge_name):
                               name=name,
                               database=database,
                               logger=partition_logger,
-                              lxc_conf_filename=lxc_conf_path)
+                              lxc_conf_filename=lxc_conf_path,
+                              lxc_state_path=lxc_state_path,
+                              sib_state_path=sib_state_path)
 
     if start_requested:
         logger.debug('Container which start was requested : %s.',
@@ -126,7 +132,9 @@ def process_partition(requested_status,
                       name,
                       database,
                       logger,
-                      lxc_conf_filename):
+                      lxc_conf_filename,
+                      lxc_state_path,
+                      sib_state_path):
 
     if requested_status == 'started':
 
@@ -142,6 +150,9 @@ def process_partition(requested_status,
             current_status = 'started'
         else:
             current_status = 'stopped'
+
+        with open(lxc_state_path, 'w') as lxc_state_file:
+            lxc_state_file.write(current_status)
 
         ### If container is not launch, launch it
         if requested_status != current_status:
@@ -162,6 +173,8 @@ def process_partition(requested_status,
             pid = int(database[name])
             if is_pid_running(pid):
                 current_status = 'started'
+        with open(sib_state_path, 'w') as sib_state_file:
+            sib_state_file.write(current_status)
 
         if current_status == 'stopped':
             logger.debug('Start shellinabox.')
