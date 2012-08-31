@@ -326,6 +326,9 @@ class TestMap(object):
    def getComputerList(self):
        return self.test_map_dict.keys()
 
+   def dropComputer(self, computer_id):
+       del self.test_map_dict[computer_id]
+
    def cleanUp(self):
        for key in self.test_map_dict.copy():
           if len(self.test_map_dict[key]) == 0:
@@ -337,7 +340,6 @@ class TestMap(object):
                return computer
 
        return None
-
 
 def main():
     """
@@ -466,8 +468,10 @@ def main():
                 logger.info("Running test dict: %s " % running_test_dict)
                 logger.info("Target Computer: %s " % target_computer)
                 if test_line is None:
-                    more_tests = False
-                    break
+                    test_mapping.dropComputer(target_computer)
+                    if len(test_mapping.getComputerList()) == 0:
+                        more_tests = False
+                    continue
                 test_name = test_line.name
                 try:
                     section_entry_dict = section_dict[test_name]
@@ -514,7 +518,8 @@ def main():
                 ran_test_set.add(test_name)
                 running_test_dict[test_name] = (test_line, tester, target_computer)
             if not running_test_dict:
-                break
+               break
+
             now = time.time()
             # Synchronise refreshes on watcher period, so it doesn't report a
             # stalled test node where we are actually still sleeping.
