@@ -14,6 +14,7 @@ import slapos.slap
 from slapos.grid.utils import setRunning, setFinished
 from erp5.util.taskdistribution import TaskDistributionTool, RPCRetry
 from erp5.util.taskdistribution import SAFE_RPC_EXCEPTION_LIST
+
 class AutoSTemp(object):
     """
     Create a self-destructing temporary file.
@@ -95,28 +96,24 @@ class x509Transport(xmlrpclib.Transport):
 class TestTimeout(Exception):
     pass
 
-MAX_RETRY_ON_NETWORK_FAILURE = 10
-DELAY_BETWEEN_RETRY = 10
-
-
 # Simple decorator to prevent raise due small
 # network failures.
 def retryOnNetworkFailure(func):
   def wrapper(*args, **kwargs):
-    for count in range(MAX_RETRY_ON_NETWORK_FAILURE):
+    retry_time = 64
+    while True:
       try:
         return func(*args, **kwargs)
       except SAFE_RPC_EXCEPTION_LIST, e:
-        print "Network failure (%s): %s , %s" % (count, sys.exc_info(), e)
-      time.sleep(DELAY_BETWEEN_RETRY)
+        print 'Network failure: %s , %s' % (sys.exc_info(), e)
 
-    # Last try should raise normally
-    return func(*args, **kwargs) 
+      print 'Retry method %s in %i seconds' % (func, retry_time)
+      time.sleep(retry_time)
+      retry_time += retry_time >> 1
 
   wrapper.__name__ = func.__name__
   wrapper.__doc__ = func.__doc__
   return wrapper
-
 
 class SoftwareReleaseTester(RPCRetry):
     deadline = None
