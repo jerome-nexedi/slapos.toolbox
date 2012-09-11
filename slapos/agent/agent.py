@@ -409,11 +409,17 @@ def main():
                 configuration.items(section))
             for key in ('request_kw', 'max_install_duration',
                         'max_destroy_duration', 'max_request_duration',
-                        'max_uninstall_duration', 'computer_list',
+                        'max_uninstall_duration', 'computer_list'
                     ):
                 if key in section_entry_dict:
-                    section_entry_dict[key] = json.loads(
-                        section_entry_dict[key])
+                    try:
+                        if isinstance(section_entry_dict[key], str) or \
+                              isinstance(section_entry_dict[key], unicode):
+                            section_entry_dict[key] = json.loads(
+                                                  section_entry_dict[key])
+                    except Exception, e:
+                        logger.error("Fail to load %s on %s" % (key, section_entry_dict))
+                        raise
             if 'key' in section_entry_dict:
                 key_file, cert_file = asFilenamePair(section_entry_dict['key'],
                     section_entry_dict['cert'])
