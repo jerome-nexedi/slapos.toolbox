@@ -569,6 +569,18 @@ def main():
                             skip_count=0,
                         )
                         del running_test_dict[section]
+                        try:
+                            tester.teardown()
+                        except slapos.slap.NotFoundError:
+                            # This exception is ignored because we cannot
+                            # Teardown if SR URL do not exist.
+                            logger.exception('Fail and not found')
+                            pass
+                        except Exception:
+                            logger.exception('teardown failed, human '
+                                 'assistance needed for cleanup')
+                            raise
+
                     else:
                         next_deadline = min(deadline, next_deadline)
             if running_test_dict:
