@@ -72,7 +72,7 @@ setup(name=name,
           'equeue = slapos.equeue:main',
           'pubsubserver = slapos.pubsub:main',
           'pubsubnotifier = slapos.pubsub.notifier:main',
-          'slaprunnertest = slapos.runner.testRunner:run',
+          'slaprunnertest = slapos.runner.runnertest:main',
           'zodbpack = slapos.zodbpack:run [zodbpack]',
           'slapcontainer = slapos.container:main',
         ]
