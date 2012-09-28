@@ -14,6 +14,10 @@ app = Flask(__name__)
 auth = Auth(app, login_url_name='login')
 auth.user_timeout = 0
 
+# Setup default flask (werkzeug) parser
+import logging
+logger = logging.getLogger('werkzeug')
+
 def login_redirect(*args, **kwargs):
   return redirect(url_for('login'))
 
@@ -444,7 +448,7 @@ def saveParameterXml():
   except Exception, e:
       result = str(e)
   software_type = None
-  if(request.form['software_type']):
+  if request.form['software_type']:
     software_type = request.form['software_type']
   if type(result) == type(''):
     return jsonify(code=0, result=result)
