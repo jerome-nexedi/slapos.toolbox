@@ -15,6 +15,9 @@ import hashlib
 import signal
 import multiprocessing
 
+# Setup default flask (werkzeug) parser
+import logging
+logger = logging.getLogger('werkzeug')
 
 
 class Popen(subprocess.Popen):
