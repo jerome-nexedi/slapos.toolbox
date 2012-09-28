@@ -193,10 +193,12 @@ $(document).ready( function() {
   }
     });
   }
-  function updateParameter(){
-    var xml = '<?xml version="1.0" encoding="utf-8"?>\n', software_type="";
-    if($("input#software_type").val() != "" && $("input#software_type").val() != "Software Type here..."){
-      software_type = +$("input#software_type").val();
+  function updateParameter() {
+    var xml = '<?xml version="1.0" encoding="utf-8"?>\n',
+        software_type="",
+        software_type_input_value = $("input#software_type").val();
+    if (software_type_input_value !== "" && software_type_input_value !== "Software Type here...") {
+      software_type = +software_type_input_value;
     }
     xml +='<instance>\n';
     var size = $("#partitionParameter > tbody > tr").length;
