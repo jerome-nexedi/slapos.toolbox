@@ -276,18 +276,18 @@ def runSoftwareWithLock(config):
     for path in os.listdir(config['software_root']):
       exist = False
       for val in data:
-	if val['md5'] == path:
-	  exist = True
+        if val['md5'] == path:
+          exist = True
       conf = os.path.join(config['etc_dir'], ".project")
       if not exist: #save this compile software folder
-	if os.path.exists(conf):
-	  data.append({"title":getProjectTitle(config), "md5":path,
-	              "path": open(os.path.join(config['etc_dir'],
-	                                        ".project"), 'r').read()})
-	  writeSoftwareData(config['etc_dir'], data)
-	else:
-	  shutil.rmtree(os.path.join(config['software_root'], path))
-	break
+        if os.path.exists(conf):
+          data.append({"title":getProjectTitle(config), "md5":path,
+                      "path": open(os.path.join(config['etc_dir'],
+                                                ".project"), 'r').read()})
+          writeSoftwareData(config['etc_dir'], data)
+        else:
+          shutil.rmtree(os.path.join(config['software_root'], path))
+        break
     return True
   return False
 
@@ -328,7 +328,7 @@ def recursifKill(pids):
       try:
         os.kill(pid, signal.SIGKILL) #kill current process
       except Exception:
-	      pass
+              pass
       recursifKill(ppids) #kill all children of this process
 
 def pidppid(pid):
@@ -404,10 +404,10 @@ def removeInstanceRoot(config):
     svcStopAll(config)
     for root, dirs, files in os.walk(config['instance_root']):
       for fname in dirs:
-	fullPath = os.path.join(root, fname)
-	if not os.access(fullPath, os.W_OK) :
-	  # Some directories may be read-only, preventing to remove files in it
-	  os.chmod(fullPath, 0744)
+        fullPath = os.path.join(root, fname)
+        if not os.access(fullPath, os.W_OK) :
+          # Some directories may be read-only, preventing to remove files in it
+          os.chmod(fullPath, 0744)
     shutil.rmtree(config['instance_root'])
 
 def getSvcStatus(config):
@@ -472,13 +472,13 @@ def getFolderContent(config, folder):
       ldir = sorted(os.listdir(realdir), key=str.lower)
     for f in ldir:
       if f.startswith('.'): #do not displays this file/folder
-	continue
+        continue
       ff=os.path.join(d,f)
       if os.path.isdir(os.path.join(realdir,f)):
-	r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff,f))
+        r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff,f))
       else:
-	e=os.path.splitext(f)[1][1:] # get .ext and remove dot
-	r.append('<li class="file ext_%s"><a href="#%s" rel="%s">%s</a></li>' % (e, ff,ff,f))
+        e=os.path.splitext(f)[1][1:] # get .ext and remove dot
+        r.append('<li class="file ext_%s"><a href="#%s" rel="%s">%s</a></li>' % (e, ff,ff,f))
     r.append('</ul>')
   except Exception,e:
     r.append('Could not load directory: %s' % str(e))
@@ -509,10 +509,10 @@ def getFolder(config, folder):
       ldir = sorted(os.listdir(realdir), key=str.lower)
     for f in ldir:
       if f.startswith('.'): #do not display this file/folder
-	continue
+        continue
       ff=os.path.join(d,f)
       if os.path.isdir(os.path.join(realdir,f)):
-	r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff, f))
+        r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff, f))
     r.append('</ul>')
   except Exception,e:
     r.append('Could not load directory: %s' % str(e))
@@ -579,10 +579,10 @@ def newSoftware(folder, config, session):
       software = "http://git.erp5.org/gitweb/slapos.git/blob_plain/HEAD:/software/lamp-template/software.cfg"
       softwareContent = ""
       try:
-	softwareContent = urllib.urlopen(software).read()
+        softwareContent = urllib.urlopen(software).read()
       except:
-	#Software.cfg and instance.cfg content will be empty
-	pass
+        #Software.cfg and instance.cfg content will be empty
+        pass
       open(os.path.join(folderPath, config['software_profile']), 'w').write(softwareContent)
       open(os.path.join(folderPath, config['instance_profile']), 'w').write("")
       open(os.path.join(basedir, ".project"), 'w').write(folder + "/")
@@ -688,15 +688,15 @@ def tail(f, lines=20):
   data = []
   while size > 0 and bytes > 0:
       if bytes - BUFSIZ > 0:
-	  # Seek back one whole BUFSIZ
-	  f.seek(block * BUFSIZ, 2)
-	  # read BUFFER
-	  data.insert(0, f.read(BUFSIZ))
+          # Seek back one whole BUFSIZ
+          f.seek(block * BUFSIZ, 2)
+          # read BUFFER
+          data.insert(0, f.read(BUFSIZ))
       else:
-	  # file too small, start from begining
-	  f.seek(0,0)
-	  # only read what was not read
-	  data.insert(0, f.read(bytes))
+          # file too small, start from begining
+          f.seek(0,0)
+          # only read what was not read
+          data.insert(0, f.read(bytes))
       linesFound = data[0].count('\n')
       size -= linesFound
       bytes -= BUFSIZ
@@ -725,10 +725,10 @@ def readFileFrom(f, lastPosition):
     else:
       margin = abs(block*BUFSIZ) - size
       if length < BUFSIZ:
-	f.seek(0,0)
+        f.seek(0,0)
       else:
-	seek = block * BUFSIZ + margin
-	f.seek(seek, 2)
+        seek = block * BUFSIZ + margin
+        f.seek(seek, 2)
       data = f.read(BUFSIZ - margin) + data
     bytes -= BUFSIZ
     block -= 1
@@ -756,7 +756,7 @@ def md5sum(file):
     while True:
       data = fh.read(8192)
       if not data:
-	break
+        break
       m.update(data)
     return m.hexdigest()
   except:
@@ -774,9 +774,9 @@ def realpath(config, path, check_exist=True):
     path = os.path.join(allow_list[key], string.join(split_path, '/'))
     if check_exist:
       if os.path.exists(path):
-	return path
+        return path
       else:
-	return False
+        return False
     else:
       return path
   return False
@@ -798,7 +798,7 @@ def readParameters(path):
         for subnode in elt.childNodes:
           if subnode.nodeType != subnode.TEXT_NODE:
             sub_object[str(subnode.getAttribute('id'))] = subnode.childNodes[0].data #.decode('utf-8').decode('utf-8')
-	    object[str(elt.tagName)] = sub_object
+            object[str(elt.tagName)] = sub_object
       return object
     except Exception, e:
       return str(e)
