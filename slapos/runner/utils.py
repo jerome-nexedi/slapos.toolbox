@@ -95,7 +95,7 @@ def saveSession(config, account):
       pass
     return str(e)
 
-def updateProxy(config):
+def updateProxy(config, request=True):
   """
   Configure Slapos Node computer and partitions.
   Send current Software Release to Slapproxy for compilation and deployment.
@@ -145,9 +145,15 @@ def updateProxy(config):
   if type(xml_result) != type('') and xml_result.has_key('instance'):
     partition_parameter_kw = xml_result['instance']
   computer.updateConfiguration(xml_marshaller.dumps(slap_config))
-  sr_request = slap.registerOpenOrder().request(profile, partition_reference=getSoftwareReleaseName(config),
-                partition_parameter_kw=partition_parameter_kw, software_type=None,
-                filter_kw=None, state=None, shared=False)
+  if request:
+    slap.registerOpenOrder().request(
+        profile,
+        partition_reference=getSoftwareReleaseName(config),
+        partition_parameter_kw=partition_parameter_kw,
+        software_type=None,
+        filter_kw=None,
+        state=None,
+        shared=False)
   return True
 
 def readPid(file):
@@ -183,6 +189,10 @@ def updateInstanceParameter(config, software_type=None):
                                           config['software_profile']))
   except:
     raise Exception("Software Release profile not found")
+
+  if not updateProxy(config, request=False):
+    return False
+
   #get instance parameter
   param_path = os.path.join(config['etc_dir'], ".parameter.xml")
   xml_result = readParameters(param_path)
@@ -259,7 +269,7 @@ def runSoftwareWithLock(config):
     removeProxyDb(config)
     startProxy(config)
     logfile = open(config['software_log'], 'w')
-    if not updateProxy(config):
+    if not updateProxy(config, request=False):
       return False
     # Accelerate compilation by setting make -jX
     environment = os.environ.copy()
