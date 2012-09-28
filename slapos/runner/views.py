@@ -426,9 +426,11 @@ def getPath():
   else:
     return jsonify(code=1, result=realfile)
 
-#update instance parameter into a local xml file
 @login_required()
 def saveParameterXml():
+  """
+  Update instance parameter into a local xml file.
+  """
   project = os.path.join(app.config['etc_dir'], ".project")
   if not os.path.exists(project):
     return jsonify(code=0, result="Please first open a Software Release")
