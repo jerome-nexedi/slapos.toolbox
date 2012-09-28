@@ -17,7 +17,6 @@ $(document).ready(function() {
 
   $('#parameterkw').slideBox('show');
   setupSlappart();
-  $('#softwareType').slideBox();
   $('#reloadfiles').click(function() {
     setupFileTree();
   });
