@@ -198,7 +198,7 @@ $(document).ready(function() {
         software_type = '',
         software_type_input_value = $('input#software_type').val();
     if (software_type_input_value !== '' && software_type_input_value !== 'Software Type here...') {
-      software_type = +software_type_input_value;
+      software_type = software_type_input_value;
     }
     xml += '<instance>\n';
     var size = $('#partitionParameter > tbody > tr').length;
