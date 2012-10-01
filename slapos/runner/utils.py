@@ -95,7 +95,45 @@ def saveSession(config, account):
       pass
     return str(e)
 
-def updateProxy(config, request=True):
+def getCurrentSoftwareReleaseProfile(config):
+  """
+  Returns used Software Release profile as a string.
+  """
+  try:
+    software_folder = open(
+        os.path.join(config['etc_dir'], ".project")).read()
+    return realpath(
+        config, os.path.join(software_folder, config['software_profile']))
+  except:
+    return False
+
+def requestInstance(config, software_type=None):
+  """
+  Request the main instance of our environment
+  """
+  if not software_type:
+    software_type = None
+
+  slap = slapos.slap.slap()
+  profile = getCurrentSoftwareReleaseProfile(config)
+  slap.initializeConnection(config['master_url'])
+
+  param_path = os.path.join(config['etc_dir'], ".parameter.xml")
+  xml_result = readParameters(param_path)
+  partition_parameter_kw = None
+  if type(xml_result) != type('') and xml_result.has_key('instance'):
+    partition_parameter_kw = xml_result['instance']
+
+  return slap.registerOpenOrder().request(
+      profile,
+      partition_reference=getSoftwareReleaseName(config),
+      partition_parameter_kw=partition_parameter_kw,
+      software_type=software_type,
+      filter_kw=None,
+      state=None,
+      shared=False)
+
+def updateProxy(config):
   """
   Configure Slapos Node computer and partitions.
   Send current Software Release to Slapproxy for compilation and deployment.
@@ -103,14 +141,7 @@ def updateProxy(config, request=True):
   if not os.path.exists(config['instance_root']):
     os.mkdir(config['instance_root'])
   slap = slapos.slap.slap()
-  #Get current software release profile
-  try:
-    software_folder = open(os.path.join(config['etc_dir'],
-                                        ".project")).read()
-    profile = realpath(config, os.path.join(software_folder,
-                                          config['software_profile']))
-  except:
-    return False
+  profile = getCurrentSoftwareReleaseProfile(config)
 
   slap.initializeConnection(config['master_url'])
   slap.registerSupply().supply(profile, computer_guid=config['computer_id'])
@@ -138,22 +169,7 @@ def updateProxy(config, request=True):
                      'reference': partition_reference,
                      'tap': {'name': partition_reference},
                      })
-  #get instance parameter
-  param_path = os.path.join(config['etc_dir'], ".parameter.xml")
-  xml_result = readParameters(param_path)
-  partition_parameter_kw = None
-  if type(xml_result) != type('') and xml_result.has_key('instance'):
-    partition_parameter_kw = xml_result['instance']
   computer.updateConfiguration(xml_marshaller.dumps(slap_config))
-  if request:
-    slap.registerOpenOrder().request(
-        profile,
-        partition_reference=getSoftwareReleaseName(config),
-        partition_parameter_kw=partition_parameter_kw,
-        software_type=None,
-        filter_kw=None,
-        state=None,
-        shared=False)
   return True
 
 def readPid(file):
@@ -179,29 +195,8 @@ def updateInstanceParameter(config, software_type=None):
     config: Slaprunner configuration.
     software_type: reconfigure Software Instance with software type.
   """
-  slap = slapos.slap.slap()
-  slap.initializeConnection(config['master_url'])
-  #Get current software release profile
-  try:
-    software_folder = open(os.path.join(config['etc_dir'],
-                                        ".project")).read()
-    profile = realpath(config, os.path.join(software_folder,
-                                          config['software_profile']))
-  except:
-    raise Exception("Software Release profile not found")
-
-  if not updateProxy(config, request=False):
+  if not (updateProxy(config) and requestInstance(config, software_type)):
     return False
-
-  #get instance parameter
-  param_path = os.path.join(config['etc_dir'], ".parameter.xml")
-  xml_result = readParameters(param_path)
-  partition_parameter_kw = None
-  if type(xml_result) != type('') and xml_result.has_key('instance'):
-    partition_parameter_kw = xml_result['instance']
-  slap.registerOpenOrder().request(profile, partition_reference=getSoftwareReleaseName(config),
-          partition_parameter_kw=partition_parameter_kw, software_type=software_type,
-          filter_kw=None, state=None, shared=False)
 
 def startProxy(config):
   """Start Slapproxy server"""
@@ -269,7 +264,7 @@ def runSoftwareWithLock(config):
     removeProxyDb(config)
     startProxy(config)
     logfile = open(config['software_log'], 'w')
-    if not updateProxy(config, request=False):
+    if not updateProxy(config):
       return False
     # Accelerate compilation by setting make -jX
     environment = os.environ.copy()
@@ -357,7 +352,7 @@ def runInstanceWithLock(config):
   if not isInstanceRunning(config):
     startProxy(config)
     logfile = open(config['instance_log'], 'w')
-    if not updateProxy(config):
+    if not (updateProxy(config) and requestInstance(config)):
       return False
     svcStopAll(config) #prevent lost control of process
     slapgrid = Popen([config['slapgrid_cp'], '-vc',
@@ -773,15 +768,17 @@ def md5sum(file):
     return False
 
 def realpath(config, path, check_exist=True):
-  """Get realpath of path or return False if user is not allowed to access to
-  this file"""
+  """
+  Get realpath of path or return False if user is not allowed to access to
+  this file.
+  """
   split_path = path.split('/')
   key = split_path[0]
   allow_list = {'software_root':config['software_root'], 'instance_root':
                 config['instance_root'], 'workspace': config['workspace']}
   if allow_list.has_key(key):
     del split_path[0]
-    path = os.path.join(allow_list[key], string.join(split_path, '/'))
+    path = os.path.join(allow_list[key], *split_path)
     if check_exist:
       if os.path.exists(path):
         return path
