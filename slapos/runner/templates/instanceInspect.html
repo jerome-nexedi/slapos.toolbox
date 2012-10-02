@@ -2,8 +2,8 @@
 {% block title %}Instance inspection{% endblock %}
 {% block head %}
   {{ super() }}
-  <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='js/jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
+  <!--<link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='js/jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>-->
   <link href="{{ url_for('static', filename='css/jqueryTabs.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
   <script src="{{ url_for('static', filename='js/jquery/jqueryTabs.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
@@ -11,6 +11,8 @@
   <link href="{{ url_for('static', filename='css/colorbox.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
   <script src="{{ url_for('static', filename='js/jquery/jquery.colorbox-min.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/scripts/inspectInstance.js') }}" type="text/javascript" charset="utf-8"></script>
+  <link href="{{ url_for('static', filename='css/gsFileManager.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='js/jquery/gsFileManager.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
 <input type='hidden' name='root' id='root' value='{%if file_path != "" %}{{file_path}}{%endif%}' />
@@ -121,17 +123,25 @@
       <div class="clear"></div>
         </div><!-- end tab3 -->
       <div id="tab4" class="tabContents">
-      <h2>File content for all your partitions</h2>
-      <div id="fileTree" class="file_tree_tabs" title="Double click to open file"></div>
-      <br/>
-      <a href="#" id="reloadfiles" class="lshare simple">Reload Files</a>
+      <!--<h2>File content for all your partitions</h2>
+      <div id="fileTree" class="file_tree_tabs" title="Double click to open file"></div>-->
+      {%if file_path != "" %}
+        <div id="fileNavigator"></div>
+        <br/>
+        <a href="#" id="reloadfiles" class="lshare simple">Reload Files</a>
+      {%else%}
+        <h2>Your partitions content is empty yet!
+          <br/>please run your software instance
+          and look for file result here.
+        </h2>
+      {%endif%}
         </div><!-- end tab4 -->
     </div>
 </div>
 <!-- This contains the hidden content for inline calls -->
-<a class='inline' style='display:none' href="#inline_content">Inline HTML</a>
+<a id='inlineInstance' style='display:none' href="#inline_instance">Inline HTML</a>
 <div style='display:none'>
-<div id='inline_content' style='padding:10px; background:#fff;'>
+<div id='inline_instance' style='padding:10px; background:#fff;'>
 
 </div>
 </div>

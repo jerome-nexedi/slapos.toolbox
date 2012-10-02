@@ -20,7 +20,7 @@ $(document).ready(function(){
   else{$(".tabContents:first").show(); previoustab = ".tabContents:first";} // Show the first div of tab content by default
 	$("#tabContaier ul li a").click(function(){ //Fire the click event
 		if($(this).hasClass('active')){
-		    return;
+		    return false;
 		}
     fromheight = $(previoustab).height();
 		var activeTab = $(this).attr("href"); // Catch the click link
@@ -38,5 +38,6 @@ $(document).ready(function(){
     });}
     previoustab = activeTab;
     $("#tabContaier .tabDetails").css("height", $("#tabContaier .tabDetails").height());
+    return false;//this reinitialize tab index when reload page
 	});
 });

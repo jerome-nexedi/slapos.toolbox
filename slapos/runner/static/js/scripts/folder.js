@@ -1,9 +1,7 @@
 $(document).ready( function() {
 	var send = false;
 	var cloneRequest;
-	$('#fileTree').fileTree({ root: $("input#workdir").val(), script: $SCRIPT_ROOT + '/readFolder', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false }, function(file) {
-		selectFile(file);
-	});
+  $('#fileNavigator').gsFileManager({ script: $SCRIPT_ROOT+"/fileBrowser", root: "workspace/"});
 	configRadio();
 	$("input#nothing").change(function(){
 		configRadio();
@@ -86,9 +84,7 @@ $(document).ready( function() {
 					$("#error").Popup("Your repository is cloned!", {type:'confirm', duration:3000});
 					$("input#repo").val("Enter the url of your repository...");
 					$("input#name").val("Enter the project name...");
-					$('#fileTree').fileTree({ root: $("input#workdir").val(), script: $SCRIPT_ROOT + '/readFolder', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false }, function(file) {
-						selectFile(file);
-					});
+					$('#fileNavigator').gsFileManager({ script: $SCRIPT_ROOT+"/fileBrowser", root: "workspace"});
 				}
 				else{
 					$("#error").Popup(data.result, {type:'error'});
