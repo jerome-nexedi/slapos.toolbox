@@ -1,7 +1,7 @@
-0.31 (Unrelease)
+0.31 (2012-10-02)
 =================
 
- * No change yet.
+ * slaprunner: Add correct support for software_type. [Cedric de Saint Martin]
 
 0.30 (2012-08-29)
 =================
@@ -14,7 +14,7 @@
  * Minor fix on slapcontainer. [Antoine Catton]
 
 0.29 (2012-08-22)
-===================
+=================
 
  * Add slapcontainer stateless script. [Antoine Catton]
 
