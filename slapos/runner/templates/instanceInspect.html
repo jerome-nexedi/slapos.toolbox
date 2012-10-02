@@ -2,8 +2,6 @@
 {% block title %}Instance inspection{% endblock %}
 {% block head %}
   {{ super() }}
-  <!--<link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='js/jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>-->
   <link href="{{ url_for('static', filename='css/jqueryTabs.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
   <script src="{{ url_for('static', filename='js/jquery/jqueryTabs.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
@@ -99,7 +97,7 @@
         </div><!-- end tab2 -->
       <div id="tab3" class="tabContents">
       <div id="softwareType">
-        <h2 class='hight'>Software Type of main instance</h2>
+        <h2 class='title'>Software Type of main instance</h2>
         <input style="margin-top:5px;" type="text" name="software_type" id="software_type" size="35" value="Software Type here..." />
       </div>
       <br/>

@@ -63,15 +63,15 @@ $(document).ready(function() {
     $.ajax({
     type: 'GET',
     url: $SCRIPT_ROOT + '/getParameterXml/xml',
-    success: function(data) {
-      if (data.code == 1) {
-        $('#inline_content').html(content);
+    success: function(data){
+      if(data.code == 1){
+        $("#inline_instance").html(content);
         setupEditor(true);
-        $('.inline').colorbox({inline: true, width: '600px', height: '410px', onComplete: function() {
+        $("a#inlineInstance").colorbox({inline:true, width: "600px", height: "410px", onComplete:function(){
           editor.getSession().setValue(data.result);
         }});
-        $('.inline').click();
-        $('#loadxml').click(function() {
+        $("a#inlineInstance").click();
+        $("#loadxml").click(function(){
           //Parse XML file
           try {
             var xmlDoc = $.parseXML(editor.getSession().getValue()), $xml = $(xmlDoc);
@@ -109,32 +109,20 @@ $(document).ready(function() {
     }
   });
 
-  function setupFileTree(path) {
-    var root = $('input#root').val();
-    if (root == '') return;
-    if (path) {
-      root += '/' + path;
-      $('#tab4>h2').html('File content for <strong>' + path + '</strong>');
+  function setupFileTree(path){
+    var root = $("input#root").val();
+    if (root === '') return;
+    if (path){
+      root += '/' + path + '/';
     }
-    else {$('#tab4>h2').html('File content for all your partitions');}
-    $('#fileTree').empty();
-    $('#fileTree').fileTree({ root: root, script: $SCRIPT_ROOT + '/readFolder', folderEvent: 'click', expandSpeed: 750,
-      collapseSpeed: 750, multiFolder: false, selectFolder: false }, function(file) {
-
-      }, function(file) {
-  //User have double click on file in to the fileTree
-  viewFile(file);
-    });
+    else{root += '/';}
+    $('#fileNavigator').gsFileManager({ script: $SCRIPT_ROOT+"/fileBrowser", root: root});
   }
 
-  function viewFile(file) {
-    //User have double click on file in to the fileTree
-    loadFileContent(file);
-  }
-  $('#parameter').load($SCRIPT_ROOT + '/getParameterXml');
-  $('#update').click(function() {
-    if ($('#parameter').val() == '') {
-        $('#error').Popup('Can not save empty value!', {type: 'alert', duration: 3000});
+  $("#parameter").load($SCRIPT_ROOT + '/getParameterXml');
+  $("#update").click(function(){
+    if($("#parameter").val() === ''){
+        $("#error").Popup("Can not save empty value!", {type:'alert', duration:3000});
     }
     $.ajax({
         type: 'POST',
@@ -151,47 +139,6 @@ $(document).ready(function() {
     });
   });
 
-  function loadFileContent(file) {
-  $.ajax({
-  type: 'POST',
-  url: $SCRIPT_ROOT + '/checkFileType',
-  data: 'path=' + file,
-  success: function(data) {
-    if (data.code == 1) {
-      if (data.result == 'text') {
-        $.ajax({
-        type: 'POST',
-        url: $SCRIPT_ROOT + '/getFileContent',
-        data: {file: file, truncate: 1500},
-        success: function(data) {
-          if (data.code == 1) {
-      $('#inline_content').empty();
-      $('#inline_content').append('<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">Inspect Instance Content: ' +
-        file + '</h2>');
-      $('#inline_content').append('<br/><div class="main_content"><pre id="editor"></pre></div>');
-      setupEditor();
-      $('.inline').colorbox({inline: true, width: '847px', onComplete: function() {
-        editor.getSession().setValue(data.result);
-      }});
-      $('.inline').click();
-          }
-          else {
-      $('#error').Popup('Can not load your file, please make sure that you have selected a Software Release', {type: 'alert', duration: 5000});
-          }
-      }
-        });
-      }
-      else {
-        //Can not displays binary file
-        $('#error').Popup(data.result, {type: 'alert', duration: 5000});
-      }
-    }
-    else {
-      $('#error').Popup(data.result, {type: 'alert', duration: 5000});
-    }
-  }
-    });
-  }
   function updateParameter() {
     var xml = '<?xml version="1.0" encoding="utf-8"?>\n',
         software_type = '',
@@ -233,7 +180,9 @@ $(document).ready(function() {
     $txt.keyup(function() {
       content = $txt.val().replace(/\n/g, '<br>');
       hiddenDiv.html(content);
-      if (hiddenDiv.height() > $txt.height() && hiddenDiv.height() > 120) {return}
+      if (hiddenDiv.height() > $txt.height() && hiddenDiv.height() > 120) {
+        return;
+      }
       $txt.css('height', hiddenDiv.height() + 'px');
     });
   }
@@ -241,15 +190,15 @@ $(document).ready(function() {
     $.ajax({
     type: 'GET',
     url: $SCRIPT_ROOT + '/getParameterXml/dict',
-    success: function(data) {
-      if (data.code == 1) {
+    success: function(data){
+      if(data.code == 1){
         var dict = data.result['instance'];
-        for (propertie in dict) {
-          $('#add_attribute').click();
-          var size = Number($('#partitionParameter > tbody > tr').last().attr('id').split('_')[1]);
-          $('input#txt_' + size).val(propertie);
-          $('textarea#value_' + size).val(dict[propertie]);
-          $('textarea#value_' + size).keyup();
+        for (var propertie in dict){
+          $("#add_attribute").click();
+          var size = Number($("#partitionParameter > tbody > tr").last().attr('id').split('_')[1]);
+          $("input#txt_"+size).val(propertie);
+          $("textarea#value_"+size).val(dict[propertie]);
+          $("textarea#value_"+size).keyup();
         }
       }
       else {
@@ -302,10 +251,10 @@ $(document).ready(function() {
     for (var i = 0; i < partitionAmount; i++) {
       var elt = $('#slappart' + i + 'Parameter');
       var fileId = $('#slappart' + i + 'Files');
-      if (elt && elt != undefined) elt.click(function() {
+      if (elt && elt !== undefined) elt.click(function() {
         alert($(this).html());
       });
-      if (fileId && fileId != undefined) fileId.click(function() {
+      if (fileId && fileId !== undefined) fileId.click(function() {
         $('#instancetabfiles').click();
         setupFileTree($(this).attr('rel'));
       });

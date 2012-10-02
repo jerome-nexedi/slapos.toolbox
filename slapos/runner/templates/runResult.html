@@ -2,19 +2,19 @@
 {% block title %}Webrunner software Inspection{% endblock %}
 {% block head %}
   {{ super() }}
-  <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='js/jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/scripts/inspectSoftware.js') }}" type="text/javascript" charset="utf-8"></script>
   <link href="{{ url_for('static', filename='css/colorbox.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
   <script src="{{ url_for('static', filename='js/jquery/jquery.colorbox-min.js') }}" type="text/javascript" charset="utf-8"></script>
+  <link href="{{ url_for('static', filename='css/gsFileManager.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='js/jquery/gsFileManager.js') }}" type="text/javascript" charset="utf-8"></script>
 
 {% endblock %}
 {% block body %}
-<h2>Inspect software</h2>
+<h2>Inspect software release</h2>
 <input type="hidden" name="runnerdir" id="runnerdir" value="{{softwareRoot}}" />
-<label for='softwarelist'>Select software: </label>
+<label for='softwarelist'>Software Release: </label>
 <select name="softwarelist" id="softwarelist">
 {%if not softwares %}<option >No Software Release found</option>{% endif %}
 {%for soft in softwares %}
@@ -24,16 +24,8 @@
 &nbsp;&nbsp;<button id ="delete" class="button" title="Remove this software">Remove</button>
 &nbsp;&nbsp;<button id ="open" class="button" title="Set this software as current software release">Open</button>
 <br/><br/>
-<h2 id="softcontent">No file or folder to display</h2>
-<div id="fileTree" class="file_tree" style='height:200px;' title="Double click to open file"></div>
-<div id="file_info" class="file_info">
-<span id="info">Please select your file or folder into the box...</span></div>
-<!-- This contains the hidden content for inline calls -->
-<a class='inline' style='display:none' href="#inline_content">Inline HTML</a>
-<div style='display:none'>
-<div id='inline_content' style='padding:10px; background:#fff;'>
-
-</div>
-</div>
+<div id="fileNavigator"></div>
+<br/>
+<a href="#" id="reloadfiles" class="lshare simple">Reload Files</a>
 <br/>
 {% endblock %}

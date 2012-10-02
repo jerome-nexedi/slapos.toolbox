@@ -3,7 +3,7 @@ $(document).ready(function(){
   var hashes = window.location.href.split('#');
   var fromheight = 0;
   var previoustab = null;
-  if (hashes.length == 2 && hashes[1] != ""){
+  if (hashes.length == 2 && hashes[1] !== ''){
     $("#tabContaier>ul li").each(function() {
       var $tab = $(this).find("a");
       if($tab.hasClass("active")){
