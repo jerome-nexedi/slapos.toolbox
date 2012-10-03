@@ -39,6 +39,9 @@ $(document).ready( function() {
         return false;
     }
 		if(send) return;
+    if(!window.confirm("Do you really want to delete this software release?")){
+      return;
+    }
 		send = false;
     var elt = $("option:selected", $("#softwarelist"));
 		$.ajax({

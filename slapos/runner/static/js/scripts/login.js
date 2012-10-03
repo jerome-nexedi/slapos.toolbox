@@ -15,6 +15,7 @@ $(document).ready( function() {
     send = true;
     var param = {clogin:$("input#clogin").val(), cpwd:$("input#cpwd").val()};
     var url = $SCRIPT_ROOT + "/doLogin";
+    $("#login").removeClass("button").addClass("dsblebutton");
     $.post(url, param, function(data) {
       if (data.code==1){
         location.href = $SCRIPT_ROOT + '/';
@@ -23,9 +24,11 @@ $(document).ready( function() {
         $("#error").Popup(data.result, {type:'alert', duration:3000});
       }
     })
-    .error(function() {$("#error").Popup("Cannot send your account identifier please try again!!",
+    .error(function() {
+      $("#error").Popup("Cannot send your account identifier please try again!!",
       {type:'alert', duration:3000});})
     .complete(function() {
+      $("#login").removeClass('dsblebutton').addClass('button');
       send = false;
     });
     return false;

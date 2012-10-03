@@ -105,13 +105,13 @@ def inspectSoftware():
 #remove content of compiled software release
 @login_required()
 def removeSoftware():
-  file_config = os.path.join(app.config['etc_dir'], ".softdata")
   if isSoftwareRunning(app.config) or isInstanceRunning(app.config):
     flash('Software installation or instantiation in progress, cannot remove')
-  elif os.path.exists(file_config):
+  elif os.path.exists(app.config['software_root']):
     svcStopAll(app.config)
     shutil.rmtree(app.config['software_root'])
-    os.remove(file_config)
+    for link in os.listdir(app.config['software_link']):
+      os.remove(os.path.join(app.config['software_link'], link))
     flash('Software removed')
   return redirect(url_for('inspectSoftware'))
 
