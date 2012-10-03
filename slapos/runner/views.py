@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, request, redirect, url_for, \
-         render_template, g, flash, jsonify, session
+         render_template, g, flash, jsonify, session, abort, send_file
 from utils import *
 import os
 import shutil
@@ -9,10 +9,14 @@ import md5
 from gittools import cloneRepo, gitStatus, switchBranch, addBranch, getDiff, \
      gitPush, gitPull
 from flaskext.auth import Auth, AuthUser, login_required, logout
+from fileBrowser import fileBrowser
+import urllib
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
 auth = Auth(app, login_url_name='login')
 auth.user_timeout = 0
+file_request = fileBrowser(app.config)
 
 # Setup default flask (werkzeug) parser
 import logging
@@ -95,19 +99,19 @@ def inspectSoftware():
     result = ""
   else:
     result = app.config['software_root']
-  return render_template('runResult.html', softwareRoot='software_root',
-                         softwares=loadSoftwareData(app.config['etc_dir']))
+  return render_template('runResult.html', softwareRoot='software_link/',
+                         softwares=loadSoftwareRList(app.config))
 
 #remove content of compiled software release
 @login_required()
 def removeSoftware():
-  file_config = os.path.join(app.config['etc_dir'], ".softdata")
   if isSoftwareRunning(app.config) or isInstanceRunning(app.config):
     flash('Software installation or instantiation in progress, cannot remove')
-  elif os.path.exists(file_config):
+  elif os.path.exists(app.config['software_root']):
     svcStopAll(app.config)
     shutil.rmtree(app.config['software_root'])
-    os.remove(file_config)
+    for link in os.listdir(app.config['software_link']):
+      os.remove(os.path.join(app.config['software_link'], link))
     flash('Software removed')
   return redirect(url_for('inspectSoftware'))
 
@@ -147,7 +151,8 @@ def inspectInstance():
     if len(result) == 0:
       result = []
   return render_template('instanceInspect.html',
-      file_path=file_content, supervisor=result, slap_status=getSlapStatus(app.config),
+      file_path=file_content, supervisor=result,
+      slap_status=getSlapStatus(app.config),
       supervisore=result, partition_amount=app.config['partition_amount'])
 
 #Reload instance process ans returns new value to ajax
@@ -304,7 +309,8 @@ def removeFile():
 @login_required()
 def removeSoftwareDir():
   try:
-    data = removeSoftwareByName(app.config, request.form['name'])
+    data = removeSoftwareByName(app.config, request.form['md5'],
+            request.form['title'])
     return jsonify(code=1, result=data)
   except Exception, e:
     return jsonify(code=0, result=str(e))
@@ -505,7 +511,8 @@ def configAccount():
     account.append(request.form['email'].strip())
     account.append(request.form['name'].strip())
     code = request.form['rcode'].strip()
-    recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"), "r").read()
+    recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"),
+                        "r").read()
     if code != recovery_code:
       return jsonify(code=0, result="Your password recovery code is not valid!")
     result = saveSession(app.config, account)
@@ -514,6 +521,78 @@ def configAccount():
     else:
       return jsonify(code=1, result="")
   return jsonify(code=0, result="Unable to respond to your request, permission denied.")
+
+#Global File Manager
+@login_required()
+def fileBrowser():
+  if request.method == 'POST':
+    filename = request.form.get('filename', '').encode('utf-8')
+    dir = request.form['dir'].encode('utf-8')
+    newfilename = request.form.get('newfilename', '').encode('utf-8')
+    files = request.form.get('files', '').encode('utf-8')
+    if not request.form.has_key('opt') or not request.form['opt']:
+      opt = 1
+    else:
+      opt = int(request.form['opt'])
+  else:
+    opt = int(request.args.get('opt'))
+  try:
+    if opt == 1:
+      #list files and directories
+      result = file_request.listDirs(dir)
+    elif opt == 2:
+      #Create file
+      result = file_request.makeFile(dir, filename)
+    elif opt == 3:
+      #Create directory
+      result = file_request.makeDirectory(dir, filename)
+    elif opt == 4:
+      #Delete a list of files or/and directories
+      result = file_request.deleteItem(dir, files)
+    elif opt == 5:
+      #copy a lis of files or/and directories
+      result = file_request.copyItem(dir, files)
+    elif opt == 6:
+      #rename file or directory
+      result = file_request.rename(dir, filename, newfilename)
+    elif opt == 7:
+      result = file_request.copyItem(dir, files, del_source=True)
+    elif opt == 8:
+      #donwload file
+      filename = request.args.get('filename').encode('utf-8')
+      result = file_request.downloadFile(request.args.get('dir').encode('utf-8'),
+                filename)
+      try:
+        return send_file(result, attachment_filename=filename, as_attachment=True)
+      except:
+        abort(404)
+    elif opt == 9:
+      truncateTo = int(request.form.get('truncate', '0'))
+      result = file_request.readFile(dir, filename)
+    elif opt == 11:
+      #Upload file
+      result = file_request.uploadFile(dir, request.files)
+    elif opt == 14:
+      #Copy file or directory as ...
+      result = file_request.copyAsFile(dir, filename, newfilename)
+    elif opt == 16:
+      #zip file
+      result = file_request.zipFile(dir, filename, newfilename)
+    elif opt == 17:
+      #zip file
+      result = file_request.unzipFile(dir, filename, newfilename)
+    else:
+      result = "ARGS PARSE ERROR: Bad option..."
+  except Exception, e:
+    return str(e)
+  return result
+
+@login_required()
+def editFile():
+  return render_template('editFile.html', workDir='workspace',
+    profile=urllib.unquote(request.args.get('profile', '')),
+    projectList=getProjectList(app.config['workspace']),
+    filename=urllib.unquote(request.args.get('filename', '')))
 
 #Setup List of URLs
 app.add_url_rule('/', 'home', home)
@@ -561,3 +640,5 @@ app.add_url_rule("/saveParameterXml", 'saveParameterXml', saveParameterXml, meth
 app.add_url_rule("/getPath", 'getPath', getPath, methods=['POST'])
 app.add_url_rule("/myAccount", 'myAccount', myAccount)
 app.add_url_rule("/updateAccount", 'updateAccount', updateAccount, methods=['POST'])
+app.add_url_rule("/fileBrowser", 'fileBrowser', fileBrowser, methods=['GET', 'POST'])
+app.add_url_rule("/editFile", 'editFile', editFile, methods=['GET'])

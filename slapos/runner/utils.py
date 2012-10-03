@@ -275,27 +275,58 @@ def runSoftwareWithLock(config):
     writePid(slapgrid_pid, slapgrid.pid)
     slapgrid.wait()
     #Saves the current compile software for re-use
-    #This uses the new folder create by slapgrid (if not exits yet)
-    data = loadSoftwareData(config['etc_dir'])
-    md5 = ""
-    for path in os.listdir(config['software_root']):
-      exist = False
-      for val in data:
-        if val['md5'] == path:
-          exist = True
-      conf = os.path.join(config['etc_dir'], ".project")
-      if not exist: #save this compile software folder
-        if os.path.exists(conf):
-          data.append({"title":getProjectTitle(config), "md5":path,
-                      "path": open(os.path.join(config['etc_dir'],
-                                                ".project"), 'r').read()})
-          writeSoftwareData(config['etc_dir'], data)
-        else:
-          shutil.rmtree(os.path.join(config['software_root'], path))
-        break
+    config_SR_folder(config)
     return True
   return False
 
+def config_SR_folder(config):
+  """Create a symbolik link for each folder in software folder. That allow
+    user to customize software release folder"""
+  list = []
+  config_name = 'slaprunner.config'
+  for path in os.listdir(config['software_link']):
+    cfg_path = os.path.join(config['software_link'], path, config_name)
+    if os.path.exists(cfg_path):
+      cfg = open(cfg_path, 'r').read().split("#")
+      if len(cfg) != 2:
+        continue #there is a broken config file
+      list.append(cfg[1])
+  folder_list = os.listdir(config['software_root'])
+  if len(folder_list) < 1:
+    return
+  curent_project = open(os.path.join(config['etc_dir'], ".project"),
+                        'r').read()
+  projects = curent_project.split("/")
+  name = projects[len(projects) - 2]
+  for folder in folder_list:
+    if folder in list:
+      continue #this folder is already registered
+    else:
+      if not os.path.exists(os.path.join(config['software_link'], name)):
+        destination = os.path.join(config['software_link'], name)
+      else:
+        destination = os.path.join(config['software_link'], folder)
+      source = os.path.join(config['software_root'], folder)
+      cfg = os.path.join(destination, config_name)
+      #create symlink
+      os.symlink(source, destination)
+      #write config file
+      cf = open(cfg, 'w')
+      cf.write(curent_project+"#"+folder)
+      cf.close()
+
+def loadSoftwareRList(config):
+  """Return list (of dict) of Software Release from symbolik SR folder"""
+  list = []
+  config_name = 'slaprunner.config'
+  for path in os.listdir(config['software_link']):
+    cfg_path = os.path.join(config['software_link'], path, config_name)
+    if os.path.exists(cfg_path):
+      cfg = open(cfg_path, 'r').read().split("#")
+      if len(cfg) != 2:
+        continue #there is a broken config file
+      list.append(dict(md5=cfg[1], path=cfg[0], title=path))
+  return list
 
 def isInstanceRunning(config):
   """
@@ -535,7 +566,8 @@ def getProjectList(folder):
   project = []
   project_list = sorted(os.listdir(folder), key=str.lower)
   for elt in project_list:
-    project.append(elt)
+    if os.path.isdir(os.path.join(folder, elt)):
+      project.append(elt)
   return project
 
 def configNewSR(config, projectpath):
@@ -627,59 +659,26 @@ def getSoftwareReleaseName(config):
     return software.replace(' ', '_')
   return "No_name"
 
-def loadSoftwareData(basedir):
-  """Get All Compiled Softwares Releases name and directory
-
-  Agrs:
-    basedir: base directory of slapos web runner.
-  Returns:
-    a dictionnary that contains all compiled Software Release with path"""
-  import pickle
-  file_path = os.path.join(basedir, '.softdata')
-  if not os.path.exists(file_path):
-    return []
-  pkl_file = open(file_path, 'rb')
-  data = pickle.load(pkl_file)
-  pkl_file.close()
-  return data
-
-def writeSoftwareData(basedir, data):
-  """Save the list of compiled Software Release into a file
-
-  Args:
-    basedir: base directory of slapos web runner.
-    data: dictionnary data about real name and directory of each software release
-  """
-  import pickle
-  file_path = os.path.join(basedir, '.softdata')
-  pkl_file = open(file_path, 'wb')
-  # Pickle dictionary using protocol 0.
-  pickle.dump(data, pkl_file)
-  pkl_file.close()
-
-def removeSoftwareByName(config, folderName):
-  """Remove all content of the specified software release
+def removeSoftwareByName(config, md5, folderName):
+  """Remove all content of the software release specified by md5
 
   Args:
     config: slaprunner configuration
-    foldername: the name given to the software release"""
+    foldername: the link name given to the software release
+    md5: the md5 filename given by slapgrid to SR folder"""
   if isSoftwareRunning(config) or isInstanceRunning(config):
     raise Exception("Software installation or instantiation in progress, cannot remove")
-  path = os.path.join(config['software_root'], folderName)
+  path = os.path.join(config['software_root'], md5)
+  linkpath = os.path.join(config['software_link'], folderName)
   if not os.path.exists(path):
     raise Exception("Cannot remove software Release: No such file or directory")
+  if not os.path.exists(linkpath):
+    raise Exception("Cannot remove software Release: No such file or directory %s" %
+                    ('software_root/'+folderName))
   svcStopAll(config)
+  os.unlink(linkpath)
   shutil.rmtree(path)
-  #update compiled software list
-  data = loadSoftwareData(config['etc_dir'])
-  i = 0
-  for p in data:
-    if p['md5'] == folderName:
-      del data[i]
-      writeSoftwareData(config['etc_dir'], data)
-      break
-    i = i+1
-  return data
+  return loadSoftwareRList(config)
 
 def tail(f, lines=20):
   """
@@ -775,7 +774,8 @@ def realpath(config, path, check_exist=True):
   split_path = path.split('/')
   key = split_path[0]
   allow_list = {'software_root':config['software_root'], 'instance_root':
-                config['instance_root'], 'workspace': config['workspace']}
+                config['instance_root'], 'workspace': config['workspace'],
+                'software_link':config['software_link']}
   if allow_list.has_key(key):
     del split_path[0]
     path = os.path.join(allow_list[key], *split_path)

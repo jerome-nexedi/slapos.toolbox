@@ -1,9 +1,7 @@
 $(document).ready( function() {
 	var send = false;
 	var cloneRequest;
-	$('#fileTree').fileTree({ root: $("input#workdir").val(), script: $SCRIPT_ROOT + '/readFolder', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false }, function(file) {
-		selectFile(file);
-	});
+  $('#fileNavigator').gsFileManager({ script: $SCRIPT_ROOT+"/fileBrowser", root: "workspace/"});
 	configRadio();
 	$("input#nothing").change(function(){
 		configRadio();
@@ -25,20 +23,20 @@ $(document).ready( function() {
 		}
 		var repo_url = $("input#repo").val();
 		var email = "";
-		var name = ""
+		var name = "";
 		/* /^(ht|f)tps?:\/\/[a-z0-9-\.]+\.[a-z]{2,4}\/?([^\s<>\#%"\,\{\}\\|\\\^\[\]`]+)?$/ */
-		if($("input#repo").val() == "" || !repo_url.match(/^[\w\d\.\/:~@_-]+$/)){
+		if($("input#repo").val() === '' || !repo_url.match(/^[\w\d\.\/:~@_-]+$/)){
 			$("#error").Popup("Invalid url for the repository", {type:'alert', duration:3000});
 			return false;
 		}
-		if($("input#name").val() == "" || !$("input#name").val().match(/^[\w\d\._-]+$/)){
+		if($("input#name").val() === '' || !$("input#name").val().match(/^[\w\d\._-]+$/)){
 			$("#error").Popup("Invalid project name", {type:'alert', duration:3000});
 			return false;
 		}
 		if($("input#user").val() !== ""){
 			name = $("input#user").val();
 		}
-		if($("input#email").val() != "" && $("input#email").val() != "Enter your email adress..."){
+		if($("input#email").val() !== '' && $("input#email").val() !== "Enter your email adress..."){
 			if(!$("input#email").val().match(/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)){
 				$("#error").Popup("Please enter a valid email adress!", {type:'alert', duration:3000});
 				return false;
@@ -77,8 +75,8 @@ $(document).ready( function() {
 		cloneRequest = $.ajax({
 			type: "POST",
 			url: $SCRIPT_ROOT + '/cloneRepository',
-			data: {repo: repo_url, name: ($("input#workdir").val() + "/"
-				+ $("input#name").val()), email:email,
+			data: {repo: repo_url, name: ($("input#workdir").val() + "/" +
+				$("input#name").val()), email:email,
 				user:name},
 			success: function(data){
 				if(data.code == 1){
@@ -86,9 +84,7 @@ $(document).ready( function() {
 					$("#error").Popup("Your repository is cloned!", {type:'confirm', duration:3000});
 					$("input#repo").val("Enter the url of your repository...");
 					$("input#name").val("Enter the project name...");
-					$('#fileTree').fileTree({ root: $("input#workdir").val(), script: $SCRIPT_ROOT + '/readFolder', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false }, function(file) {
-						selectFile(file);
-					});
+					$('#fileNavigator').gsFileManager({ script: $SCRIPT_ROOT+"/fileBrowser", root: "workspace"});
 				}
 				else{
 					$("#error").Popup(data.result, {type:'error'});
@@ -101,7 +97,7 @@ $(document).ready( function() {
       error: function(request,error) {
         $("#error").Popup("unable to clone your project, please check your internet connection", {type:'error', duration:3000});
         $("#imgwaitting").hide();
-  			$("#clone").empty();
+        $("#clone").empty();
 				$("#clone").append("Clone");
       }
 		});

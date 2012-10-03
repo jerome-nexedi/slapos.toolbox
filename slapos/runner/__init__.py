@@ -111,17 +111,21 @@ def run():
 def serve(config):
   from views import app
   workdir = os.path.join(config.runner_workdir, 'project')
+  software_link = os.path.join(config.runner_workdir, 'softwareLink')
   app.config.update(**config.__dict__)
   app.config.update(
     software_log=config.software_root.rstrip('/') + '.log',
     instance_log=config.instance_root.rstrip('/') + '.log',
     workspace = workdir,
+    software_link=software_link,
     instance_profile='instance.cfg',
     software_profile='software.cfg',
-    SECRET_KEY="123456",
+    SECRET_KEY=os.urandom(24),
     PERMANENT_SESSION_LIFETIME=timedelta(days=31),
   )
   if not os.path.exists(workdir):
     os.mkdir(workdir)
+  if not os.path.exists(software_link):
+    os.mkdir(software_link)
   app.run(host=config.runner_host, port=int(config.runner_port),
       debug=config.debug, threaded=True)

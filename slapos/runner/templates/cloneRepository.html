@@ -1,15 +1,18 @@
 {% extends "layout.html" %}
-{% block title %}Adding new repository{% endblock %}
+{% block title %}Adding new project{% endblock %}
 {% block head %}
   {{ super() }}
-  <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <link href="{{ url_for('static', filename='css/gsFileManager.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
   <link href="{{ url_for('static', filename='css/jqueryTabs.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='js/jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
+  <link href="{{ url_for('static', filename='css/colorbox.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='js/jquery/gsFileManager.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/scripts/folder.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/jquery/jqueryTabs.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/jquery/jquery.colorbox-min.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
-<h2>Clone a repository into your workspace</h2><br/>
+<h2>Clone a project repository into your workspace</h2><br/>
 <div id="tabContaier">
   <ul>
     <li><a href="#tab1" class="active">Clone your repository</a></li>
@@ -71,9 +74,8 @@
 <!--Fin tab1-->
     </div>
     <div id="tab2" class="tabContents">
-      <h2>Content of your cloned project</h2><br/>
-      <div id="fileTree" class="file_tree_tabs"></div>
+      <div id="fileNavigator"></div>
     </div>
-  </div>
+</div>
 </div>
 {% endblock %}
