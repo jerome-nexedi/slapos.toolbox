@@ -17,7 +17,7 @@ class Parser(OptionParser):
     """
     OptionParser.__init__(self, usage=usage, version=version,
                           option_list=[
-      Option("-l", "--logfile",
+      Option("-l", "--log_file",
              help="The path to the log file used by the script.",
              type=str),
       Option("-v", "--verbose",
@@ -72,17 +72,17 @@ class Config:
     if self.console:
       self.logger.addHandler(logging.StreamHandler())
 
-    if self.logfile:
-      if not os.path.isdir(os.path.dirname(self.logfile)):
+    if self.log_file:
+      if not os.path.isdir(os.path.dirname(self.log_file)):
         # fallback to console only if directory for logs does not exists and
         # continue to run
         raise ValueError('Please create directory %r to store %r log file' % (
-          os.path.dirname(self.logfile), self.logfile))
+          os.path.dirname(self.log_file), self.log_file))
       else:
-        file_handler = logging.FileHandler(self.logfile)
+        file_handler = logging.FileHandler(self.log_file)
         file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
         self.logger.addHandler(file_handler)
-        self.logger.info('Configured logging to file %r' % self.logfile)
+        self.logger.info('Configured logging to file %r' % self.log_file)
 
     self.logger.info("Started.")
     self.logger.info(os.environ['PATH'])
