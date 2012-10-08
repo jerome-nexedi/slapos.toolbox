@@ -41,18 +41,24 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.users = ["slapuser", "slappwd", "slaprunner@nexedi.com", "SlapOS web runner"]
     self.updateUser = ["newslapuser", "newslappwd", "slaprunner@nexedi.com", "SlapOS web runner"]
     self.rcode = "41bf2657"
+    self.repo = 'http://git.erp5.org/repos/slapos.git'
+    self.software = "workspace/slapos/software/" #relative directory fo SR
+    self.project = 'slapos' #Default project name
     #create slaprunner configuration
     config = Config()
     config.setConfig()
     workdir = os.path.join(config.runner_workdir, 'project')
+    software_link = os.path.join(config.runner_workdir, 'softwareLink')
     views.app.config.update(**config.__dict__)
     #update or create all runner base directory to test_dir
+
     if not os.path.exists(workdir):
       os.mkdir(workdir)
     views.app.config.update(
       software_log=config.software_root.rstrip('/') + '.log',
       instance_log=config.instance_root.rstrip('/') + '.log',
       workspace = workdir,
+      software_link=software_link,
       instance_profile='instance.cfg',
       software_profile='software.cfg',
       SECRET_KEY="123456",
@@ -69,17 +75,16 @@ class SlaprunnerTestCase(unittest.TestCase):
     """Remove all test data"""
     os.unlink(os.path.join(self.app.config['etc_dir'], '.rcode'))
     project = os.path.join(self.app.config['etc_dir'], '.project')
-    sr_data = project = os.path.join(self.app.config['etc_dir'], '.softdata')
-    proxy = os.path.join(self.app.config['etc_dir'], '.proxy.pid')
-    slapgrid_cp = os.path.join(self.app.config['etc_dir'], '.slapgrid-cp.pid')
-    slapgrid_sr = os.path.join(self.app.config['etc_dir'], '.slapgrid-sr.pid')
+    proxy = os.path.join(self.app.config['run_dir'], 'proxy.pid')
+    slapgrid_cp = os.path.join(self.app.config['run_dir'], 'slapgrid-cp.pid')
+    slapgrid_sr = os.path.join(self.app.config['run_dir'], 'slapgrid-sr.pid')
     users = os.path.join(self.app.config['etc_dir'], '.users')
+    #Stop process
+    #self.stopSlapproxy()
     if os.path.exists(users):
       os.unlink(users)
     if os.path.exists(project):
       os.unlink(project)
-    if os.path.exists(sr_data):
-      os.unlink(sr_data)
     if os.path.exists(proxy):
       os.unlink(proxy)
     if os.path.exists(slapgrid_cp):
@@ -146,6 +151,25 @@ class SlaprunnerTestCase(unittest.TestCase):
             rcode=rcode
           ), follow_redirects=True)
 
+  def getCurrentSR(self):
+   return getProfilePath(self.app.config['etc_dir'],
+                              self.app.config['software_profile'])
+  def proxyStatus(self, status=True):
+    """Helper for testslapproxy status"""
+    proxy_pid = os.path.join(self.app.config['run_dir'], 'proxy.pid')
+    pid = readPid(proxy_pid)
+    try:
+      os.kill(pid, 0)
+      proxy = True
+    except Exception:
+      proxy = False
+    self.assertEqual(proxy, status)
+
+  def stopSlapproxy(self):
+    """Kill slapproxy process"""
+    proxy_pid = os.path.join(self.app.config['run_dir'], 'proxy.pid')
+    pid = readPid(proxy_pid)
+    recursifKill([pid])
 
   #Begin test case here
   def test_wrong_login(self):
@@ -192,10 +216,77 @@ class SlaprunnerTestCase(unittest.TestCase):
     #log out now!
     self.logout()
 
+  def test_startProxy(self):
+    """Test slapproxy"""
+    startProxy(self.app.config)
+    self.proxyStatus(True)
+    self.stopSlapproxy()
+
+  def test_cloneProject(self):
+    """Start scenario 1 for deploying SR: Clone a project from git repository"""
+    self.setAccount()
+    folder = 'workspace/' + self.project
+    data = {"repo":self.repo, "user":'Slaprunner test',
+          "email":'slaprunner@nexedi.com', "name":folder}
+    response = self.loadJson(self.app.post('/cloneRepository', data=data,
+                    follow_redirects=True))
+    self.assertEqual(response['result'], "")
+    #Get realpath of create project
+    path_data = dict(file=folder)
+    response = self.loadJson(self.app.post('/getPath', data=path_data,
+                    follow_redirects=True))
+    self.assertEqual(response['code'], 1)
+    realFolder = response['result'].split('#')[0]
+    #Check git configuration
+    config = open(os.path.join(realFolder, '.git/config'), 'r').read()
+    assert "slaprunner@nexedi.com" in config and "Slaprunner test" in config
+    #Checkout to slaprunner branch, this supose that branch slaprunner exit
+    response = self.loadJson(self.app.post('/newBranch', data=dict(
+                    project=folder,
+                    create='0',
+                    name='slaprunner'),
+                    follow_redirects=True))
+    self.assertEqual(response['result'], "")
+    self.logout()
+
+  def test_createSR(self):
+    """Scenario 2: Create a new software release"""
+    self.test_cloneProject()
+    #Login
+    self.login(self.users[0], self.users[1])
+    #test create SR
+    newSoftware = os.path.join(self.software, 'slaprunner-test')
+    response = self.loadJson(self.app.post('/createSoftware',
+                    data=dict(folder=newSoftware),
+                    follow_redirects=True))
+    self.assertEqual(response['result'], "")
+    currentSR = self.getCurrentSR()
+    assert newSoftware in currentSR
+    self.logout()
+
+  def test_openSR(self):
+    """Scenario 3: Open software release"""
+    self.test_cloneProject()
+    #Login
+    self.login(self.users[0], self.users[1])
+    software = os.path.join(self.software, 'drupal') #Drupal SR must exist in SR folder
+    response = self.loadJson(self.app.post('/setCurrentProject',
+                    data=dict(path=software),
+                    follow_redirects=True))
+    self.assertEqual(response['result'], "")
+    currentSR = self.getCurrentSR()
+    assert software in currentSR
+    self.assertFalse(isInstanceRunning(self.app.config))
+    self.assertFalse(isSoftwareRunning(self.app.config))
+    #Slapproxy process is supose to be started
+    self.proxyStatus(True)
+    self.stopSlapproxy()
+    self.logout()
 
 def main():
   argv = ['', 'test_wrong_login', 'test_configAccount',
-          'test_login_logout', 'test_updateAccount']
+          'test_login_logout', 'test_updateAccount', 'test_startProxy',
+          'test_cloneProject', 'test_createSR', 'test_openSR']
   unittest.main(module=SlaprunnerTestCase, argv=argv)
 
 if __name__ == '__main__':

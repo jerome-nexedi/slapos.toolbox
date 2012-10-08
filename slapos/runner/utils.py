@@ -200,7 +200,7 @@ def updateInstanceParameter(config, software_type=None):
 
 def startProxy(config):
   """Start Slapproxy server"""
-  proxy_pid = os.path.join(config['etc_dir'], 'proxy.pid')
+  proxy_pid = os.path.join(config['run_dir'], 'proxy.pid')
   pid = readPid(proxy_pid)
   running = False
   if pid:
@@ -211,20 +211,16 @@ def startProxy(config):
     else:
       running = True
   if not running:
-    proxy = Popen([config['slapproxy'], config['configuration_file_path']])
-    proxy_pid = os.path.join(config['etc_dir'], 'proxy.pid')
+    log = os.path.join(config['log_dir'], 'slapproxy.log')
+    proxy = Popen([config['slapproxy'], '--log_file', log,
+                  config['configuration_file_path']])
     writePid(proxy_pid, proxy.pid)
-    time.sleep(5)
+    time.sleep(4)
 
 
 def stopProxy(config):
   """Stop Slapproxy server"""
-  pid = readPid(os.path.join(config['etc_dir'], 'proxy.pid'))
-  if pid:
-    try:
-      os.kill(pid)
-    except:
-      pass
+  pass
 
 
 def removeProxyDb(config):
@@ -237,7 +233,7 @@ def isSoftwareRunning(config):
   """
     Return True if slapgrid-sr is still running and false if slapgrid if not
   """
-  slapgrid_pid = os.path.join(config['etc_dir'], 'slapgrid-sr.pid')
+  slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-sr.pid')
   pid = readPid(slapgrid_pid)
   if pid:
     try:
@@ -256,7 +252,7 @@ def runSoftwareWithLock(config):
     Use Slapgrid to compile current Software Release and wait until
     compilation is done
   """
-  slapgrid_pid = os.path.join(config['etc_dir'], 'slapgrid-sr.pid')
+  slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-sr.pid')
   if not isSoftwareRunning(config):
     if not os.path.exists(config['software_root']):
       os.mkdir(config['software_root'])
@@ -332,7 +328,7 @@ def isInstanceRunning(config):
   """
     Return True if slapgrid-cp is still running and false if slapgrid if not
   """
-  slapgrid_pid = os.path.join(config['etc_dir'], 'slapgrid-cp.pid')
+  slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-cp.pid')
   pid = readPid(slapgrid_pid)
   if pid:
     try:
@@ -347,7 +343,7 @@ def isInstanceRunning(config):
 
 def killRunningSlapgrid(config, ptype):
   """Kill slapgrid process and all running children process"""
-  slapgrid_pid = os.path.join(config['etc_dir'], ptype)
+  slapgrid_pid = os.path.join(config['run_dir'], ptype)
   pid = readPid(slapgrid_pid)
   if pid:
       recursifKill([pid])
@@ -379,7 +375,7 @@ def runInstanceWithLock(config):
     Use Slapgrid to deploy current Software Release and wait until
     deployment is done.
   """
-  slapgrid_pid = os.path.join(config['etc_dir'], 'slapgrid-cp.pid')
+  slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-cp.pid')
   if not isInstanceRunning(config):
     startProxy(config)
     logfile = open(config['instance_log'], 'w')

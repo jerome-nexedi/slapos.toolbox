@@ -84,7 +84,7 @@ $(document).ready( function() {
 					$("#error").Popup("Your repository is cloned!", {type:'confirm', duration:3000});
 					$("input#repo").val("Enter the url of your repository...");
 					$("input#name").val("Enter the project name...");
-					$('#fileNavigator').gsFileManager({ script: $SCRIPT_ROOT+"/fileBrowser", root: "workspace"});
+					$('#fileNavigator').gsFileManager({ script: $SCRIPT_ROOT+"/fileBrowser", root: "workspace/"});
 				}
 				else{
 					$("#error").Popup(data.result, {type:'error'});
