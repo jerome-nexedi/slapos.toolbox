@@ -119,7 +119,7 @@ function runProcess(urlfor, data){
     .error(function() {
       $("#error").Popup("Failled to run Slapgrid", {type:'error', duration:3000}); });
     setRunningState(data);
-    setTimeout("getRunningState()", 5000);
+    setTimeout("getRunningState()", 6000);
   }
 }
 function stopProcess(){
