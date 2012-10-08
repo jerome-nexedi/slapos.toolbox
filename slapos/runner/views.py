@@ -176,9 +176,8 @@ def removeInstance():
   if isInstanceRunning(app.config):
     flash('Instantiation in progress, cannot remove')
   else:
-    stopProxy(app.config)
     removeProxyDb(app.config)
-    startProxy(app.config)
+    svcStopAll(app.config) #Stop All instance process
     removeInstanceRoot(app.config)
     param_path = os.path.join(app.config['etc_dir'], ".parameter.xml")
     if os.path.exists(param_path):
