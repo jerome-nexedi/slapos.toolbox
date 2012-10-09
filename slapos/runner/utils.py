@@ -187,6 +187,39 @@ def writePid(file, pid):
   """Save process pid into a file `file`"""
   open(file, 'w').write(str(pid))
 
+
+def killRunningProcess(config, ptype):
+  """Kill process and all running children process and remove pidfile"""
+  process_pid = os.path.join(config['run_dir'], ptype)
+  pid = readPid(process_pid)
+  if pid:
+      recursifKill([pid])
+      os.remove(process_pid)
+  else:
+    return False
+
+def recursifKill(pids):
+  """Try to kill a list of proccess by the given pid list"""
+  if pids == []:
+    return
+  else:
+    for pid in pids:
+      ppids = pidppid(pid)
+      try:
+        os.kill(pid, signal.SIGKILL) #kill current process
+      except Exception:
+              pass
+      recursifKill(ppids) #kill all children of this process
+
+def pidppid(pid):
+  """get the list of the children pids of a process `pid`"""
+  proc = Popen('ps -o pid,ppid ax | grep "%d"' % pid, shell=True,
+               stdout=subprocess.PIPE)
+  ppid  = [x.split() for x in proc.communicate()[0].split("\n") if x]
+  return list(int(p) for p, pp in ppid if int(pp) == pid)
+
+
+
 def updateInstanceParameter(config, software_type=None):
   """
   Reconfigure Slapproxy to re-deploy current Software Instance with parameters.
@@ -220,6 +253,7 @@ def startProxy(config):
 
 def stopProxy(config):
   """Stop Slapproxy server"""
+  killRunningProcess(config,'proxy.pid')
   pass
 
 
@@ -266,9 +300,9 @@ def runSoftwareWithLock(config):
     environment = os.environ.copy()
     environment['MAKEFLAGS'] = '-j%r' % multiprocessing.cpu_count()
     slapgrid = Popen([config['slapgrid_sr'], '-vc',
-        config['configuration_file_path'], '--now', '--develop'],
-        stdout=logfile, env=environment)
-    writePid(slapgrid_pid, slapgrid.pid)
+                      '--pidfile',slapgrid_pid,
+                      config['configuration_file_path'], '--now', '--develop'],
+                     stdout=logfile, env=environment)
     slapgrid.wait()
     #Saves the current compile software for re-use
     config_SR_folder(config)
@@ -341,34 +375,6 @@ def isInstanceRunning(config):
     running = False
   return running
 
-def killRunningSlapgrid(config, ptype):
-  """Kill slapgrid process and all running children process"""
-  slapgrid_pid = os.path.join(config['run_dir'], ptype)
-  pid = readPid(slapgrid_pid)
-  if pid:
-      recursifKill([pid])
-  else:
-    return False
-
-def recursifKill(pids):
-  """Try to kill a list of proccess by the given pid list"""
-  if pids == []:
-    return
-  else:
-    for pid in pids:
-      ppids = pidppid(pid)
-      try:
-        os.kill(pid, signal.SIGKILL) #kill current process
-      except Exception:
-              pass
-      recursifKill(ppids) #kill all children of this process
-
-def pidppid(pid):
-  """get the list of the children pids of a process `pid`"""
-  proc = Popen('ps -o pid,ppid ax | grep "%d"' % pid, shell=True,
-               stdout=subprocess.PIPE)
-  ppid  = [x.split() for x in proc.communicate()[0].split("\n") if x]
-  return list(int(p) for p, pp in ppid if int(pp) == pid)
 
 def runInstanceWithLock(config):
   """
@@ -383,9 +389,9 @@ def runInstanceWithLock(config):
       return False
     svcStopAll(config) #prevent lost control of process
     slapgrid = Popen([config['slapgrid_cp'], '-vc',
-        config['configuration_file_path'], '--now'],
-        stdout=logfile)
-    writePid(slapgrid_pid, slapgrid.pid)
+                      '--pidfile',slapgrid_pid,
+                      config['configuration_file_path'], '--now'],
+                     stdout=logfile)
     slapgrid.wait()
     return True
   return False
@@ -578,9 +584,9 @@ def configNewSR(config, projectpath):
   folder = realpath(config, projectpath)
   if folder:
     if isInstanceRunning(config):
-      killRunningSlapgrid(config, "slapgrid-cp.pid")
+      killRunningProcess(config, "slapgrid-cp.pid")
     if isSoftwareRunning(config):
-      killRunningSlapgrid(config, "slapgrid-sr.pid")
+      killRunningProcess(config, "slapgrid-sr.pid")
     stopProxy(config)
     removeProxyDb(config)
     startProxy(config)
