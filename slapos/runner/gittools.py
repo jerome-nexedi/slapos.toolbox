@@ -10,7 +10,7 @@ import urllib
 from flask import jsonify
 import shutil
 import string
-from git import *
+from git import Repo
 
 class Popen(subprocess.Popen):
   def __init__(self, *args, **kwargs):
