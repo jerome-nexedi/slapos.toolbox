@@ -416,7 +416,7 @@ def slapgridResult():
 
 @login_required()
 def stopSlapgrid():
-  result = killRunningSlapgrid(app.config, request.form['type'])
+  result = killRunningProcess(app.config, request.form['type'])
   return jsonify(result=result)
 
 @login_required()
