@@ -38,13 +38,13 @@ class fileBrowser(object):
       md5 = hashlib.md5(realfile).hexdigest()
       if not os.path.isdir(realfile):
         size = os.path.getsize(realfile)
-      	regex = re.compile("(^.*)\.(.*)", re.VERBOSE)
-      	ext = regex.sub(r'\2', f)
-      	if ext == f:
-      	  ext = "unknow"
-      	else:
-	      ext = str.lower(ext)
-      	html += 'gsfiles.push(new gsItem("1", "' + f + '", "' + \
+        regex = re.compile("(^.*)\.(.*)", re.VERBOSE)
+        ext = regex.sub(r'\2', f)
+        if ext == f:
+          ext = "unknow"
+        else:
+          ext = str.lower(ext)
+        html += 'gsfiles.push(new gsItem("1", "' + f + '", "' + \
                   ff + '", "' + str(size) + '", "' + md5 + \
                   '", "' + ext + '", "' + mdate + '"));';
       else:
