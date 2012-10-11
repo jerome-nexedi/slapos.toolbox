@@ -299,7 +299,7 @@ def createFile():
     else:
       os.mkdir(path)
     return jsonify(code=1, result="")
-  except Exception, e:
+  except Exception as e:
     return jsonify(code=0, result=str(e))
 
 #remove file or directory
@@ -311,7 +311,7 @@ def removeFile():
     else:
       os.remove(request.form['path'])
     return jsonify(code=1, result="")
-  except Exception, e:
+  except Exception as e:
     return jsonify(code=0, result=str(e))
 
 @login_required()
@@ -320,7 +320,7 @@ def removeSoftwareDir():
     data = removeSoftwareByName(app.config, request.form['md5'],
             request.form['title'])
     return jsonify(code=1, result=data)
-  except Exception, e:
+  except Exception as e:
     return jsonify(code=0, result=str(e))
 
 #read file and return content to ajax
@@ -459,7 +459,7 @@ def saveParameterXml():
     f.write(content)
     f.close()
     result = readParameters(param_path)
-  except Exception, e:
+  except Exception as e:
       result = str(e)
   software_type = None
   if request.form['software_type']:
@@ -469,7 +469,7 @@ def saveParameterXml():
   else:
     try:
       updateInstanceParameter(app.config, software_type)
-    except Exception, e:
+    except Exception as e:
       return jsonify(code=0, result="An error occurred while applying your settings!<br/>" + str(e))
     return jsonify(code=1, result="")
 
@@ -591,7 +591,7 @@ def fileBrowser():
       result = file_request.unzipFile(dir, filename, newfilename)
     else:
       result = "ARGS PARSE ERROR: Bad option..."
-  except Exception, e:
+  except Exception as e:
     return str(e)
   return result
 

@@ -90,7 +90,7 @@ def saveSession(config, account):
     #save new account data
     open(user, 'w').write((';'.join(account)).encode("utf-8"))
     return True
-  except Exception, e:
+  except Exception as e:
     try:
       if backup:
         os.remove(user)
@@ -212,7 +212,7 @@ def recursifKill(pids):
       try:
         os.kill(pid, signal.SIGKILL) #kill current process
       except Exception:
-              pass
+        pass
       recursifKill(ppids) #kill all children of this process
 
 def pidppid(pid):

@@ -48,7 +48,7 @@ def cloneRepo(data):
     if data["email"] != "":
       config_writer.set_value("user", "email", data["email"])
     code = 1
-  except Exception, e:
+  except Exception as e:
     json = safeResult(str(e))
     if os.path.exists(workDir):
       shutil.rmtree(workDir)
@@ -69,7 +69,7 @@ def gitStatus(project):
     branch = git.branch().replace(' ', '').split('\n')
     isdirty = repo.is_dirty(untracked_files=True)
     code = 1
-  except Exception, e:
+  except Exception as e:
     json = safeResult(str(e))
   return jsonify(code=code, result=json, branch=branch, dirty=isdirty)
 
@@ -91,7 +91,7 @@ def switchBranch(project, name):
       git  = repo.git
       git.checkout(name)
       code = 1
-  except Exception, e:
+  except Exception as e:
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
 
@@ -113,7 +113,7 @@ def addBranch(project, name, onlyCheckout=False):
     else:
       git.checkout(name)
     code = 1
-  except Exception, e:
+  except Exception as e:
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
 
@@ -125,7 +125,7 @@ def getDiff(project):
     git = repo.git
     current_branch = repo.active_branch.name
     result = git.diff(current_branch)
-  except Exception, e:
+  except Exception as e:
     result = safeResult(str(e))
   return result
 
@@ -155,7 +155,7 @@ def gitPush(project, msg):
     else:
       json = "Nothing to be commited"
       code = 1
-  except Exception, e:
+  except Exception as e:
     if undo_commit:
       git.reset("HEAD~") #undo previous commit
     json = safeResult(str(e))
@@ -169,7 +169,7 @@ def gitPull(project):
     git = repo.git
     git.pull()
     code = 1
-  except Exception, e:
+  except Exception as e:
     result = safeResult(str(e))
   return jsonify(code=code, result=result)
 

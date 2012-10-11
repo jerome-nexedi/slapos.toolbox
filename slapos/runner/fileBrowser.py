@@ -98,7 +98,7 @@ class fileBrowser(object):
           shutil.rmtree(file)
         else:
           os.unlink(file)
-    except Exception, e:
+    except Exception as e:
       return str(e)
     return '{result: \'1\'}'
 
@@ -126,7 +126,7 @@ class fileBrowser(object):
           shutil.copy(realfile, dest)
           if del_source:
             os.unlink(realfile)
-    except Exception, e:
+    except Exception as e:
       return str(e)
     return '{result: \'1\'}'
 
