@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
 
-import os
-import urllib
-from flask import jsonify
-from werkzeug import secure_filename
-import shutil
 import datetime
 import hashlib
-from utils import realpath, tail, isText
+import os
 import re
+import shutil
+import urllib
 import zipfile
+
+import werkzeug
+from slapos.runner.utils import realpath, tail, isText
+
 
 class fileBrowser(object):
   """This class contain all bases function for file browser"""
@@ -164,7 +165,7 @@ class fileBrowser(object):
       raise NameError('Could not load directory %s: Permission denied' % dir)
     for file in files:
       if files[file]:
-        filename = secure_filename(files[file].filename)
+        filename = werkzeug.secure_filename(files[file].filename)
         if not os.path.exists(os.path.join(dir, filename)):
           files[file].save(os.path.join(realdir, filename))
     return '{result: \'1\'}'

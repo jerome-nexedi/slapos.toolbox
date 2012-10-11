@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
 
-import os
-import sys
-import views
-import unittest
-import tempfile
-from optparse import OptionParser, Option
 import ConfigParser
-import shutil
-from gittools import cloneRepo, gitStatus, switchBranch, addBranch, getDiff, \
-     gitPush, gitPull
-from flaskext.auth import Auth, AuthUser, login_required, logout
-from utils import *
+import datetime
 import json
-from datetime import timedelta
+import os
+import shutil
+import unittest
+
+from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning, isSoftwareRunning, readPid,
+                                 recursifKill, startProxy)
+from slapos.runner import views
+
 
 class Config:
   def setConfig(self):
@@ -64,7 +61,7 @@ class SlaprunnerTestCase(unittest.TestCase):
       instance_profile='instance.cfg',
       software_profile='software.cfg',
       SECRET_KEY="123456",
-      PERMANENT_SESSION_LIFETIME=timedelta(days=31),
+      PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=31),
     )
     self.app = views.app.test_client()
     self.app.config = views.app.config
@@ -106,16 +103,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     return json.loads(response.data)
 
   def configAccount(self, username, password, email, name, rcode):
-    """Helper for configAccoun"""
-    return self.app.post('/configAccount', data=dict(
-            username=username,
-            password=password,
-            email=email,
-            name=name,
-            rcode=rcode
-          ), follow_redirects=True)
-  def configAccount(self, username, password, email, name, rcode):
-    """Helper for configAccoun"""
+    """Helper for configAccount"""
     return self.app.post('/configAccount', data=dict(
             username=username,
             password=password,

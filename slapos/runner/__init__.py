@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
 
-from optparse import OptionParser, Option
 import ConfigParser
+import datetime
 import logging
 import logging.handlers
+from optparse import OptionParser, Option
 import os
 import sys
-import subprocess
-from datetime import timedelta
+
 
 class Parser(OptionParser):
   """
@@ -124,7 +124,7 @@ def serve(config):
     instance_profile='instance.cfg',
     software_profile='software.cfg',
     SECRET_KEY=os.urandom(24),
-    PERMANENT_SESSION_LIFETIME=timedelta(days=31),
+    PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=31),
   )
   if not os.path.exists(workdir):
     os.mkdir(workdir)

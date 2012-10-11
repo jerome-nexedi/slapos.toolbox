@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
 
-import subprocess
 import os
 import re
-from flask import jsonify
 import shutil
+import subprocess
+
 from git import Repo
+from flask import jsonify
+
 
 class Popen(subprocess.Popen):
   def __init__(self, *args, **kwargs):

@@ -1,17 +1,25 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
 
-from flask import Flask, request, redirect, url_for, \
-         render_template, g, flash, jsonify, session, abort, send_file
-from utils import *
 import os
 import shutil
-import md5
-from gittools import cloneRepo, gitStatus, switchBranch, addBranch, getDiff, \
-     gitPush, gitPull
-from flaskext.auth import Auth, AuthUser, login_required, logout
-from fileBrowser import fileBrowser
 import urllib
+
+from flaskext.auth import Auth, AuthUser, login_required, logout
+from flask import (Flask, request, redirect, url_for, render_template,
+                   g, flash, jsonify, session, abort, send_file)
+
+from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getFolder, getFolderContent, getProfilePath,
+                                 getProjectList, getProjectTitle, getSession, getSlapStatus, getSvcStatus,
+                                 getSvcTailProcess, isInstanceRunning, isSoftwareRunning, isText, killRunningProcess,
+                                 loadSoftwareRList, md5sum, newSoftware, readFileFrom, readParameters, realpath,
+                                 removeInstanceRoot, removeProxyDb, removeSoftwareByName, runInstanceWithLock,
+                                 runSoftwareWithLock, saveSession, svcStartStopProcess, svcStopAll, tail,
+                                 updateInstanceParameter)
+from slapos.runner.fileBrowser import fileBrowser
+from slapos.runner.gittools import (cloneRepo, gitStatus, switchBranch, addBranch, getDiff,
+                                   gitPush, gitPull)
+
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
@@ -430,7 +438,7 @@ def getPath():
       break
     else:
       list.append(path)
-  realfile = string.join(list, "#")
+  realfile = '#'.join(list)
   if not realfile:
     return jsonify(code=0, result="Can not access to this file: Permission Denied!")
   else:

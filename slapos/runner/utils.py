@@ -1,23 +1,26 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
 
-import slapos.slap
-import time
-import subprocess
-import os
-from xml_marshaller import xml_marshaller
-from xml.dom import minidom
+import hashlib
+import logging
+import multiprocessing
 import re
-import urllib
-from flask import jsonify
+import signal
 import shutil
 import string
-import hashlib
-import signal
-import multiprocessing
+import os
+import subprocess
+import time
+import urllib
+import xml.dom
+
+import xml_marshaller
+from flask import jsonify
+
+import slapos.slap
 
 # Setup default flask (werkzeug) parser
-import logging
+
 logger = logging.getLogger('werkzeug')
 
 
@@ -170,7 +173,7 @@ def updateProxy(config):
                      'reference': partition_reference,
                      'tap': {'name': partition_reference},
                      })
-  computer.updateConfiguration(xml_marshaller.dumps(slap_config))
+  computer.updateConfiguration(xml_marshaller.xml_marshaller.dumps(slap_config))
   return True
 
 def readPid(file):
@@ -801,7 +804,7 @@ def readParameters(path):
     a dictionnary of instance parameters."""
   if os.path.exists(path):
     try:
-      xmldoc = minidom.parse(path)
+      xmldoc = xml.dom.minidom.parse(path)
       object = {}
       for elt in xmldoc.childNodes:
         sub_object = {}
