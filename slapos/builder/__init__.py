@@ -191,7 +191,7 @@ def run(config):
                                               cert_file]))
       for (src, dst) in [(config.key_file, key_file_dest), (config.cert_file,
         cert_file_dest)]:
-        print "Coping %r to %r, and setting minimum privileges" % (src, dst)
+        print "Coping %r to %r, and setting minimal privileges" % (src, dst)
         if not dry_run:
           shutil.copy(src, dst)
           os.chmod(dst, 0600)

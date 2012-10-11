@@ -74,8 +74,8 @@ def main():
     response = notification.getresponse()
 
     if not (200 <= response.status < 300):
-      print >> sys.stderr, "The remote server didn't send a successfull reponse."
-      print >> sys.stderr, "It's response was %r" % response.reason
+      print >> sys.stderr, "The remote server didn't send a successful reponse."
+      print >> sys.stderr, "Its response was %r" % response.reason
       return 1
     return 0
 
