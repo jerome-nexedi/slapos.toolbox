@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# vim: set et sts=2:
 
 from flask import Flask, request, redirect, url_for, \
          render_template, g, flash, jsonify, session, abort, send_file

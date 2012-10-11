@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# vim: set et sts=2:
+
 from optparse import OptionParser, Option
 import ConfigParser
 import logging
