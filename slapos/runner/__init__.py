@@ -103,6 +103,10 @@ def run():
     config = Config()
     config.setConfig(*Parser(usage=usage).check_args())
 
+    if os.getuid() == 0:
+        # avoid mistakes (mainly in development mode)
+        raise Exception('Do not run SlapRunner as root.')
+
     serve(config)
     return_code = 0
   except SystemExit, err:
