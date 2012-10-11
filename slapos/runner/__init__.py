@@ -16,7 +16,7 @@ class Parser(OptionParser):
   """
   def __init__(self, usage=None, version=None):
     """
-    Initialize all options possibles.
+    Initialize all possible options.
     """
     OptionParser.__init__(self, usage=usage, version=version,
                           option_list=[
