@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
 
-import slapos.slap
-import time
 import subprocess
 import os
 import re
-import urllib
 from flask import jsonify
 import shutil
-import string
 from git import Repo
 
 class Popen(subprocess.Popen):
@@ -86,7 +82,6 @@ def switchBranch(project, name):
   json = ""
   try:
     repo = Repo(project)
-    branches = repo.branches
     current_branch = repo.active_branch.name
     if name == current_branch:
       json = "This is already your active branch for this project"
@@ -170,7 +165,6 @@ def gitPull(project):
   try:
     repo = Repo(project)
     git = repo.git
-    current_branch = repo.active_branch.name
     git.pull()
     code = 1
   except Exception, e:
