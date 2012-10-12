@@ -4,22 +4,10 @@
 import os
 import re
 import shutil
-import subprocess
 
 from git import Repo
 from flask import jsonify
 
-
-class Popen(subprocess.Popen):
-  def __init__(self, *args, **kwargs):
-    kwargs['stdin'] = subprocess.PIPE
-    kwargs['stderr'] = subprocess.STDOUT
-    kwargs.setdefault('stdout', subprocess.PIPE)
-    kwargs.setdefault('close_fds', True)
-    subprocess.Popen.__init__(self, *args, **kwargs)
-    self.stdin.flush()
-    self.stdin.close()
-    self.stdin = None
 
 def cloneRepo(data):
   """Clonne a repository
