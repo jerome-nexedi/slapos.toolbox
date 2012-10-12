@@ -14,7 +14,7 @@ import werkzeug
 from slapos.runner.utils import realpath, tail, isText
 
 
-class fileBrowser(object):
+class FileBrowser(object):
   """This class contain all bases function for file browser"""
 
   def __init__(self, config):

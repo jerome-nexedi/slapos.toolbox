@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
+#pylint: disable-all
 
 import json
 

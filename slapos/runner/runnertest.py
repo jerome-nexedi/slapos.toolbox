@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
+# pylint: disable-msg=W0311,C0301,C0103,C0111,R0904
 
 import ConfigParser
 import datetime
@@ -12,8 +13,18 @@ from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning, 
                                  recursifKill, startProxy)
 from slapos.runner import views
 
+#Helpers
+def loadJson(response):
+  return json.loads(response.data)
+
 
 class Config:
+  def __init__(self):
+    self.runner_workdir = None
+    self.software_root = None
+    self.instance_root = None
+    self.configuration_file_path = None
+
   def setConfig(self):
     """
     Set options given by parameters.
@@ -97,11 +108,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     if os.path.exists(self.app.config['instance_root']):
       shutil.rmtree(self.app.config['instance_root'])
 
-
-  #Helpers
-  def loadJson(self, response):
-    return json.loads(response.data)
-
   def configAccount(self, username, password, email, name, rcode):
     """Helper for configAccount"""
     return self.app.post('/configAccount', data=dict(
@@ -121,9 +127,9 @@ class SlaprunnerTestCase(unittest.TestCase):
 
   def setAccount(self):
     """Initialize user account and log user in"""
-    response = self.loadJson(self.configAccount(self.users[0], self.users[1],
+    response = loadJson(self.configAccount(self.users[0], self.users[1],
                   self.users[2], self.users[3], self.rcode))
-    response2 = self.loadJson(self.login(self.users[0], self.users[1]))
+    response2 = loadJson(self.login(self.users[0], self.users[1]))
     self.assertEqual(response['result'], "")
     self.assertEqual(response2['result'], "")
 
@@ -172,22 +178,22 @@ class SlaprunnerTestCase(unittest.TestCase):
     """For the first lauch of slaprunner user need do create first account"""
     result = self.configAccount(self.users[0], self.users[1], self.users[2],
                   self.users[3], self.rcode)
-    response = self.loadJson(result)
+    response = loadJson(result)
     self.assertEqual(response['code'], 1)
     account = getSession(self.app.config)
     self.assertEqual(account, self.users)
 
   def test_login_logout(self):
     """test login with good and wrong values, test logout"""
-    response = self.loadJson(self.configAccount(self.users[0], self.users[1],
+    response = loadJson(self.configAccount(self.users[0], self.users[1],
                   self.users[2], self.users[3], self.rcode))
     self.assertEqual(response['result'], "")
-    result = self.loadJson(self.login(self.users[0], "wrongpwd"))
+    result = loadJson(self.login(self.users[0], "wrongpwd"))
     self.assertEqual(result['result'], "Login or password is incorrect, please check it!")
-    resultwr = self.loadJson(self.login("wronglogin", "wrongpwd"))
+    resultwr = loadJson(self.login("wronglogin", "wrongpwd"))
     self.assertEqual(resultwr['result'], "Login or password is incorrect, please check it!")
     #try now with true values
-    resultlg = self.loadJson(self.login(self.users[0], self.users[1]))
+    resultlg = loadJson(self.login(self.users[0], self.users[1]))
     self.assertEqual(resultlg['result'], "")
     #after login test logout
     result = self.logout()
@@ -196,12 +202,12 @@ class SlaprunnerTestCase(unittest.TestCase):
   def test_updateAccount(self):
     """test Update accound, this need user to loging in"""
     self.setAccount()
-    response = self.loadJson(self.updateAccount(self.updateUser, self.rcode))
+    response = loadJson(self.updateAccount(self.updateUser, self.rcode))
     self.assertEqual(response['code'], 1)
     result = self.logout()
     assert "<h2>Login to Slapos Web Runner</h2>" in result.data
     #retry login with new values
-    response = self.loadJson(self.login(self.updateUser[0], self.updateUser[1]))
+    response = loadJson(self.login(self.updateUser[0], self.updateUser[1]))
     self.assertEqual(response['result'], "")
     #log out now!
     self.logout()
@@ -218,12 +224,12 @@ class SlaprunnerTestCase(unittest.TestCase):
     folder = 'workspace/' + self.project
     data = {"repo":self.repo, "user":'Slaprunner test',
           "email":'slaprunner@nexedi.com', "name":folder}
-    response = self.loadJson(self.app.post('/cloneRepository', data=data,
+    response = loadJson(self.app.post('/cloneRepository', data=data,
                     follow_redirects=True))
     self.assertEqual(response['result'], "")
     #Get realpath of create project
     path_data = dict(file=folder)
-    response = self.loadJson(self.app.post('/getPath', data=path_data,
+    response = loadJson(self.app.post('/getPath', data=path_data,
                     follow_redirects=True))
     self.assertEqual(response['code'], 1)
     realFolder = response['result'].split('#')[0]
@@ -231,7 +237,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     config = open(os.path.join(realFolder, '.git/config'), 'r').read()
     assert "slaprunner@nexedi.com" in config and "Slaprunner test" in config
     #Checkout to slaprunner branch, this supose that branch slaprunner exit
-    response = self.loadJson(self.app.post('/newBranch', data=dict(
+    response = loadJson(self.app.post('/newBranch', data=dict(
                     project=folder,
                     create='0',
                     name='slaprunner'),
@@ -246,7 +252,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.login(self.users[0], self.users[1])
     #test create SR
     newSoftware = os.path.join(self.software, 'slaprunner-test')
-    response = self.loadJson(self.app.post('/createSoftware',
+    response = loadJson(self.app.post('/createSoftware',
                     data=dict(folder=newSoftware),
                     follow_redirects=True))
     self.assertEqual(response['result'], "")
@@ -260,7 +266,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     #Login
     self.login(self.users[0], self.users[1])
     software = os.path.join(self.software, 'drupal') #Drupal SR must exist in SR folder
-    response = self.loadJson(self.app.post('/setCurrentProject',
+    response = loadJson(self.app.post('/setCurrentProject',
                     data=dict(path=software),
                     follow_redirects=True))
     self.assertEqual(response['result'], "")

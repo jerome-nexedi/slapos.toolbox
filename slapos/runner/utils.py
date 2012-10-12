@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
+# pylint: disable-msg=W0311,C0301,C0103,C0111,W0141,W0142
 
-import hashlib
+
+import md5
 import logging
 import multiprocessing
 import re
 import signal
 import shutil
-import string
 import os
 import subprocess
 import time
@@ -45,7 +46,7 @@ html_escape_table = {
 
 def html_escape(text):
   """Produce entities within text."""
-  return "".join(html_escape_table.get(c,c) for c in text)
+  return "".join(html_escape_table.get(c, c) for c in text)
 
 def getSession(config):
   """
@@ -258,7 +259,6 @@ def startProxy(config):
 def stopProxy(config):
   """Stop Slapproxy server"""
   killRunningProcess(config,'proxy.pid')
-  pass
 
 
 def removeProxyDb(config):
@@ -431,7 +431,7 @@ def getSlapStatus(config):
   if partition_list:
     for i in xrange(0, int(config['partition_amount'])):
       slappart_id = '%s%s' % ("slappart", i)
-      if not [x[0] for x in partition_list if slappart_id==x[0]]:
+      if not [x[0] for x in partition_list if slappart_id == x[0]]:
         partition_list.append((slappart_id, []))
   return partition_list
 
@@ -444,7 +444,7 @@ def removeInstanceRoot(config):
   """Clean instance directory and stop all its running process"""
   if os.path.exists(config['instance_root']):
     svcStopAll(config)
-    for root, dirs, files in os.walk(config['instance_root']):
+    for root, dirs, _ in os.walk(config['instance_root']):
       for fname in dirs:
         fullPath = os.path.join(root, fname)
         if not os.access(fullPath, os.W_OK) :
@@ -501,11 +501,11 @@ def getFolderContent(config, folder):
   Returns:
     Html formated string or error message when fail.
   """
-  r=['<ul class="jqueryFileTree" style="display: none;">']
+  r = ['<ul class="jqueryFileTree" style="display: none;">']
   try:
     folder = str(folder)
-    r=['<ul class="jqueryFileTree" style="display: none;">']
-    d=urllib.unquote(folder)
+    r = ['<ul class="jqueryFileTree" style="display: none;">']
+    d = urllib.unquote(folder)
     realdir = realpath(config, d)
     if not realdir:
       r.append('Could not load directory: Permission denied')
@@ -515,14 +515,14 @@ def getFolderContent(config, folder):
     for f in ldir:
       if f.startswith('.'): #do not displays this file/folder
         continue
-      ff=os.path.join(d,f)
-      if os.path.isdir(os.path.join(realdir,f)):
-        r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff,f))
+      ff = os.path.join(d, f)
+      if os.path.isdir(os.path.join(realdir, f)):
+        r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff, f))
       else:
-        e=os.path.splitext(f)[1][1:] # get .ext and remove dot
-        r.append('<li class="file ext_%s"><a href="#%s" rel="%s">%s</a></li>' % (e, ff,ff,f))
+        e = os.path.splitext(f)[1][1:] # get .ext and remove dot
+        r.append('<li class="file ext_%s"><a href="#%s" rel="%s">%s</a></li>' % (e, ff, ff, f))
     r.append('</ul>')
-  except Exception,e:
+  except Exception as e:
     r.append('Could not load directory: %s' % str(e))
   r.append('</ul>')
   return jsonify(result=''.join(r))
@@ -538,11 +538,11 @@ def getFolder(config, folder):
   Returns:
     Html formated string or error message when fail.
   """
-  r=['<ul class="jqueryFileTree" style="display: none;">']
+  r = ['<ul class="jqueryFileTree" style="display: none;">']
   try:
     folder = str(folder)
-    r=['<ul class="jqueryFileTree" style="display: none;">']
-    d=urllib.unquote(folder)
+    r = ['<ul class="jqueryFileTree" style="display: none;">']
+    d = urllib.unquote(folder)
     realdir = realpath(config, d)
     if not realdir:
       r.append('Could not load directory: Permission denied')
@@ -552,11 +552,11 @@ def getFolder(config, folder):
     for f in ldir:
       if f.startswith('.'): #do not display this file/folder
         continue
-      ff=os.path.join(d,f)
-      if os.path.isdir(os.path.join(realdir,f)):
+      ff = os.path.join(d, f)
+      if os.path.isdir(os.path.join(realdir, f)):
         r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff, f))
     r.append('</ul>')
-  except Exception,e:
+  except Exception as e:
     r.append('Could not load directory: %s' % str(e))
   r.append('</ul>')
   return jsonify(result=''.join(r))
@@ -634,7 +634,7 @@ def newSoftware(folder, config, session):
     else:
       json = "Bad folder or Directory '" + folder + \
         "' already exist, please enter a new name for your software"
-  except Exception, e:
+  except Exception as e:
     json = "Can not create your software, please try again! : " + str(e)
     if os.path.exists(folderPath):
       shutil.rmtree(folderPath)
@@ -652,8 +652,8 @@ def getProjectTitle(config):
   conf = os.path.join(config['etc_dir'], ".project")
   if os.path.exists(conf):
     project = open(conf, "r").read().split("/")
-    software = project[len(project) - 2]
-    return software + " (" + string.join(project[:(len(project) - 2)], '/') + ")"
+    software = project[-2]
+    return '%s (%s)' % (software, '/'.join(project[:-2]))
   return "No Profile"
 
 def getSoftwareReleaseName(config):
@@ -661,7 +661,7 @@ def getSoftwareReleaseName(config):
   sr_profile = os.path.join(config['etc_dir'], ".project")
   if os.path.exists(sr_profile):
     project = open(sr_profile, "r").read().split("/")
-    software = project[len(project) - 2]
+    software = project[-2]
     return software.replace(' ', '_')
   return "No_name"
 
@@ -704,14 +704,14 @@ def tail(f, lines=20):
           data.insert(0, f.read(BUFSIZ))
       else:
           # file too small, start from begining
-          f.seek(0,0)
+          f.seek(0, 0)
           # only read what was not read
           data.insert(0, f.read(bytes))
       linesFound = data[0].count('\n')
       size -= linesFound
       bytes -= BUFSIZ
       block -= 1
-  return string.join(''.join(data).splitlines()[-lines:], '\n')
+  return '\n'.join(''.join(data).splitlines()[-lines:])
 
 def readFileFrom(f, lastPosition):
   """
@@ -735,7 +735,7 @@ def readFileFrom(f, lastPosition):
     else:
       margin = abs(block*BUFSIZ) - size
       if length < BUFSIZ:
-        f.seek(0,0)
+        f.seek(0, 0)
       else:
         seek = block * BUFSIZ + margin
         f.seek(seek, 2)
@@ -749,7 +749,7 @@ def isText(file):
   """Return True if the mimetype of file is Text"""
   if not os.path.exists(file):
     return False
-  text_range = ''.join(map(chr, [7,8,9,10,12,13,27] + range(0x20, 0x100)))
+  text_range = ''.join(map(chr, [7, 8, 9, 10, 12, 13, 27] + range(0x20, 0x100)))
   is_binary_string = lambda bytes: bool(bytes.translate(None, text_range))
   try:
     return not is_binary_string(open(file).read(1024))
@@ -762,7 +762,7 @@ def md5sum(file):
     return False
   try:
     fh = open(file, 'rb')
-    m = hashlib.md5()
+    m = md5.md5()
     while True:
       data = fh.read(8192)
       if not data:
@@ -805,14 +805,14 @@ def readParameters(path):
   if os.path.exists(path):
     try:
       xmldoc = xml.dom.minidom.parse(path)
-      object = {}
+      obj = {}
       for elt in xmldoc.childNodes:
-        sub_object = {}
+        sub_obj = {}
         for subnode in elt.childNodes:
           if subnode.nodeType != subnode.TEXT_NODE:
-            sub_object[str(subnode.getAttribute('id'))] = subnode.childNodes[0].data #.decode('utf-8').decode('utf-8')
-            object[str(elt.tagName)] = sub_object
-      return object
+            sub_obj[str(subnode.getAttribute('id'))] = subnode.childNodes[0].data #.decode('utf-8').decode('utf-8')
+            obj[str(elt.tagName)] = sub_obj
+      return obj
     except Exception, e:
       return str(e)
   else:

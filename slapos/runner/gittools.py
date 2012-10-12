@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
+# pylint: disable-msg=W0311,C0301,C0103,C0111
+
 
 import os
 import re
@@ -163,5 +165,5 @@ def gitPull(project):
 
 def safeResult(result):
   """Parse string and remove credential of the user"""
-  regex=re.compile("(https:\/\/)([\w\d\._-]+:[\w\d\._-]+)\@([\S]+\s)", re.VERBOSE)
+  regex = re.compile("(https:\/\/)([\w\d\._-]+:[\w\d\._-]+)\@([\S]+\s)", re.VERBOSE)
   return regex.sub(r'\1\3', result)

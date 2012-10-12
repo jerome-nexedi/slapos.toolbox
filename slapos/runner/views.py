@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
+# pylint: disable-msg=W0311,C0301,C0103,C0111
+
 
 import os
 import shutil
@@ -16,7 +18,7 @@ from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getFolder, ge
                                  removeInstanceRoot, removeProxyDb, removeSoftwareByName, runInstanceWithLock,
                                  runSoftwareWithLock, saveSession, svcStartStopProcess, svcStopAll, tail,
                                  updateInstanceParameter)
-from slapos.runner.fileBrowser import fileBrowser
+from slapos.runner.fileBrowser import FileBrowser
 from slapos.runner.gittools import (cloneRepo, gitStatus, switchBranch, addBranch, getDiff,
                                    gitPush, gitPull)
 
@@ -25,7 +27,7 @@ app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
 auth = Auth(app, login_url_name='login')
 auth.user_timeout = 0
-file_request = fileBrowser(app.config)
+file_request = FileBrowser(app.config)
 
 # Setup default flask (werkzeug) parser
 import logging
@@ -73,7 +75,7 @@ def myAccount():
 
 @app.route("/dologout")
 def dologout():
-  user_data = logout()
+  _ = logout()
   return redirect(url_for('login'))
 
 @login_required()
@@ -108,6 +110,7 @@ def inspectSoftware():
     result = ""
   else:
     result = app.config['software_root']
+    # XXX not used??
   return render_template('runResult.html', softwareRoot='software_link/',
                          softwares=loadSoftwareRList(app.config))
 
@@ -173,11 +176,11 @@ def supervisordStatus():
   html = "<tr><th>Partition and Process name</th><th>Status</th><th>Process PID </th><th> UpTime</th><th></th></tr>"
   for item in result:
     html += "<tr>"
-    html +="<td  class='first'><b><a href='" + url_for('tailProcess', process=item[0])+"'>"+item[0]+"</a></b></td>"
-    html +="<td align='center'><a href='"+url_for('startStopProccess', process=item[0], action=item[1])+"'>"+item[1]+"</a></td>"
-    html +="<td align='center'>"+item[3]+"</td><td>"+item[5]+"</td>"
-    html +="<td align='center'><a href='"+url_for('startStopProccess', process=item[0], action='RESTART')+"'>Restart</a></td>"
-    html +="</tr>"
+    html += "<td  class='first'><b><a href='" + url_for('tailProcess', process=item[0]) + "'>" + item[0] + "</a></b></td>"
+    html += "<td align='center'><a href='" + url_for('startStopProccess', process=item[0], action=item[1]) + "'>" + item[1] + "</a></td>"
+    html += "<td align='center'>" + item[3] + "</td><td>" + item[5] + "</td>"
+    html += "<td align='center'><a href='" + url_for('startStopProccess', process=item[0], action='RESTART') + "'>Restart</a></td>"
+    html += "</tr>"
   return jsonify(code=1, result=html)
 
 @login_required()
@@ -295,7 +298,7 @@ def createFile():
                    request.form['type'] + ": Permission Denied")
   try:
     if request.form['type'] == "file":
-      f = open(path, 'w').write(" ")
+      open(path, 'w')
     else:
       os.mkdir(path)
     return jsonify(code=1, result="")
@@ -575,7 +578,7 @@ def fileBrowser():
       except:
         abort(404)
     elif opt == 9:
-      truncateTo = int(request.form.get('truncate', '0'))
+      truncateTo = int(request.form.get('truncate', '0'))     # XXX not used??
       result = file_request.readFile(dir, filename)
     elif opt == 11:
       #Upload file
