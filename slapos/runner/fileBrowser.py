@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
+# pylint: disable-msg=W0311,C0301,C0103,C0111
 
 import datetime
-import hashlib
+import md5
 import os
 import re
 import shutil
@@ -28,18 +29,17 @@ class fileBrowser(object):
   def listDirs(self, dir, all=False):
     """List elements of directory 'dir' taken"""
     html = 'var gsdirs = [], gsfiles=[];'
-    import pdb; pdb.set_trace()
     realdir = self._realdir(dir)
 
     ldir = sorted(os.listdir(realdir), key=str.lower)
     for f in ldir:
       if f.startswith('.') and not all: #do not display this file/folder
         continue
-      ff = os.path.join(dir,f)
+      ff = os.path.join(dir, f)
       realfile = os.path.join(realdir, f)
       mdate = datetime.datetime.fromtimestamp(os.path.getmtime(realfile)
                     ).strftime("%Y-%d-%m %I:%M")
-      md5 = hashlib.md5(realfile).hexdigest()
+      md5sum = md5.md5(realfile).hexdigest()
       if not os.path.isdir(realfile):
         size = os.path.getsize(realfile)
         regex = re.compile("(^.*)\.(.*)", re.VERBOSE)
@@ -49,11 +49,11 @@ class fileBrowser(object):
         else:
           ext = str.lower(ext)
         html += 'gsfiles.push(new gsItem("1", "' + f + '", "' + \
-                  ff + '", "' + str(size) + '", "' + md5 + \
+                  ff + '", "' + str(size) + '", "' + md5sum + \
                   '", "' + ext + '", "' + mdate + '"));'
       else:
         html += 'gsdirs.push(new gsItem("2", "' + f + '", "' + \
-                  ff + '", "0", "' + md5 + '", "dir", "' + mdate + '"));'
+                  ff + '", "0", "' + md5sum + '", "dir", "' + mdate + '"));'
     return html
 
 
@@ -71,9 +71,9 @@ class fileBrowser(object):
   def makeFile(self, dir, filename):
     """Create a file in a directory dir taken"""
     realdir = self._realdir(dir)
-    file = os.path.join(realdir, filename)
-    if not os.path.exists(file):
-      open(file, 'w').write('')
+    fout = os.path.join(realdir, filename)
+    if not os.path.exists(fout):
+      open(fout, 'w')
       return 'var responce = {result: \'1\'}'
     else:
       return '{result: \'0\'}'
@@ -179,10 +179,10 @@ class fileBrowser(object):
       zip = zipfile.ZipFile(tozip, 'w', zipfile.ZIP_DEFLATED)
       if os.path.isdir(fromzip):
         rootlen = len(fromzip) + 1
-        for base, dirs, files in os.walk(fromzip):
-          for file in files:
-            fn = os.path.join(base, file).encode("utf-8")
-            zip.write(fn, fn[rootlen:])
+        for base, _, files in os.walk(fromzip):
+          for filename in files:
+            fn = os.path.join(base, filename).encode("utf-8")
+            zip.write(fn, fn[rootlen:])       # XXX can fail if 'fromzip' contains multibyte characters
       else:
         zip.write(fromzip)
       zip.close()
