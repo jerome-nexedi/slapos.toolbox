@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vim: set et sts=2:
+# pylint: disable-msg=W0311,C0301,C0103,C0111,R0904,R0903
 
 import ConfigParser
 import datetime
@@ -48,6 +49,13 @@ class Parser(OptionParser):
     return options, args[0]
 
 class Config:
+  def __init__(self):
+    self.configuration_file_path = None
+    self.console = None
+    self.log_file = None
+    self.logger = None
+    self.verbose = None
+
   def setConfig(self, option_dict, configuration_file_path):
     """
     Set options given by parameters.
