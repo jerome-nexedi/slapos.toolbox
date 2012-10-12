@@ -28,8 +28,13 @@ class fileBrowser(object):
 
   def listDirs(self, dir, all=False):
     """List elements of directory 'dir' taken"""
-    html = 'var gsdirs = [], gsfiles=[];'
-    realdir = self._realdir(dir)
+    html = 'var gsdirs = [], gsfiles = [];'
+
+    dir = urllib.unquote(dir)
+    # 'dir' is used below. XXX should not shadow a builtin name
+    realdir = realpath(self.config, dir)
+    if not realdir:
+      raise NameError('Could not load directory %s: Permission denied' % dir)
 
     ldir = sorted(os.listdir(realdir), key=str.lower)
     for f in ldir:
