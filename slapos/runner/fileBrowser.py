@@ -19,15 +19,17 @@ class fileBrowser(object):
   def __init__(self, config):
     self.config = config
 
-  def listDirs(self, dir, all=False):
-    """List elements of directory 'dir' taken"""
-    html = ''
-    html += 'var gsdirs = new Array();'
-    html += 'var gsfiles = new Array();'
-    dir = urllib.unquote(str(dir))
-    realdir = realpath(self.config, dir)
+  def _realdir(self, dir):
+    realdir = realpath(self.config, urllib.unquote(dir))
     if not realdir:
       raise NameError('Could not load directory %s: Permission denied' % dir)
+    return realdir
+
+  def listDirs(self, dir, all=False):
+    """List elements of directory 'dir' taken"""
+    html = 'var gsdirs = [], gsfiles=[];'
+    import pdb; pdb.set_trace()
+    realdir = self._realdir(dir)
 
     ldir = sorted(os.listdir(realdir), key=str.lower)
     for f in ldir:
@@ -48,18 +50,16 @@ class fileBrowser(object):
           ext = str.lower(ext)
         html += 'gsfiles.push(new gsItem("1", "' + f + '", "' + \
                   ff + '", "' + str(size) + '", "' + md5 + \
-                  '", "' + ext + '", "' + mdate + '"));';
+                  '", "' + ext + '", "' + mdate + '"));'
       else:
         html += 'gsdirs.push(new gsItem("2", "' + f + '", "' + \
-                  ff + '", "0", "' + md5 + '", "dir", "' + mdate + '"));';
+                  ff + '", "0", "' + md5 + '", "dir", "' + mdate + '"));'
     return html
 
 
   def makeDirectory(self, dir, filename):
     """Create a directory"""
-    realdir = realpath(self.config, urllib.unquote(dir))
-    if not realdir:
-      raise NameError('Could not load directory %s: Permission denied' % dir)
+    realdir = self._realdir(dir)
     folder = os.path.join(realdir, filename)
     if not os.path.exists(folder):
       os.mkdir(folder, 0744)
@@ -67,11 +67,10 @@ class fileBrowser(object):
     else:
       return '{result: \'0\'}'
 
+
   def makeFile(self, dir, filename):
     """Create a file in a directory dir taken"""
-    realdir = realpath(self.config, urllib.unquote(dir))
-    if not realdir:
-      raise NameError('Could not load directory %s: Permission denied' % dir)
+    realdir = self._realdir(dir)
     file = os.path.join(realdir, filename)
     if not os.path.exists(file):
       open(file, 'w').write('')
@@ -81,9 +80,7 @@ class fileBrowser(object):
 
   def deleteItem(self, dir, files):
     """Delete a list of files or directories"""
-    realdir = realpath(self.config, urllib.unquote(dir))
-    if not realdir:
-      raise NameError('Could not load directory %s: Permission denied' % dir)
+    realdir = self._realdir(dir)
     lfiles = urllib.unquote(files).split(',,,')
     try:
       for file in lfiles:
@@ -91,7 +88,7 @@ class fileBrowser(object):
         if not os.path.exists(file):
           continue #silent skip file....
         details = file.split('/')
-        last = details[len(details) - 1]
+        last = details[-1]
         if last and last.startswith('.'):
           continue #cannot delete this file/directory, to prevent security
         if os.path.isdir(file):
@@ -104,9 +101,7 @@ class fileBrowser(object):
 
   def copyItem(self, dir, files, del_source=False):
     """Copy a list of files or directory to dir"""
-    realdir = realpath(self.config, urllib.unquote(dir))
-    if not realdir:
-      raise NameError('Could not load directory %s: Permission denied' % dir)
+    realdir = self._realdir(dir)
     lfiles = urllib.unquote(files).split(',,,')
     try:
       for file in lfiles:
@@ -115,7 +110,7 @@ class fileBrowser(object):
           raise NameError('Could not load file or directory %s: Permission denied' % file)
         #prepare destination file
         details = realfile.split('/')
-        dest = os.path.join(realdir, details[len(details) - 1])
+        dest = os.path.join(realdir, details[-1])
         if os.path.exists(dest):
           raise NameError('NOT ALLOWED OPERATION : File or directory already exist')
         if os.path.isdir(realfile):
@@ -132,9 +127,7 @@ class fileBrowser(object):
 
   def rename(self, dir, filename, newfilename):
     """Rename file or directory to dir/filename"""
-    realdir = realpath(self.config, urllib.unquote(dir))
-    if not realdir:
-      raise NameError('Could not load directory %s: Permission denied' % dir)
+    realdir = self._realdir(dir)
     realfile = realpath(self.config, urllib.unquote(filename))
     if not realfile:
       raise NameError('Could not load directory %s: Permission denied' % filename)
@@ -146,9 +139,7 @@ class fileBrowser(object):
 
   def copyAsFile(self, dir, filename, newfilename):
     """Copy file or directory to dir/filename"""
-    realdir = realpath(self.config, urllib.unquote(dir))
-    if not realdir:
-      raise NameError('Could not load directory %s: Permission denied' % dir)
+    realdir = self._realdir(dir)
     fromfile = os.path.join(realdir, filename)
     tofile = os.path.join(realdir, newfilename)
     if not os.path.exists(fromfile):
@@ -160,9 +151,7 @@ class fileBrowser(object):
 
   def uploadFile(self, dir, files):
     """Upload a list of file in directory dir"""
-    realdir = realpath(self.config, urllib.unquote(dir))
-    if not realdir:
-      raise NameError('Could not load directory %s: Permission denied' % dir)
+    realdir = self._realdir(dir)
     for file in files:
       if files[file]:
         filename = werkzeug.secure_filename(files[file].filename)
@@ -172,9 +161,7 @@ class fileBrowser(object):
 
   def downloadFile(self, dir, filename):
     """Download file dir/filename"""
-    realdir = realpath(self.config, urllib.unquote(dir))
-    if not realdir:
-      raise NameError('Could not load directory %s: Permission denied' % dir)
+    realdir = self._realdir(dir)
     file = os.path.join(realdir, urllib.unquote(filename))
     if not os.path.exists(file):
       raise NameError('NOT ALLOWED OPERATION : File or directory does not exist %s'
@@ -183,9 +170,7 @@ class fileBrowser(object):
 
   def zipFile(self, dir, filename, newfilename):
     """Add filename to archive as newfilename"""
-    realdir = realpath(self.config, urllib.unquote(dir))
-    if not realdir:
-      raise NameError('Could not load directory %s: Permission denied' % dir)
+    realdir = self._realdir(dir)
     tozip = os.path.join(realdir, newfilename)
     fromzip = os.path.join(realdir, filename)
     if not os.path.exists(fromzip):
@@ -206,9 +191,7 @@ class fileBrowser(object):
 
   def unzipFile(self, dir, filename, newfilename):
     """Extract a zipped archive"""
-    realdir = realpath(self.config, urllib.unquote(dir))
-    if not realdir:
-      raise NameError('Could not load directory %s: Permission denied' % dir)
+    realdir = self._realdir(dir)
     target = os.path.join(realdir, newfilename)
     archive = os.path.join(realdir, filename)
     if not os.path.exists(archive):
