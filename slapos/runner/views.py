@@ -11,9 +11,10 @@ from flaskext.auth import Auth, AuthUser, login_required, logout
 from flask import (Flask, request, redirect, url_for, render_template,
                    g, flash, jsonify, session, abort, send_file)
 
+from slapos.runner.process import killRunningProcess
 from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getFolder, getFolderContent, getProfilePath,
                                  getProjectList, getProjectTitle, getSession, getSlapStatus, getSvcStatus,
-                                 getSvcTailProcess, isInstanceRunning, isSoftwareRunning, isText, killRunningProcess,
+                                 getSvcTailProcess, isInstanceRunning, isSoftwareRunning, isText,
                                  loadSoftwareRList, md5sum, newSoftware, readFileFrom, readParameters, realpath,
                                  removeInstanceRoot, removeProxyDb, removeSoftwareByName, runInstanceWithLock,
                                  runSoftwareWithLock, saveSession, svcStartStopProcess, svcStopAll, tail,
@@ -427,7 +428,7 @@ def slapgridResult():
 
 @login_required()
 def stopSlapgrid():
-  result = killRunningProcess(app.config, request.form['type'])
+  result = killRunningProcess(request.form['type'])
   return jsonify(result=result)
 
 @login_required()

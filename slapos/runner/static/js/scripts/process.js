@@ -83,10 +83,10 @@ function stopProcess() {
         sendStop = true;
 
         var urlfor = $SCRIPT_ROOT + "stopSlapgrid",
-            type = "slapgrid-sr.pid";
+            type = "slapgrid-sr";
 
         if ($("#instrun").text() === "Stop") {
-            type = "slapgrid-cp.pid";
+            type = "slapgrid-cp";
         }
         $.post(urlfor, {type: type}, function (data) {
             //if (data.result) {

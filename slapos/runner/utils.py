@@ -7,10 +7,9 @@ import md5
 import logging
 import multiprocessing
 import re
-import signal
+from slapos.runner.process import Popen, isRunning, killRunningProcess
 import shutil
 import os
-import subprocess
 import time
 import urllib
 from xml.dom import minidom
@@ -20,21 +19,11 @@ from flask import jsonify
 
 import slapos.slap
 
+
 # Setup default flask (werkzeug) parser
 
 logger = logging.getLogger('werkzeug')
 
-
-class Popen(subprocess.Popen):
-  def __init__(self, *args, **kwargs):
-    kwargs['stdin'] = subprocess.PIPE
-    kwargs['stderr'] = subprocess.STDOUT
-    kwargs.setdefault('stdout', subprocess.PIPE)
-    kwargs.setdefault('close_fds', True)
-    subprocess.Popen.__init__(self, *args, **kwargs)
-    self.stdin.flush()
-    self.stdin.close()
-    self.stdin = None
 
 html_escape_table = {
   "&": "&amp;",
@@ -177,54 +166,6 @@ def updateProxy(config):
   computer.updateConfiguration(xml_marshaller.xml_marshaller.dumps(slap_config))
   return True
 
-def readPid(file):
-  """Read process pid from file `file`"""
-  if os.path.exists(file):
-    data = open(file).read().strip()
-    try:
-      return int(data)
-    except Exception:
-      return 0
-  return 0
-
-
-def writePid(file, pid):
-  """Save process pid into a file `file`"""
-  open(file, 'w').write(str(pid))
-
-
-def killRunningProcess(config, ptype):
-  """Kill process and all running children process and remove pidfile"""
-  process_pid = os.path.join(config['run_dir'], ptype)
-  pid = readPid(process_pid)
-  if pid:
-      recursifKill([pid])
-      os.remove(process_pid)
-  else:
-    return False
-
-def recursifKill(pids):
-  """Try to kill a list of proccess by the given pid list"""
-  if pids == []:
-    return
-  else:
-    for pid in pids:
-      ppids = pidppid(pid)
-      try:
-        os.kill(pid, signal.SIGKILL) #kill current process
-      except Exception:
-        pass
-      recursifKill(ppids) #kill all children of this process
-
-def pidppid(pid):
-  """get the list of the children pids of a process `pid`"""
-  proc = Popen('ps -o pid,ppid ax | grep "%d"' % pid, shell=True,
-               stdout=subprocess.PIPE)
-  ppid  = [x.split() for x in proc.communicate()[0].split("\n") if x]
-  return list(int(p) for p, pp in ppid if int(pp) == pid)
-
-
-
 def updateInstanceParameter(config, software_type=None):
   """
   Reconfigure Slapproxy to re-deploy current Software Instance with parameters.
@@ -238,27 +179,17 @@ def updateInstanceParameter(config, software_type=None):
 
 def startProxy(config):
   """Start Slapproxy server"""
-  proxy_pid = os.path.join(config['run_dir'], 'proxy.pid')
-  pid = readPid(proxy_pid)
-  running = False
-  if pid:
-    try:
-      os.kill(pid, 0)
-    except Exception:
-      pass
-    else:
-      running = True
-  if not running:
+  if not isRunning('slapproxy'):
     log = os.path.join(config['log_dir'], 'slapproxy.log')
-    proxy = Popen([config['slapproxy'], '--log_file', log,
-                  config['configuration_file_path']])
-    writePid(proxy_pid, proxy.pid)
+    Popen([config['slapproxy'], '--log_file', log,
+           config['configuration_file_path']],
+          name='slapproxy')
     time.sleep(4)
 
 
 def stopProxy(config):
   """Stop Slapproxy server"""
-  killRunningProcess(config,'proxy.pid')
+  pass
 
 
 def removeProxyDb(config):
@@ -267,22 +198,11 @@ def removeProxyDb(config):
   if os.path.exists(config['database_uri']):
     os.unlink(config['database_uri'])
 
-def isSoftwareRunning(config):
+def isSoftwareRunning(config=None):
   """
     Return True if slapgrid-sr is still running and false if slapgrid if not
   """
-  slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-sr.pid')
-  pid = readPid(slapgrid_pid)
-  if pid:
-    try:
-      os.kill(pid, 0)
-    except Exception:
-      running = False
-    else:
-      running = True
-  else:
-    running = False
-  return running
+  return isRunning('slapgrid-sr')
 
 
 def runSoftwareWithLock(config):
@@ -291,7 +211,7 @@ def runSoftwareWithLock(config):
     compilation is done
   """
   slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-sr.pid')
-  if not isSoftwareRunning(config):
+  if not isSoftwareRunning():
     if not os.path.exists(config['software_root']):
       os.mkdir(config['software_root'])
     stopProxy(config)
@@ -304,9 +224,10 @@ def runSoftwareWithLock(config):
     environment = os.environ.copy()
     environment['MAKEFLAGS'] = '-j%r' % multiprocessing.cpu_count()
     slapgrid = Popen([config['slapgrid_sr'], '-vc',
-                      '--pidfile',slapgrid_pid,
+                      '--pidfile', slapgrid_pid,
                       config['configuration_file_path'], '--now', '--develop'],
-                     stdout=logfile, env=environment)
+                     stdout=logfile, env=environment,
+                     name='slapgrid-sr')
     slapgrid.wait()
     #Saves the current compile software for re-use
     config_SR_folder(config)
@@ -362,22 +283,11 @@ def loadSoftwareRList(config):
       list.append(dict(md5=cfg[1], path=cfg[0], title=path))
   return list
 
-def isInstanceRunning(config):
+def isInstanceRunning(config=None):
   """
     Return True if slapgrid-cp is still running and false if slapgrid if not
   """
-  slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-cp.pid')
-  pid = readPid(slapgrid_pid)
-  if pid:
-    try:
-      os.kill(pid, 0)
-    except Exception:
-      running = False
-    else:
-      running = True
-  else:
-    running = False
-  return running
+  return isRunning('slapgrid-cp')
 
 
 def runInstanceWithLock(config):
@@ -386,16 +296,16 @@ def runInstanceWithLock(config):
     deployment is done.
   """
   slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-cp.pid')
-  if not isInstanceRunning(config):
+  if not isInstanceRunning():
     startProxy(config)
     logfile = open(config['instance_log'], 'w')
     if not (updateProxy(config) and requestInstance(config)):
       return False
     svcStopAll(config) #prevent lost control of process
     slapgrid = Popen([config['slapgrid_cp'], '-vc',
-                      '--pidfile',slapgrid_pid,
+                      '--pidfile', slapgrid_pid,
                       config['configuration_file_path'], '--now'],
-                     stdout=logfile)
+                     stdout=logfile, name='slapgrid-cp')
     slapgrid.wait()
     return True
   return False
@@ -587,10 +497,10 @@ def configNewSR(config, projectpath):
   """
   folder = realpath(config, projectpath)
   if folder:
-    if isInstanceRunning(config):
-      killRunningProcess(config, "slapgrid-cp.pid")
-    if isSoftwareRunning(config):
-      killRunningProcess(config, "slapgrid-sr.pid")
+    if isInstanceRunning():
+      killRunningProcess('slapgrid-cp')
+    if isSoftwareRunning():
+      killRunningProcess('slapgrid-sr')
     stopProxy(config)
     removeProxyDb(config)
     startProxy(config)
@@ -672,7 +582,7 @@ def removeSoftwareByName(config, md5, folderName):
     config: slaprunner configuration
     foldername: the link name given to the software release
     md5: the md5 filename given by slapgrid to SR folder"""
-  if isSoftwareRunning(config) or isInstanceRunning(config):
+  if isSoftwareRunning() or isInstanceRunning():
     raise Exception("Software installation or instantiation in progress, cannot remove")
   path = os.path.join(config['software_root'], md5)
   linkpath = os.path.join(config['software_link'], folderName)

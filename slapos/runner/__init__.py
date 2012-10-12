@@ -8,6 +8,7 @@ import logging
 import logging.handlers
 from optparse import OptionParser, Option
 import os
+import slapos.runner.process
 import sys
 from slapos.runner.utils import runInstanceWithLock
 
@@ -144,5 +145,6 @@ def serve(config):
   if not os.path.exists(software_link):
     os.mkdir(software_link)
   runInstanceWithLock(app.config)
+  slapos.runner.process.setHandler()
   app.run(host=config.runner_host, port=int(config.runner_port),
       debug=config.debug, threaded=True)
