@@ -8,11 +8,11 @@
   $.extend($.fn, {
     Popup: function(msg, option) {
       var h;
-      if (option.type == undefined) option.type = "info";
-      if (option.closebtn == undefined) option.closebtn = false;
-      if (option.duration == undefined) option.duration = 0;
-      if (option.load == undefined) option.load = false;
-      $box = $(this);
+      if (option.type === undefined) option.type = "info";
+      if (option.closebtn === undefined) option.closebtn = false;
+      if (option.duration === undefined) option.duration = 0;
+      if (option.load === undefined) option.load = false;
+      var $box = $(this);
       if(showDelayTimer){clearTimeout(showDelayTimer);}
       if(isShow){
         $box.fadeOut('normal', function() {
@@ -21,8 +21,8 @@
       }
       else{setupBox();}
       function setupBox(){
-        if (msg == undefined){
-          msg = "Cannot execute your request. Please make sure you are logged in!!"
+        if (msg === undefined){
+          msg = "Cannot execute your request. Please make sure you are logged in!!";
           option.type = "error";
         }
         $box.empty();
@@ -40,7 +40,7 @@
           close();
         });
         showBox();
-        if(option.duration != 0){
+        if(option.duration !== 0){
           showDelayTimer = setTimeout(function(){
             showDelayTimer = null;
             close();
