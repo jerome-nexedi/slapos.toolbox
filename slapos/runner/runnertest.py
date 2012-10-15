@@ -341,14 +341,14 @@ class SlaprunnerTestCase(unittest.TestCase):
     softwareRelease += "url = http://git.erp5.org/gitweb/slapos.git\n"
     softwareRelease += "filename = slapos.git\n"
     softwareRelease += "download-only = true\n"
-    response = self.loadJson(self.app.post('/saveFileContent',
+    response = loadJson(self.app.post('/saveFileContent',
                     data=dict(file=newSoftware,
                     content=softwareRelease),
                     follow_redirects=True))
     self.assertEqual(response['result'], "")
     #Compile software and wait until slapgrid it end
     #this is supose to use curent SR
-    response = self.loadJson(self.app.post('/runSoftwareProfile',
+    response = loadJson(self.app.post('/runSoftwareProfile',
                     data=dict(),
                     follow_redirects=True))
     self.assertTrue(response['result'])
@@ -370,7 +370,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.setupSoftwareFolder()
     #Set current projet and run Slapgrid-cp
     software = os.path.join(self.software, 'slaprunner-test')
-    response = self.loadJson(self.app.post('/setCurrentProject',
+    response = loadJson(self.app.post('/setCurrentProject',
                     data=dict(path=software),
                     follow_redirects=True))
     self.assertEqual(response['result'], "")
@@ -381,7 +381,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     parameterXml += '<parameter id="appname">slaprunnerTest</parameter>\n'
     parameterXml += '<parameter id="cacountry">France</parameter>\n</instance>'
     software_type = 'production'
-    response = self.loadJson(self.app.post('/saveParameterXml',
+    response = loadJson(self.app.post('/saveParameterXml',
                     data=dict(parameter=parameterXml,
                               software_type=software_type),
                     follow_redirects=True))
@@ -400,9 +400,9 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertEqual(slapParameterDict['slap_software_type'], 'production')
 
     #test getParameterXml for webrunner UI
-    response = self.loadJson(self.app.get('/getParameterXml/xml'))
+    response = loadJson(self.app.get('/getParameterXml/xml'))
     self.assertEqual(parameterXml, response['result'])
-    response = self.loadJson(self.app.get('/getParameterXml/dict'))
+    response = loadJson(self.app.get('/getParameterXml/dict'))
     self.assertEqual(parameterDict, response['result']['instance'])
     self.stopSlapproxy()
     self.logout()
@@ -414,12 +414,12 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.login(self.users[0], self.users[1])
     self.proxyStatus(False)
     #run Software profile
-    response = self.loadJson(self.app.post('/runSoftwareProfile',
+    response = loadJson(self.app.post('/runSoftwareProfile',
                     data=dict(),
                     follow_redirects=True))
     self.assertTrue(response['result'])
     #run instance profile
-    response = self.loadJson(self.app.post('/runInstanceProfile',
+    response = loadJson(self.app.post('/runInstanceProfile',
                     data=dict(),
                     follow_redirects=True))
     self.assertTrue(response['result'])
