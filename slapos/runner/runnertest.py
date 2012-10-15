@@ -9,10 +9,9 @@ import os
 import shutil
 import unittest
 import hashlib
-import time
 
 from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning, isSoftwareRunning, readPid,
-                                 recursifKill, startProxy, killRunningProcess)
+                                 startProxy, killRunningProcess)
 from slapos.runner import views
 import slapos.slap
 
