@@ -13,7 +13,7 @@ import os
 import subprocess
 import time
 import urllib
-import xml.dom
+from xml.dom import minidom
 
 import xml_marshaller
 from flask import jsonify
@@ -804,8 +804,8 @@ def readParameters(path):
     a dictionnary of instance parameters."""
   if os.path.exists(path):
     try:
-      xmldoc = xml.dom.minidom.parse(path)
-      obj = {}
+      xmldoc = minidom.parse(path)
+      object = {}
       for elt in xmldoc.childNodes:
         sub_obj = {}
         for subnode in elt.childNodes:
