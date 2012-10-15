@@ -805,7 +805,7 @@ def readParameters(path):
   if os.path.exists(path):
     try:
       xmldoc = minidom.parse(path)
-      object = {}
+      obj = {}
       for elt in xmldoc.childNodes:
         sub_obj = {}
         for subnode in elt.childNodes:
