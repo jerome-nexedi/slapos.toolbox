@@ -9,6 +9,7 @@ import logging.handlers
 from optparse import OptionParser, Option
 import os
 import sys
+from slapos.runner.utils import runInstanceWithLock
 
 
 class Parser(OptionParser):
@@ -142,5 +143,6 @@ def serve(config):
     os.mkdir(workdir)
   if not os.path.exists(software_link):
     os.mkdir(software_link)
+  runInstanceWithLock(app.config)
   app.run(host=config.runner_host, port=int(config.runner_port),
       debug=config.debug, threaded=True)
