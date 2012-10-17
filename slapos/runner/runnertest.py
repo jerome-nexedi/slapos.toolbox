@@ -7,11 +7,13 @@ import datetime
 import json
 import os
 import shutil
+import time
 import unittest
 import hashlib
 
-from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning, isSoftwareRunning, readPid,
-                                 startProxy, killRunningProcess)
+from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning,
+                                 isSoftwareRunning, startProxy)
+from slapos.runner.process import killRunningProcess, isRunning
 from slapos.runner import views
 import slapos.slap
 
@@ -108,9 +110,9 @@ class SlaprunnerTestCase(unittest.TestCase):
       shutil.rmtree(self.app.config['software_link'])
     self.logout()
     #Stop process
-    killRunningProcess(self.app.config, 'proxy.pid')
-    killRunningProcess(self.app.config, 'slapgrid-cp.pid')
-    killRunningProcess(self.app.config, 'slapgrid-sr.pid')
+    killRunningProcess('slapproxy', recursive=True)
+    killRunningProcess('slapgrid-cp', recursive=True)
+    killRunningProcess('slapgrid-sr', recursive=True)
 
   def configAccount(self, username, password, email, name, rcode):
     """Helper for configAccount"""
@@ -154,17 +156,13 @@ class SlaprunnerTestCase(unittest.TestCase):
   def getCurrentSR(self):
    return getProfilePath(self.app.config['etc_dir'],
                               self.app.config['software_profile'])
-  def proxyStatus(self, status=True):
+
+  def proxyStatus(self, status=True, sleep_time=0):
     """Helper for testslapproxy status"""
-    proxy_pid = os.path.join(self.app.config['run_dir'], 'proxy.pid')
-    pid = readPid(proxy_pid)
-    proxy = False
-    if pid:
-      try:
-        os.kill(pid, 0)
-        proxy = True
-      except Exception:
-        pass
+    proxy = isRunning('slapproxy')
+    if proxy != status and sleep_time != 0:
+      time.sleep(sleep_time)
+      proxy = isRunning('slapproxy')
     self.assertEqual(proxy, status)
 
   def setupProjectFolder(self, withSoftware=False):
@@ -207,8 +205,7 @@ class SlaprunnerTestCase(unittest.TestCase):
 
   def stopSlapproxy(self):
     """Kill slapproxy process"""
-    killRunningProcess(self.app.config, 'proxy.pid')
-
+    killRunningProcess('slapproxy', recursive=True)
 
 
   #Begin test case here
@@ -262,7 +259,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     startProxy(self.app.config)
     self.proxyStatus(True)
     self.stopSlapproxy()
-    self.proxyStatus(False)
+    self.proxyStatus(False, sleep_time=1)
 
   def test_cloneProject(self):
     """Start scenario 1 for deploying SR: Clone a project from git repository"""
@@ -319,7 +316,8 @@ class SlaprunnerTestCase(unittest.TestCase):
     assert software in currentSR
     self.assertFalse(isInstanceRunning(self.app.config))
     self.assertFalse(isSoftwareRunning(self.app.config))
-    #Slapproxy process is supose to be startednewSoftware = os.path.join(self.software, 'slaprunner-test')
+    #Slapproxy process is supose to be started
+    #newSoftware = os.path.join(self.software, 'slaprunner-test')
     self.proxyStatus(True)
     self.stopSlapproxy()
     self.logout()
@@ -411,7 +409,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.test_updateInstanceParameter()
     #Login
     self.login(self.users[0], self.users[1])
-    self.proxyStatus(False)
+    self.proxyStatus(False, sleep_time=1)
     #run Software profile
     response = loadJson(self.app.post('/runSoftwareProfile',
                     data=dict(),
