@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# vim: set et sts=2:
 ##############################################################################
 #
 # Copyright (c) 2010 Vifib SARL and Contributors. All Rights Reserved.
@@ -24,23 +26,23 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 ##############################################################################
+
+import argparse
 import gdbm
-from json import loads as unjson
-import Queue
-import select
-from StringIO import StringIO
-import socket
-import os
+import json
 import logging
 import logging.handlers
+import os
+import Queue
+import select
+import StringIO
+import socket
 import signal
 import subprocess
-import argparse
 
 cleanup_data = {}
 
 def cleanup(signum=None, frame=None):
-  global cleanup_data
   cleanup_functions = dict(
     sockets=lambda sock: sock.close(),
     subprocesses=lambda process: process.terminate(),
@@ -48,6 +50,7 @@ def cleanup(signum=None, frame=None):
   )
   for data, function in cleanup_functions.iteritems():
     for item in cleanup_data.get(data, []):
+      # XXX will these lists ever have more than 1 element??
       # Swallow everything !
       try:
         function(item)
@@ -89,7 +92,6 @@ class TaskRunner(object):
     self._command = None
 
   def run(self, command, time):
-    global cleanup_data
     self._time = time
     self._command = command
     self._task = subprocess.Popen([command], stdin=subprocess.PIPE,
@@ -106,8 +108,6 @@ class TaskRunner(object):
     return self._task.stdout.fileno()
 
 def main():
-  global cleanup_data
-
   parser = argparse.ArgumentParser(
     description="Run a single threaded execution queue.")
   parser.add_argument('--database', nargs=1, required=True,
@@ -169,7 +169,7 @@ def main():
 
         conn.settimeout(args.timeout)
 
-        request_string = StringIO()
+        request_string = StringIO.StringIO()
         segment = None
         try:
           while segment != '':
@@ -180,7 +180,7 @@ def main():
 
         command = '127'
         try:
-          request = unjson(request_string.getvalue())
+          request = json.loads(request_string.getvalue())
           timestamp = request['timestamp']
           command = str(request['command'])
           task_queue.put([command, timestamp])
@@ -231,3 +231,4 @@ def main():
 
 if __name__ == '__main__':
   main()
+
