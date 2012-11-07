@@ -4,7 +4,6 @@
 import argparse
 import csv
 import httplib
-import math
 import os
 import socket
 import subprocess
@@ -55,7 +54,7 @@ def main():
   with open(args.logfile[0], 'a') as file_:
     cvsfile = csv.writer(file_)
     cvsfile.writerow([
-      int(math.floor(time.time())), # Timestamp
+      int(time.time()),
       args.title[0],
       content,
       'slapos:%s' % uuid.uuid4(),
