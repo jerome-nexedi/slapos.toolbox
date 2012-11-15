@@ -20,7 +20,7 @@
     <ul>
       <li><a href="#tab1" class="active">Slapgrid Supervisor</a></li>
       <li><a href="#tab2">SLAP Response</a></li>
-      <li><a href="#tab3" id="parameterTab">Parameters</a></li>
+      <li><a href="#tab3" id="parameterTab">SLAP Parameters</a></li>
       <li><a href="#tab4" id="instancetabfiles">Partitions Content</a></li>
     </ul><!-- //Tab buttons -->
     <div class="tabDetails">
@@ -51,7 +51,7 @@
       <div id="tab2" class="tabContents">
       {% if slap_status %}
       <p>Uses parameters below to run your application</p>
-      <div class="menu-box-right" style="width: 597px;">
+      <div class="menu-box-right">
       <div style="background:#fff; padding:10px;">
         {% for item in slap_status %}
         <div id="box{{item[0]}}" style="display:none;">
@@ -82,7 +82,7 @@
         {% endfor %}
       </div>
       </div>
-      <div class="menu-box-left" style="width: 110px;">
+      <div class="menu-box-left">
         <ul id="slappart">
           {% for item in slap_status %}
             <li><input type="radio" name="slapresponse" id="{{item[0]}}" value="{{item[0]}}" />

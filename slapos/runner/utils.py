@@ -366,7 +366,7 @@ def getSvcStatus(config):
   """Return all Softwares Instances process Informations"""
   result = Popen([config['supervisor'], config['configuration_file_path'],
                   'status']).communicate()[0]
-  regex = "(^unix:.+\.socket)|(^error:).*$"
+  regex = "(^unix:.+\.socket)|(^error:)|(^watchdog).*$"
   supervisord = []
   for item in result.split('\n'):
     if item.strip() != "":
@@ -623,10 +623,11 @@ def tail(f, lines=20):
       block -= 1
   return '\n'.join(''.join(data).splitlines()[-lines:])
 
-def readFileFrom(f, lastPosition):
+def readFileFrom(f, lastPosition, limit=15000):
   """
   Returns the last lines of file `f`, from position lastPosition.
   and the last position
+  limit = max number of caracter to read
   """
   BUFSIZ = 1024
   f.seek(0, 2)
@@ -634,8 +635,8 @@ def readFileFrom(f, lastPosition):
   block = -1
   data = ""
   length = bytes
-  if lastPosition <= 0 and length > 30000:
-    lastPosition = length-30000
+  if (lastPosition <= 0 and length > limit) or (length-lastPosition > limit):
+    lastPosition = length - limit
   size = bytes - lastPosition
   while bytes > lastPosition:
     if abs(block*BUFSIZ) <= size:

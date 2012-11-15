@@ -18,6 +18,8 @@ var processState = "Checking"; //define slapgrid running state
 var openedlogpage = ""; //content software or instance if the current page is software or instance log, otherwise nothing
 var logReadingPosition = 0;
 var speed = 5000;
+var maxLogSize = 100000; //Define the max limit of log to display  ~ 2500 lines
+var currentLogSize = 0; //Define the size of log actually displayed
 var isRunning = function () {
     "use strict";
     if (running) {
@@ -44,17 +46,21 @@ function clearAll(setStop) {
 
 function getRunningState() {
     "use strict";
+    var size = 0;
     var param = {
         position: logReadingPosition,
         log: (processState !== "Checking" && openedlogpage === processType.toLowerCase()) ? openedlogpage : ""
     },
         jqxhr = $.post(url, param, function (data) {
             setRunningState(data);
+            size = data.content.position - logReadingPosition;
             logReadingPosition = data.content.position;
             if (data.content.content !== "") {
-                $("#salpgridLog").append(data.content.content.toHtmlChar());
-                $("#salpgridLog")
-                    .scrollTop($("#salpgridLog")[0].scrollHeight - $("#salpgridLog").height());
+                if (data.content.content !== "") {
+                    $("#salpgridLog").append("<p rel='" + size + "'>" + data.content.content.toHtmlChar() + "</p>");
+                    $("#salpgridLog")
+                        .scrollTop($("#salpgridLog")[0].scrollHeight - $("#salpgridLog").height());
+                }
             }
             if (running && processState === "Checking" && openedlogpage !== "") {
                 $("#salpgridLog").show();
@@ -67,6 +73,12 @@ function getRunningState() {
         })
         .complete(function () {
             if (running) {
+                currentLogSize += parseInt(size, 10);
+                if (currentLogSize > maxLogSize){
+                    //Remove the first element into log div
+                    currentLogSize -= parseInt($("#salpgridLog p:first-child").attr('rel'), 10);
+                    $("#salpgridLog p:first-child").remove();
+                }
                 setTimeout(function () {
                     getRunningState();
                 }, speed);
@@ -83,10 +95,10 @@ function stopProcess() {
         sendStop = true;
 
         var urlfor = $SCRIPT_ROOT + "stopSlapgrid",
-            type = "slapgrid-sr";
+            type = "slapgrid-sr.pid";
 
-        if ($("#instrun").text() === "Stop") {
-            type = "slapgrid-cp";
+        if ($("#instrun").text() === "Stop instance") {
+            type = "slapgrid-cp.pid";
         }
         $.post(urlfor, {type: type}, function (data) {
             //if (data.result) {
@@ -106,7 +118,7 @@ function stopProcess() {
 function bindRun() {
     "use strict";
     $("#softrun").click(function () {
-        if ($("#softrun").text() === "Stop") {
+        if ($("#softrun").text() === "Stop software") {
             stopProcess();
         } else {
             if (!isRunning()) {
@@ -117,7 +129,7 @@ function bindRun() {
         return false;
     });
     $("#instrun").click(function () {
-        if ($("#instrun").text() === "Stop") {
+        if ($("#instrun").text() === "Stop instance") {
             stopProcess();
         } else {
             if (!isRunning()) {
@@ -138,14 +150,14 @@ function setRunningState(data) {
             //change run menu title and style
             if (data.software) {
                 $("#softrun").empty();
-                $("#softrun").append("Stop");
+                $("#softrun").append("Stop software");
                 $("#softrun").css("color", "#0271BF");
                 $current = $("#softrun");
                 processType = "Software";
             }
             if (data.instance) {
                 $("#instrun").empty();
-                $("#instrun").append("Stop");
+                $("#instrun").append("Stop instance");
                 $("#instrun").css("color", "#0271BF");
                 $current = $("#instrun");
                 processType = "Instance";
@@ -156,11 +168,11 @@ function setRunningState(data) {
         running = false; //nothing is currently running
         if ($current !== undefined) {
             $current.empty();
-            $current.append("Run");
+            $current.append("Run " + processType.toLowerCase());
             $current.css("color", "#000");
             $current = undefined;
             currentState = false;
-            $("#error").Popup("Slapgrid completely finish running your " + processType + " Profile", {type: 'info', duration: 3000});
+            $("#error").Popup("Slapgrid finished running your " + processType + " Profile", {type: 'info', duration: 3000});
         }
     }
     currentState = data.result;

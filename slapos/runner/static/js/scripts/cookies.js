@@ -3,19 +3,6 @@
 /* vim: set et sts=4: */
 
 /*Cookies Management*/
-function setCookie(name, value, expires, path, domain, secure) {
-    "use strict";
-    if (!expires) {
-        var today = new Date();
-        expires = new Date(today.getTime() + 365 * 24 * 60 * 60 * 1000);
-    }
-    document.cookie = name + "=" + escape(value) +
-        "; expires=" + expires.toGMTString() +
-        ((path) ? "; path=" + path : "/") +
-        ((domain) ? "; domain=" + domain : "") +
-        ((secure) ? "; secure" : "");
-}
-
 function getCookie(name) {
     "use strict";
     var i,
@@ -37,6 +24,7 @@ function getCookie(name) {
     }
     return null;
 }
+
 function deleteCookie(name, path, domain) {
     "use strict";
     if (getCookie(name)) {
@@ -45,5 +33,21 @@ function deleteCookie(name, path, domain) {
             (domain ? "; domain=" + domain : "") +
             "; expires=Thu, 01-Jan-70 00:00:01 GMT";
     }
+}
+
+function setCookie(name, value, expires, path, domain, secure) {
+    "use strict";
+    if (getCookie(name) !== null){
+      deleteCookie(name);
+    }
+    if (!expires) {
+        var today = new Date();
+        expires = new Date(today.getTime() + 365 * 24 * 60 * 60 * 1000);
+    }
+    document.cookie = name + "=" + escape(value) +
+        "; expires=" + expires.toGMTString() +
+        ((path) ? "; path=" + path : "/") +
+        ((domain) ? "; domain=" + domain : "") +
+        ((secure) ? "; secure" : "");
 }
 /**************************/

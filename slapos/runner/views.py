@@ -64,6 +64,11 @@ def before_request():
 def home():
   return render_template('index.html')
 
+# general views
+@login_required()
+def browseWorkspace():
+  return render_template('workspace.html')
+
 @app.route("/login")
 def login():
   return render_template('login.html')
@@ -114,11 +119,6 @@ def editSoftwareProfile():
 
 @login_required()
 def inspectSoftware():
-  if not os.path.exists(app.config['software_root']):
-    result = ""
-  else:
-    result = app.config['software_root']
-    # XXX not used??
   return render_template('runResult.html', softwareRoot='software_link/',
                          softwares=loadSoftwareRList(app.config))
 
@@ -597,8 +597,8 @@ def fileBrowser():
       except:
         abort(404)
     elif opt == 9:
-      truncateTo = int(request.form.get('truncate', '0'))     # XXX not used??
-      result = file_request.readFile(dir, filename)
+      truncateTo = int(request.form.get('truncate', '0'))
+      result = file_request.readFile(dir, filename, truncateTo)
     elif opt == 11:
       #Upload file
       result = file_request.uploadFile(dir, request.files)
@@ -626,8 +626,7 @@ def editFile():
 
 #Setup List of URLs
 app.add_url_rule('/', 'home', home)
-app.add_url_rule('/editSoftwareProfile', 'editSoftwareProfile',
-                 editSoftwareProfile)
+app.add_url_rule('/editSoftwareProfile', 'editSoftwareProfile', editSoftwareProfile)
 app.add_url_rule('/inspectSoftware', 'inspectSoftware', inspectSoftware)
 app.add_url_rule('/removeSoftware', 'removeSoftware', removeSoftware)
 app.add_url_rule('/runSoftwareProfile', 'runSoftwareProfile',

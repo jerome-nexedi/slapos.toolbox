@@ -37,7 +37,6 @@ $(document).ready(function () {
         $("#info").append(file);
         $("input#subfolder").val(file);
         $("#md5sum").empty();
-        path = "";
         send = false;
         edit = false;
         if (file.substr(-1) !== "/") {

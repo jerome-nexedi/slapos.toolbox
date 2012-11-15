@@ -60,6 +60,7 @@ UL.jqueryFileTree A:hover {
     background-color: white;
     border: 1px solid #BBBBBB;
 }
+div.browser div.gs_dir_content_files{min-height:330px;}
 
 #curDir {
  height: 30px;
@@ -124,7 +125,7 @@ UL.jqueryFileTree A:hover {
     font-weight: bold;
 }
 .gs_head{padding: 10px 5px 10px 0;}
-.gs_title{padding-left: 10px; margin:5px 5px 0 0; background: #e4e4e4;}
+.gs_title{padding-left: 10px; margin:5px 5px 0 0; background: #e4e4e4; height:30px;}
 .rowSelected {
 	color: #FFF;
 	background-color: #c2c2c2;
