@@ -44,9 +44,16 @@ function clearAll(setStop) {
     running = setStop;
 }
 
+function removeFirstLog(){
+  "use strict";
+  currentLogSize -= parseInt($("#salpgridLog p:first-child").attr('rel'), 10);
+  $("#salpgridLog p:first-child").remove();
+}
+
 function getRunningState() {
     "use strict";
     var size = 0;
+    var log_info = "";
     var param = {
         position: logReadingPosition,
         log: (processState !== "Checking" && openedlogpage === processType.toLowerCase()) ? openedlogpage : ""
@@ -54,10 +61,13 @@ function getRunningState() {
         jqxhr = $.post(url, param, function (data) {
             setRunningState(data);
             size = data.content.position - logReadingPosition;
+            if (logReadingPosition !== 0 && data.content.truncated){
+                log_info = "<p  class='info' rel='0'>SLAPRUNNER INFO: SLAPGRID-LOG HAS BEEN TRUNCATED HERE. To see full log reload your log page</p>";
+            }
             logReadingPosition = data.content.position;
             if (data.content.content !== "") {
                 if (data.content.content !== "") {
-                    $("#salpgridLog").append("<p rel='" + size + "'>" + data.content.content.toHtmlChar() + "</p>");
+                    $("#salpgridLog").append(log_info + "<p rel='" + size + "'>" + data.content.content.toHtmlChar() + "</p>");
                     $("#salpgridLog")
                         .scrollTop($("#salpgridLog")[0].scrollHeight - $("#salpgridLog").height());
                 }
@@ -67,18 +77,20 @@ function getRunningState() {
                 $("#manualLog").hide();
             }
             processState = running ? "Running" : "Stopped";
+            currentLogSize += parseInt(size, 10);
+            if (currentLogSize > maxLogSize){
+                //Remove the first element into log div
+                removeFirstLog();
+                if (currentLogSize > maxLogSize){
+                    removeFirstLog(); //in cas of previous <p/> size is 0
+                }
+            }
         })
         .error(function () {
             clearAll(false);
         })
         .complete(function () {
             if (running) {
-                currentLogSize += parseInt(size, 10);
-                if (currentLogSize > maxLogSize){
-                    //Remove the first element into log div
-                    currentLogSize -= parseInt($("#salpgridLog p:first-child").attr('rel'), 10);
-                    $("#salpgridLog p:first-child").remove();
-                }
                 setTimeout(function () {
                     getRunningState();
                 }, speed);
@@ -95,10 +107,10 @@ function stopProcess() {
         sendStop = true;
 
         var urlfor = $SCRIPT_ROOT + "stopSlapgrid",
-            type = "slapgrid-sr.pid";
+            type = "slapgrid-sr";
 
         if ($("#instrun").text() === "Stop instance") {
-            type = "slapgrid-cp.pid";
+            type = "slapgrid-cp";
         }
         $.post(urlfor, {type: type}, function (data) {
             //if (data.result) {

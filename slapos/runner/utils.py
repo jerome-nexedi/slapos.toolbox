@@ -301,7 +301,6 @@ def runInstanceWithLock(config):
     logfile = open(config['instance_log'], 'w')
     if not (updateProxy(config) and requestInstance(config)):
       return False
-    svcStopAll(config) #prevent lost control of process
     slapgrid = Popen([config['slapgrid_cp'], '-vc',
                       '--pidfile', slapgrid_pid,
                       config['configuration_file_path'], '--now'],
@@ -372,8 +371,6 @@ def getSvcStatus(config):
     if item.strip() != "":
       if re.search(regex, item, re.IGNORECASE) == None:
         supervisord.append(re.split('[\s,]+', item))
-      else:
-        return [] #ignore because it is an error message
   return supervisord
 
 def getSvcTailProcess(config, process):
@@ -539,6 +536,12 @@ def newSoftware(folder, config, session):
       open(os.path.join(folderPath, config['software_profile']), 'w').write(softwareContent)
       open(os.path.join(folderPath, config['instance_profile']), 'w').write("")
       open(os.path.join(basedir, ".project"), 'w').write(folder + "/")
+      #Clean sapproxy Database
+      stopProxy(config)
+      removeProxyDb(config)
+      startProxy(config)
+      #Stop runngin process and remove existing instance
+      removeInstanceRoot(config)
       session['title'] = getProjectTitle(config)
       code = 1
     else:
@@ -623,7 +626,7 @@ def tail(f, lines=20):
       block -= 1
   return '\n'.join(''.join(data).splitlines()[-lines:])
 
-def readFileFrom(f, lastPosition, limit=15000):
+def readFileFrom(f, lastPosition, limit=20000):
   """
   Returns the last lines of file `f`, from position lastPosition.
   and the last position
@@ -635,8 +638,10 @@ def readFileFrom(f, lastPosition, limit=15000):
   block = -1
   data = ""
   length = bytes
+  truncated = False #True if a part of log data has been truncated
   if (lastPosition <= 0 and length > limit) or (length-lastPosition > limit):
     lastPosition = length - limit
+    truncated = True
   size = bytes - lastPosition
   while bytes > lastPosition:
     if abs(block*BUFSIZ) <= size:
@@ -654,7 +659,7 @@ def readFileFrom(f, lastPosition, limit=15000):
     bytes -= BUFSIZ
     block -= 1
   f.close()
-  return {"content":data, "position":length}
+  return {"content":data, "position":length, "truncated":truncated}
 
 def isText(file):
   """Return True if the mimetype of file is Text"""

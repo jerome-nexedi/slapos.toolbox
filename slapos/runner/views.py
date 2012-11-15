@@ -430,7 +430,7 @@ def getmd5sum():
 def slapgridResult():
   software_state = isSoftwareRunning(app.config)
   instance_state = isInstanceRunning(app.config)
-  log_result = {"content":"", "position":0}
+  log_result = {"content":"", "position":0, "truncated":False}
   if request.form['log'] == "software"  or\
      request.form['log'] == "instance":
     log_file = request.form['log'] + "_log"
@@ -597,8 +597,7 @@ def fileBrowser():
       except:
         abort(404)
     elif opt == 9:
-      truncateTo = int(request.form.get('truncate', '0'))
-      result = file_request.readFile(dir, filename, truncateTo)
+      result = file_request.readFile(dir, filename, False)
     elif opt == 11:
       #Upload file
       result = file_request.uploadFile(dir, request.files)
@@ -626,7 +625,9 @@ def editFile():
 
 #Setup List of URLs
 app.add_url_rule('/', 'home', home)
-app.add_url_rule('/editSoftwareProfile', 'editSoftwareProfile', editSoftwareProfile)
+app.add_url_rule('/browseWorkspace', 'browseWorkspace', browseWorkspace)
+app.add_url_rule('/editSoftwareProfile', 'editSoftwareProfile',
+                editSoftwareProfile)
 app.add_url_rule('/inspectSoftware', 'inspectSoftware', inspectSoftware)
 app.add_url_rule('/removeSoftware', 'removeSoftware', removeSoftware)
 app.add_url_rule('/runSoftwareProfile', 'runSoftwareProfile',
