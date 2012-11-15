@@ -705,6 +705,7 @@ div.sep{display:block; height:7px;}
 .popup ul{margin:0; margin-bottom:10px; padding:0; list-style:none;}
 .popup li{border-bottom: 1px dashed #666666; padding:0;}
 .popup ul li:last-child{border-bottom:none}
+.popup ul li a{padding-bottom:0}
 ul.menu li {padding-top:5px; padding-bottom:5px;}
 ul.menu{margin-bottom:0;}
 .popup-value{display:none;}
