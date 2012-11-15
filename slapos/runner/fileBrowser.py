@@ -212,7 +212,7 @@ class FileBrowser(object):
       return '{result: \'1\'}'
     raise NameError('NOT ALLOWED OPERATION : File or directory already exist')
 
-  def readFile(self, dir, filename, truncate=0):
+  def readFile(self, dir, filename, truncate=False):
     """Read file dir/filename and return content"""
     realfile = realpath(self.config, os.path.join(urllib.unquote(dir),
                         urllib.unquote(filename)))
@@ -220,7 +220,7 @@ class FileBrowser(object):
       raise NameError('Could not load directory %s: Permission denied' % dir)
     if not isText(realfile):
       return "FILE ERROR: Cannot display binary file, please open a text file only!"
-    if truncate == 0:
+    if not truncate:
       return open(realfile, 'r').read()
     else:
-      tail(open(realfile, 'r'), 0)
+      return tail(open(realfile, 'r'), 0)

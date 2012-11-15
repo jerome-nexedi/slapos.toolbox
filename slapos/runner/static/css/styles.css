@@ -166,14 +166,14 @@ overflow-y: scroll;
 
 .wmenu ul li a{
     display:block;
-    height: 18px;
+    height: 20px;
     Color:#000;
     /*background: url(../images/sep.png) right center no-repeat;*/
     border-right: 1px solid #c2c2c2;
     /*font-weight:bold;*/
     font-size:15px;
     text-decoration:none;
-    padding:8px 10px 8px 10px;
+    padding:7px 10px 7px 10px;
 }
 .wmenu ul li:last-child a {border: none}
 
@@ -514,6 +514,7 @@ h2.hight:hover{
 .log_btn{border: 1px solid #678dad; border-top:none; height: 22px; width: 654px; margin: 0 40px 10px 40px;
     padding:4px 10px 4px 10px; font-size: 16px; color: #4c6172;}
 .log p{white-space: pre-wrap; width:100%}
+.log p.info{white-space: pre-wrap; width:98%; font-size: 15px; margin: 5px; color:red;}
 
 .waitting{
     margin-left: 10px;
@@ -699,7 +700,7 @@ div.sep{display:block; height:7px;}
 .popup td.top img { display: block; }
 .popup td#bottomright { background-image: url(../images/bubble-1.png); }
 .popup-contents {background: #fff; color: #666666;}
-.popup a{display: block; font-weight:bold;  color: #4DA0C6; padding-left: 5px;}
+.popup a{display: block; font-weight:bold;  color: #4DA0C6; padding-left: 5px; padding-bottom: 5px;}
 .popup a:hover{color: #666666;}
 .popup ul{margin:0; margin-bottom:10px; padding:0; list-style:none;}
 .popup li{border-bottom: 1px dashed #666666; padding:0;}

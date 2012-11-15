@@ -212,6 +212,9 @@ $(document).ready(function () {
             url: $SCRIPT_ROOT + '/getParameterXml/xml',
             success: function (data) {
                 if (data.code === 1) {
+                    $("#loadxml").unbind('click');
+                    $.colorbox.remove();
+                    $("#inline_instance").empty();
                     $("#inline_instance").html(content);
                     setupEditor(true);
                     $("a#inlineInstance").colorbox(
