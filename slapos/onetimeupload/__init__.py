@@ -104,6 +104,10 @@ def run(config):
           if key == config.key:
             file.save(config.upload_file)
             return redirect('/')
+          else:
+            # Bad key
+            template = app.open_resource('templates/badkey.html')
+            return template.read()
       template = app.open_resource('templates/index.html')
       return template.read()
 
