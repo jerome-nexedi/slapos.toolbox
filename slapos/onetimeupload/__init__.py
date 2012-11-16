@@ -80,7 +80,6 @@ def run(config):
   Will accept to upload a file only once. When a file has been uploaded,
   it will refuse any other upload.
   """
-
   app = Flask(__name__)
 
   if config.log_file_path is not None:
