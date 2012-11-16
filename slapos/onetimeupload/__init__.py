@@ -76,6 +76,10 @@ class Config:
     self.key = key
 
 def run(config):
+  """
+  Will accept to upload a file only once. When a file has been uploaded,
+  it will refuse any other upload.
+  """
 
   app = Flask(__name__)
 
