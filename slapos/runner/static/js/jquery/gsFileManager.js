@@ -525,6 +525,21 @@ if (jQuery) (function(jQuery){
 
             }
 
+            function splitPath(path) {
+                var list = path.split('/'),
+                    html = "";
+                for (var i=0; i<list.length; i++){
+                    var subList = new Array();
+                    if (list[i] !== '') {
+                        for (var j=0; j<=i; j++){
+                            subList.push(list[j]);
+                        }
+                        html += "<a class='pathlink' rel='"+subList.join('/')+"/'>"+list[i]+"</a>/";
+                    }
+                }
+                return html;
+            }
+
             function showTree(c, t) {
                 var cObject = jQuery(c);
                 cObject.addClass('wait');
@@ -541,7 +556,8 @@ if (jQuery) (function(jQuery){
                     success: function(data) {
 
                         //remember current dir id
-                        jQuery("#curDir").html(unescape(t));
+                        jQuery("#curDir").html(splitPath(unescape(t)));
+												jQuery("#curDir").attr('val', unescape(t));
                         jQuery("#curDir").attr('rel', jQuery('a', cObject).attr('id'));
 
                         gs_cur_items = new Array();
@@ -587,6 +603,9 @@ if (jQuery) (function(jQuery){
             jQuery(t).find('LI > A').bind('click', function () {
                 showTree (jQuery(this).parent(), encodeURIComponent(jQuery(this).attr('rel').match( /.*\// )));
             });
+						jQuery('a.pathlink').bind('click', function () {
+								showTree( jQuery('#gs_dir_list'), jQuery(this).attr('rel'));
+						});
         }
 
         function showRoot(){
@@ -630,7 +649,7 @@ if (jQuery) (function(jQuery){
             });
             return false;
         }
-        var curDir = jQuery("#curDir").html();
+        var curDir = jQuery("#curDir").attr('val');
         var dataForSend = null;
         var gsitem = gs_get_cur_item(jQuery(this).attr('rel'));
 
