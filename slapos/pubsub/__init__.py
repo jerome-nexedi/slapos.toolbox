@@ -1,6 +1,7 @@
 from datetime import datetime
 import csv
 import feedparser
+import io
 import socket
 import json
 import time
@@ -82,24 +83,28 @@ def notify():
   except AttributeError:
     abort(httplib.BAD_REQUEST)
 
-  with open(callback_filepath, 'r') as callback_file:
-    callback = callback_file.read()
 
+  abort_it = False
 
-  timestamp = int(math.floor(time.mktime(feed.feed.updated_parsed)))
+  for callback in io.open(callback_filepath, 'r', encoding='utf8'):
+    timestamp = int(math.floor(time.mktime(feed.feed.updated_parsed)))
 
-  equeue_request = json.dumps(dict(
-    command=callback,
-    timestamp=timestamp,
-  ))
+    equeue_request = json.dumps({
+        'command': callback,
+        'timestamp': timestamp,
+        })
 
-  equeue_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-  equeue_socket.connect(app.config['EQUEUE_SOCKET'])
-  equeue_socket.send(equeue_request)
-  result = equeue_socket.recv(len(callback))
-  equeue_socket.close()
+    equeue_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    equeue_socket.connect(app.config['EQUEUE_SOCKET'])
+    equeue_socket.send(equeue_request)
+    result = equeue_socket.recv(len(callback))
+    equeue_socket.close()
 
-  if result != callback:
+    if result != callback:
+      abort_it = True
+
+  if abort_it:
+    # XXX if possible, communicate info about the failed callbacks
     abort(httplib.INTERNAL_SERVER_ERROR)
 
   return '', httplib.NO_CONTENT

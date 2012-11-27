@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import math
-import subprocess
-import os
-import uuid
+import argparse
 import csv
+import httplib
+import os
+import socket
+import subprocess
+import sys
 import time
 import urllib2
-from urlparse import urlparse
-import httplib
-import socket
-import sys
-import argparse
+import urlparse
+import uuid
+
 
 def main():
   parser = argparse.ArgumentParser()
@@ -40,13 +40,16 @@ def main():
     command.stdin.flush()
     command.stdin.close()
 
-    if command.wait() != 0:
+    command_failed = (command.wait() != 0)
+    command_stderr = command.stderr.read()
+
+    if command_failed:
       content = ("<p>Failed with returncode <em>%d</em>.</p>"
                  "<p>Standard error output is :</p><pre>%s</pre>") % (
         command.poll(),
-        command.stderr.read().replace('&', '&amp;')\
-                             .replace('<', '&lt;')\
-                             .replace('>', '&gt;'),
+        command_stderr.replace('&', '&amp;')\
+                      .replace('<', '&lt;')\
+                      .replace('>', '&gt;'),
       )
     else:
       content = "<p>Everything went well.</p>"
@@ -54,30 +57,40 @@ def main():
   with open(args.logfile[0], 'a') as file_:
     cvsfile = csv.writer(file_)
     cvsfile.writerow([
-      int(math.floor(time.time())), # Timestamp
+      int(time.time()),
       args.title[0],
       content,
       'slapos:%s' % uuid.uuid4(),
     ])
 
+  if command_failed:
+    sys.stderr.write('%s\n' % command_stderr)
+    sys.exit(1)
+
   feed = urllib2.urlopen(args.feed_url[0])
+  body = feed.read()
+
+  some_notification_failed = False
   for notif_url in args.notification_url:
-    notification_url = urlparse(notif_url)
+    notification_url = urlparse.urlparse(notif_url)
     notification_port = notification_url.port
     if notification_port is None:
       notification_port = socket.getservbyname(notification_url.scheme)
 
     headers = {'Content-Type': feed.info().getheader('Content-Type')}
     notification = httplib.HTTPConnection(notification_url.hostname,
-                                                 notification_port)
-    notification.request('POST', notification_url.path, feed.read(), headers)
+                                          notification_port)
+    notification.request('POST', notification_url.path, body, headers)
     response = notification.getresponse()
 
     if not (200 <= response.status < 300):
-      print >> sys.stderr, "The remote server didn't send a successfull reponse."
-      print >> sys.stderr, "It's response was %r" % response.reason
-      return 1
-    return 0
+      sys.stderr.write("The remote server at %s didn't send a successful reponse.\n" % notif_url)
+      sys.stderr.write("Its response was %r\n" % response.reason)
+      some_notification_failed = True
+
+  if some_notification_failed:
+    sys.exit(1)
 
 if __name__ == '__main__':
   main()
+

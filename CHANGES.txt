@@ -1,6 +1,8 @@
-0.31.2 (Unrelease)
-=================
- * No change yet.
+
+0.31.2 (unreleased)
+===================
+ * pubsub: support multiple notifications and callbacks. [Marco Mariani]
+ * pubsub: print/return errors from subprocess or notifications. [Marco Mariani]
 
 0.3.1 (2012-10-02)
 =================
