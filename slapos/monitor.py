@@ -25,19 +25,27 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 ##############################################################################
+
 import datetime
-import os
-import time
-from time import strftime
 import logging
+import optparse
+import os
 import sys
+import time
 from lxml import etree as ElementTree
-import psutil
-from optparse import OptionParser
+
 import sqlite3.dbapi2 as sqlite3
+import psutil
 
 #define global variable for log file
 log_file = False
+
+
+def read_pid(path):
+  with open(path, 'r') as fin:
+    # pid file might contain other stuff we don't care about (ie. postgres)
+    pid = fin.readline()
+    return int(pid)
 
 class MonitoringTool(object):
   """Provide functions to monitor CPU and Memory"""
@@ -196,7 +204,7 @@ def parse_opt():
   usage="""usage: slapmonitor [options] PID_FILE_PATH DATABASE_PATH
 Usage: slapreport [options] LOG_PATH DATABASE_PATH LOGBOX_IP LOGBOX_PORT LOGBOX_LOGIN LOGBOX_PASSWORD"""
 
-  parser = OptionParser(usage=usage)
+  parser = optparse.OptionParser(usage=usage)
   parser.add_option('-t', '--update_time',type=int, dest='update_time', help='Specify the interval'\
                     '(in seconds) to check resources consumption [default 30 seconds]', default=3)
   parser.add_option('-l', '--log_file', dest='path_log_file',help='Specify the logfile destination path',
@@ -235,7 +243,7 @@ class SlapMonitor(object):
       except IOError:
         if log_file:
           logging.info("ERROR : process with pid : %s watched by slap monitor exited too quickly at %s"
-                % (self.proc.pid, strftime("%Y-%m-%d at %H:%m")))
+                % (self.proc.pid, time.strftime("%Y-%m-%d at %H:%m")))
         sys.exit(1)
     if log_file:
       logging.info("EXIT 0: Process terminated normally!")
@@ -285,7 +293,7 @@ class SlapReport(object):
       except Exception:
         if log_file:
           logging.info("ERROR : Unable to connect to % at %s"
-                       % (self.ssh_parameters['ip'], strftime("%Y-%m-%d at %H:%m")))
+                       % (self.ssh_parameters['ip'], time.strftime("%Y-%m-%d at %H:%m")))
           #sys.exit(1)
 
     cursor.close()
@@ -307,7 +315,7 @@ class SlapReport(object):
       except IOError:
         if log_file:
           logging.info("ERROR : process with pid : %s watched by slap monitor exited too quickly at %s"
-                       % (self.proc.pid, strftime("%Y-%m-%d at %H:%m")))
+                       % (self.proc.pid, time.strftime("%Y-%m-%d at %H:%m")))
           sys.exit(1)
     if log_file:
       logging.info("EXIT 0: Process terminated normally!")
@@ -325,10 +333,7 @@ def run_slapmonitor():
     global log_file
     log_file = True
 
-  fed = open(args[0], 'r')
-  pid_read = fed.read()
-  fed.close()
-  proc = psutil.Process(int(pid_read))
+  proc = psutil.Process(read_pid(args[0]))
   SlapMonitor(proc, opts.update_time, args[1])
 
 def run_slapreport_():
@@ -371,15 +376,12 @@ def run_slapreport():
   ssh_parameters['passwd']=args[6]
 
   try:
-    fed = open(pid_file_path, 'r')
-    pid_read = fed.read()
-    fed.close()
-    proc = psutil.Process(int(pid_read))
+    proc = psutil.Process(read_pid(pid_file_path))
     SlapReport(proc, opts.update_time, args[1], args[2], ssh_parameters)
   except IOError:
     if log_file:
       logging.info("ERROR : process with pid : %s watched by slap monitor exited too quickly at %s"
-                   % (proc.pid, strftime("%Y-%m-%d at %H:%m")))
+                   % (proc.pid, time.strftime("%Y-%m-%d at %H:%m")))
       sys.exit(1)
 
   if log_file:
