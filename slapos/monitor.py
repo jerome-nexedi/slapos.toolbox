@@ -334,7 +334,27 @@ def run_slapmonitor():
     log_file = True
 
   proc = psutil.Process(read_pid(args[0]))
+  # XXX FIXME: THE PID IS ONLY READ ONCE.
+  # process death and pid reuse are not detected.
   SlapMonitor(proc, opts.update_time, args[1])
+
+
+def run_slapmonitor_xml():
+  #This function require the database path and XML path
+  parser = parse_opt()
+  opts, args = parser.parse_args()
+  if len(args) != 2:
+    parser.error("Incorrect number of arguments, 2 required but "+str(len(args))+" detected" )
+
+  if opts.path_log_file:
+    logging.basicConfig(filename=opts.path_log_file,level=logging.DEBUG)
+    global log_file
+    log_file = True
+
+  get_xml_hand = GenerateXML(ElementTree, args[0], args[1])
+  get_xml_hand.dump_xml()
+
+
 
 def run_slapreport_():
   #This function require the xml_path and database_path
