@@ -192,7 +192,7 @@ overflow-y: scroll;
 
 .main_content{
     position:relative;
-    width: 100%;
+    width: 99.6%;
     height: 430px;
     margin-top:10px;
     border:1px solid #4c6172;
@@ -435,25 +435,27 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 }
 
 .file_tree_short{
-    width: 525px;
-    height: 170px;
+    width: 228px;
+    height: 379px;
     border: solid 1px #678dad;
     background: #fff;
     overflow: auto;
     padding: 5px;
-    float:left;
 }
-
 .box_software{
-    width: 362px;
-    height: 100px;
+    width: 240px;
     background: #fff;
-    padding: 5px;
-    float:right;
 }
+.software_details{float: left;}
 #details_box{
-    display:none;
+    display:block;
+    margin-top:10px;
 }
+#code{
+    float: right;
+    width: 692px;
+}
+#details_head{margin-bottom: 10px;}
 
 #contentInfo{
     width: 926px;
@@ -490,10 +492,6 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 
 h2.hight:hover{
     cursor: pointer;
-}
-
-.software_details{
-    padding: 10px;
 }
 
 .log_content{
@@ -675,7 +673,7 @@ div.sep{display:block; height:7px;}
 #pClose, .close{background:url(../images/close.png) no-repeat 0px 0px; display:block; width:22px; height:22px; cursor:pointer}
 #pClose:hover, .close:hover{background:url(../images/close_hover.png) no-repeat 0px 0px;}
 .md5sum {margin:10px; font-size:15px;}
-.title{background: #e4e4e4; width: 100%; height: 25px; padding-top:2px; text-indent: 5px; color: #737373; text-shadow: 0px 1px #FFF;}
+.title{background: #e4e4e4; width: 100%; height: 26px; padding-top:2px; text-indent: 5px; color: #737373; text-shadow: 0px 1px #FFF;}
 .menu-box-left{float:left; width: 135px; font-size:14px; background: #e4e4e4; padding:5px 0 5px 5px; margin-top:10px;
     font-size:14px; border-radius: 4px 0 0 4px;}
 .menu-box-right{background: #e4e4e4; padding: 5px; float:right; width: 745px; margin-left: -5px;

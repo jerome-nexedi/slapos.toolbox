@@ -17,8 +17,13 @@ $(document).ready(function () {
         workdir = $("input#workdir").val(),
         currentProject = workdir + "/" + projectDir.replace(workdir, "").split('/')[1],
         send = false,
-        edit = false;
+        edit = false,
+        selection = "",
+        edit_status = "";
 
+    var base_path = function() {
+      return softwareDisplay ? projectDir : currentProject;
+    }
 
     function setEditMode(file) {
         var i,
@@ -32,12 +37,11 @@ $(document).ready(function () {
         }
     }
 
-    function selectFile(file) {
-        $("#info").empty();
-        $("#info").append(file);
-        $("input#subfolder").val(file);
-        $("#md5sum").empty();
-        send = false;
+    function openFile(file) {
+        if (send) {
+            return;
+        }
+        send = true;
         edit = false;
         if (file.substr(-1) !== "/") {
             $.ajax({
@@ -49,16 +53,19 @@ $(document).ready(function () {
                     if (data.code === 1) {
                         $("#edit_info").empty();
                         name = file.split('/');
-                        if (file.length > 65) {
+                        if (file.length > 60) {
                             //substring title.
-                            start = file.length - 65;
+                            start = file.length - 60;
                             file = "..." + file.substring(file.indexOf("/", (start + 1)));
                         }
-                        $("#edit_info").append("Current file: " + file);
+                        $("#edit_info").append(" " + file);
                         $("a#option").show();
                         editor.getSession().setValue(data.result);
                         setEditMode(name[name.length - 1]);
                         edit = true;
+                        $("input#subfolder").val(file);
+                        $("span#edit_status").html("");
+                        edit_status = "";
                     } else {
                         $("#error").Popup(data.result, {type: 'error', duration: 5000});
                     }
@@ -67,47 +74,52 @@ $(document).ready(function () {
             });
         } else {
             $("#edit_info").empty();
-            $("#edit_info").append("No file selected");
+            $("#edit_info").append("No file in editor");
             $("a#option").hide();
             editor.getSession().setValue("");
         }
         return;
     }
 
-
+    function selectFile(file) {
+        $("#info").empty();
+        $("#info").append("Selection: " + file);
+        selection = file;
+        return;
+    }
+    /*
     function setDetailBox() {
         var state = $("#details_box").css("display");
         if (state === "none") {
-            $("#details_box").slideDown("normal");
+            $("#details_box").fadeIn("normal");
             $("#details_head").removeClass("hide");
             $("#details_head").addClass("show");
         } else {
-            $("#details_box").slideUp("normal");
+            $("#details_box").fadeOut("normal");
             $("#details_head").removeClass("show");
             $("#details_head").addClass("hide");
         }
-    }
+    } */
 
     function switchContent() {
         var root = projectDir;
         if (!softwareDisplay) {
             $("#switch").empty();
-            $("#switch").append("Switch to Software files");
+            $("#switch").append("Switch to Profile&nbsp;");
             root = currentProject;
         } else {
             $("#switch").empty();
-            $("#switch").append("Switch to Project files");
+            $("#switch").append("Switch to Project");
         }
         $('#fileTree').fileTree({ root: root, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function (file) {
             selectFile(file);
-        });
+        }, function (file) { openFile(file); });
         $("#info").empty();
-        $("#info").append("Select directory or nothing for root directory...");
-        $("input#subfolder").val("");
+        $("#info").append("Selection: " + base_path());
+        selection = "";
     }
 
     function getmd5sum() {
-        var file = $("input#subfolder").val();
         if (send) {
             return;
         }
@@ -118,8 +130,8 @@ $(document).ready(function () {
             data: {file: $("input#subfolder").val()},
             success: function (data) {
                 if (data.code === 1) {
-                    $("#md5sum").empty();
-                    $("#md5sum").append('md5sum : <span>' + data.result + '</span>');
+                    $("#info").empty();
+                    $("#info").html("Md5sum Current file: " + data.result);
                 } else {
                     $("#error").Popup(data.result, {type: 'error', duration: 5000});
                 }
@@ -186,19 +198,27 @@ $(document).ready(function () {
     ];
     $('#fileTree').fileTree({ root: projectDir, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function (file) {
         selectFile(file);
+    }, function (file) { openFile(file); });
+    $("#info").append("Selection: " + base_path());
+    /*setDetailBox();*/
+
+    editor.on("change", function (e) {
+        if (edit_status === "" && edit) {
+            $("span#edit_status").html("*");
+        }
     });
-    setDetailBox();
+
     $("#add").click(function () {
-        var path = softwareDisplay ? projectDir : currentProject;
+        var path = base_path();
         if (send) {
             return false;
         }
-        if ($("input#file").val() === "" || $("input#file").val() === "Enter name here...") {
-            $("#error").Popup("Please enter your file or folder name", {type: 'alert', duration: 3000});
+        if ($("input#file").val() === "" || $("input#file").val() === "Name here...") {
+            $("#error").Popup("Please select a directory or nothing for root directory and enter your file name", {type: 'alert', duration: 5000});
             return false;
         }
-        if ($("input#subfolder").val() !== "") {
-            path = $("input#subfolder").val();
+        if (selection !== "") {
+            path = selection;
         }
         path = path + "/" + $("input#file").val();
         send = true;
@@ -213,8 +233,8 @@ $(document).ready(function () {
                     $("#flash").fadeOut('normal');
                     $("#flash").empty();
                     $("#info").empty();
-                    $("#info").append("Select parent directory or nothing for root...");
-                    $("input#subfolder").val("");
+                    $("#info").append("Selection: " + base_path());
+                    selection = "";
                 } else {
                     $("#error").Popup(data.result, {type: 'error', duration: 5000});
                 }
@@ -243,6 +263,7 @@ $(document).ready(function () {
             success: function (data) {
                 if (data.code === 1) {
                     $("#error").Popup("File saved succefuly!", {type: 'confirm', duration: 3000});
+                    $("span#edit_status").html("");
                 } else {
                     $("#error").Popup(data.result, {type: 'error', duration: 5000});
                 }
@@ -252,9 +273,9 @@ $(document).ready(function () {
         return false;
     });
 
-    $("#details_head").click(function () {
+    /*$("#details_head").click(function () {
         setDetailBox();
-    });
+    });*/
 
     $("#switch").click(function () {
         softwareDisplay = !softwareDisplay;
@@ -267,14 +288,15 @@ $(document).ready(function () {
     });
 
     $("#clearselect").click(function () {
+        edit = false;
         $("#info").empty();
-        $("#info").append("Select directory or nothing for root directory...");
+        $("#info").append("Selection: " + base_path());
         $("input#subfolder").val("");
         $("#edit_info").empty();
-        $("#edit_info").append("No file selected");
+        $("#edit_info").append("No file in editor");
         editor.getSession().setValue("");
-        $("#md5sum").empty();
         $("a#option").hide();
+        selection = "";
         return false;
     });
     $("#adddevelop").click(function () {

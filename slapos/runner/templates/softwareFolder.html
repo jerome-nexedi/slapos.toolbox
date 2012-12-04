@@ -18,37 +18,40 @@
 <input type="hidden" name="workdir" id="workdir" value="{{workDir}}" />
 <input type="hidden" name="subfolder" id="subfolder" value="" />
 <div id="software_folder">
-    <h2 class="hight show" id="details_head">Current software release file content</h2>
-    <div class="software_details" id="details_box">
-	<div id="fileTree" class="file_tree_short"></div>
-	<div class="box_software">
-	    <h2>Add new file or folder</h2>
-	    <input type="text" name="file" id="file" size='22' value="Enter name here..." />
-	    &nbsp;&nbsp;&nbsp;<select name="type" id="type">
-	    <option value="file">file</option>
-	    <option value="folder">folder</option>
-	    </select>
-	    &nbsp;&nbsp;&nbsp;<input type="submit" name="add" id ="add" value="Add" class="button"/>
-	    <br/><br/>
-	    <a href="#" id="switch" class="lshare">Switch to Project files</a>
-	    <a href=""  id="clearselect" class="lshare">Clear selection</a><br/><br/>
-	    <div id="file_info" class="file_info"><span id="info">Select directory or nothing for root directory...</span></div>
-	</div>
-	<div class="clear"></div>
-    </div>
+  <div class="software_details">
+    <a href="#" id="switch" class="lshare no-right-border" style="float:left">Switch to Project</a>
+    <a href="#"  id="clearselect" class="lshare no-right-border" style="float:left">Reset</a>
+    <a href="#"  id="save" class="lshare" style="float:left">Save</a>
     <div class="clear"></div>
-    <div id="code" style="margin-top:10px">
-    <h2 class='title'><span id="edit_info">No file selected</span> <a style="display:none" id='option' href='#' rel='tooltip' title='Show more option'>[More]</a></h2>
-    <div class='md5sum' id='md5sum'></div>
-    <div class="main_content">
+    <div id="details_box">
+  	  <div id="fileTree" class="file_tree_short" title="Double click to edit selected file..."></div>
+    	<div class="box_software">
+    	    <input type="text" name="file" id="file" size='12' value="Name here..." />
+    	    &nbsp;<select name="type" id="type">
+    	    <option value="file">file</option>
+    	    <option value="folder">folder</option>
+    	    </select>
+    	    &nbsp;<input type="submit" name="add" id ="add" value="Add" class="button"/>
+    	</div>
+    </div>
+  </div>
+  <div id="code">
+  <h2 class='title'>
+    <a style="display:none" id='option' href='#' rel='tooltip' title='Show more option'>[Current file]</a><span id="edit_info">No file in editor</span>
+    <span id="edit_status"></span>
+  </h2>
+  <div class="main_content">
 <pre id="editor">
 
 </pre>
             </div>
-	    <input type=submit value="Save" id="save" class="button">
+	    <!--<input type=submit value="Save" id="save" class="button">-->
 	</div>
 
 </div>
+<div class="clear"></div>
+<div id="file_info" class="file_info"><span id="info"></span></div>
+<br/>
 </form>
 <div id="tooltip-option" style="display:none">
   <span class="list first-list">MD5 SUM for the current file</span>
