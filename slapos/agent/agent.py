@@ -129,7 +129,7 @@ class SoftwareReleaseTester(RPCRetry):
                 computer_guid, # computer to use for this test run
                 max_install_duration,
                 max_uninstall_duration,
-                request_kw=None, # instance parameters, if instanciation
+                request_kw=None, # instance parameters, if instantiation
                     # testing is desired
                 max_request_duration=None,
                 max_destroy_duration=None,
@@ -344,15 +344,15 @@ class TestMap(object):
 def main():
     """
     Note: This code does not test as much as it monitors.
-    The goal is to regularily try to build & instanciate a software release
+    The goal is to regularily try to build & instantiate a software release
     on several machines, to monitor vifib stability and SR stability as time
     passes (and things once available online become unavailable).
     Part of this function could be reused to make an actual test bot, testing
     only when actual changes are committed to a software release, to look for
     regressions.
 
-    Note: This code does not connect to any instanciated service, it relies on
-    the presence of a promise section to make instanciation fail until promise
+    Note: This code does not connect to any instantiated service, it relies on
+    the presence of a promise section to make instantiation fail until promise
     is happy.
     """
     parser = argparse.ArgumentParser()
