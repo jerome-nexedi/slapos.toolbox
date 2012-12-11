@@ -345,6 +345,9 @@ def removeSoftwareDir():
 def getFileContent():
   file_path = realpath(app.config, request.form['file'])
   if file_path:
+    if not isText(file_path):
+      return jsonify(code=0,
+            result="Can not open a binary file, please select a text file!")
     if not request.form.has_key('truncate'):
       return jsonify(code=1, result=open(file_path, 'r').read())
     else:
