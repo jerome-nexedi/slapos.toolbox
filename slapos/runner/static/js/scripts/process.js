@@ -181,7 +181,7 @@ function setRunningState(data) {
         if ($current !== undefined) {
             $current.empty();
             $current.append("Run " + processType.toLowerCase());
-            $current.css("color", "#000");
+            $current.css("color", "#275777");
             $current = undefined;
             currentState = false;
             $("#error").Popup("Slapgrid finished running your " + processType + " Profile", {type: 'info', duration: 3000});
