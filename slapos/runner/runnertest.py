@@ -439,12 +439,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.logout()
 
 def main():
-  argv = ['', 'test_wrong_login', 'test_configAccount',
-          'test_login_logout', 'test_updateAccount', 'test_startProxy',
-          'test_cloneProject', 'test_createSR', 'test_openSR',
-          'test_runSoftware', 'test_updateInstanceParameter',
-          'test_requestInstance']
-  unittest.main(module=SlaprunnerTestCase, argv=argv)
+  unittest.main(module=__name__)
 
 if __name__ == '__main__':
   main()
