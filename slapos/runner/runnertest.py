@@ -2,6 +2,7 @@
 # vim: set et sts=2:
 # pylint: disable-msg=W0311,C0301,C0103,C0111,R0904
 
+import argparse
 import ConfigParser
 import datetime
 import json
@@ -439,6 +440,9 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.logout()
 
 def main():
+  # Empty parser for now - so that erp5testnode is happy when doing --help
+  parser = argparse.ArgumentParser()
+  parser.parse_args()
   unittest.main(module=__name__)
 
 if __name__ == '__main__':
