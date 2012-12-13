@@ -295,18 +295,18 @@ class SoftwareReleaseTester(RPCRetry):
         deadline = self.deadline
         if deadline < now and deadline is not None:
             raise TestTimeout(self.state)
-        _, _, state, software_state, instance_state = self.transition_dict[
+        _, _, next_state, software_state, instance_state = self.transition_dict[
             self.state]
         if (software_state is None or
                 software_state == self._getSoftwareState()) and (
                 instance_state is None or
                 instance_state == self._getInstanceState()):
-            if state is None:
+            if next_state is None:
                 return None
-            self._logger.debug('Going to state %i (%r, %r)', state,
+            self._logger.debug('Going to state %i (%r, %r)', next_state,
                 software_state, instance_state)
-            self.state = state
-            stepfunc, delay, _, _, _ = self.transition_dict[state]
+            self.state = next_state
+            stepfunc, delay, _, _, _ = self.transition_dict[next_state]
             self.deadline = now + delay
             stepfunc(self)
         return self.deadline
@@ -422,7 +422,7 @@ def main():
                               isinstance(section_entry_dict[key], unicode):
                             section_entry_dict[key] = json.loads(
                                                   section_entry_dict[key])
-                    except Exception, e:
+                    except Exception as exc:
                         logger.error("Fail to load %s on %s" % (key, section_entry_dict))
                         raise
             if 'key' in section_entry_dict:
