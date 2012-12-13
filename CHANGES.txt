@@ -4,6 +4,7 @@
  * pubsub: print/return errors from subprocess or notifications. [Marco Mariani]
  * agent: ignore SR status, retrieve instance status with .getStatus(). [Marco
    Mariani]
+ * slapmonitor: added slapmonitor-xml function + entry point. [Marco Mariani]
 
 0.31.1 (2012-10-02)
 ===================
