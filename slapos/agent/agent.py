@@ -143,15 +143,20 @@ class SoftwareReleaseTester(RPCRetry):
         self.request_kw = request_kw
         self.state = TESTER_STATE_INITIAL
         self.transition_dict = {
+            # step function
+            # delay
+            # next_state
+            # software_state
+            # instance_state
             TESTER_STATE_INITIAL: (
-                None,
+                lambda t: None,
                 None,
                 TESTER_STATE_NOTHING,
                 None,
                 None,
             ),
             TESTER_STATE_NOTHING: (
-                'install',
+                lambda t: t.install(),
                 max_install_duration,
                 request_kw is None and TESTER_STATE_INSTANCE_UNINSTALLED or \
                     TESTER_STATE_SOFTWARE_INSTALLED,
@@ -159,21 +164,21 @@ class SoftwareReleaseTester(RPCRetry):
                 None,
             ),
             TESTER_STATE_SOFTWARE_INSTALLED: (
-                'request',
+                lambda t: t.request(),
                 max_request_duration,
                 TESTER_STATE_INSTANCE_STARTED,
                 None,
                 INSTANCE_STATE_STARTED,
             ),
             TESTER_STATE_INSTANCE_STARTED: (
-                'destroy',
+                lambda t: t.destroy(),
                 max_destroy_duration,
                 TESTER_STATE_INSTANCE_UNINSTALLED,
                 None,
                 INSTANCE_STATE_UNKNOWN,
             ),
             TESTER_STATE_INSTANCE_UNINSTALLED: (
-                'uninstall',
+                lambda t: t.uninstall(),
                 max_uninstall_duration,
                 None,
                 SOFTWARE_STATE_UNKNOWN,
@@ -301,9 +306,9 @@ class SoftwareReleaseTester(RPCRetry):
             self._logger.debug('Going to state %i (%r, %r)', state,
                 software_state, instance_state)
             self.state = state
-            step, delay, _, _, _ = self.transition_dict[state]
+            stepfunc, delay, _, _, _ = self.transition_dict[state]
             self.deadline = now + delay
-            getattr(self, step)()
+            stepfunc(self)
         return self.deadline
 
 class TestMap(object):
