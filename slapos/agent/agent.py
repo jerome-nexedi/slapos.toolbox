@@ -10,10 +10,13 @@ import tempfile
 import traceback
 import time
 import xmlrpclib
+
 import slapos.slap
 from slapos.grid.utils import setRunning, setFinished
+
 from erp5.util.taskdistribution import TaskDistributionTool, RPCRetry
 from erp5.util.taskdistribution import SAFE_RPC_EXCEPTION_LIST
+
 
 class AutoSTemp(object):
     """
@@ -292,19 +295,21 @@ class SoftwareReleaseTester(RPCRetry):
         Check for missed deadlines (-> test failure), conditions for moving to
         next state, and actually moving to next state (executing its payload).
         """
+        self._logger.debug('TIC')
         deadline = self.deadline
         if deadline < now and deadline is not None:
             raise TestTimeout(self.state)
         _, _, next_state, software_state, instance_state = self.transition_dict[
             self.state]
+
         if (software_state is None or
                 software_state == self._getSoftwareState()) and (
                 instance_state is None or
                 instance_state == self._getInstanceState()):
+            self._logger.debug('Going to state %s (%r, %r)', next_state,
+                software_state, instance_state)
             if next_state is None:
                 return None
-            self._logger.debug('Going to state %i (%r, %r)', next_state,
-                software_state, instance_state)
             self.state = next_state
             stepfunc, delay, _, _, _ = self.transition_dict[next_state]
             self.deadline = now + delay
