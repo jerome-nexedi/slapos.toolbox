@@ -1,11 +1,12 @@
-
-0.31.2 (unreleased)
-===================
+0.32 (2012-12-13)
+=================
  * pubsub: support multiple notifications and callbacks. [Marco Mariani]
  * pubsub: print/return errors from subprocess or notifications. [Marco Mariani]
+ * agent: ignore SR status, retrieve instance status with .getStatus(). [Marco
+   Mariani]
 
-0.3.1 (2012-10-02)
-=================
+0.31.1 (2012-10-02)
+===================
  * slaprunner: Add new file manager. [Alain Takoudjou]
  * slaprunner: Ask confirm before delete important folder. [Alain Takoudjou]
 
