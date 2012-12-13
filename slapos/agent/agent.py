@@ -69,7 +69,7 @@ TESTER_STATE_NOTHING = 0
 TESTER_STATE_SOFTWARE_INSTALLED = 1
 TESTER_STATE_INSTANCE_INSTALLED = 2
 TESTER_STATE_INSTANCE_STARTED = 4
-TESTER_STATE_INSTANCE_UNISTALLED = 5
+TESTER_STATE_INSTANCE_UNINSTALLED = 5
 
 class x509Transport(xmlrpclib.Transport):
     """
@@ -153,7 +153,7 @@ class SoftwareReleaseTester(RPCRetry):
             TESTER_STATE_NOTHING: (
                 'install',
                 max_install_duration,
-                request_kw is None and TESTER_STATE_INSTANCE_UNISTALLED or \
+                request_kw is None and TESTER_STATE_INSTANCE_UNINSTALLED or \
                     TESTER_STATE_SOFTWARE_INSTALLED,
                 SOFTWARE_STATE_INSTALLED,
                 None,
@@ -168,11 +168,11 @@ class SoftwareReleaseTester(RPCRetry):
             TESTER_STATE_INSTANCE_STARTED: (
                 'destroy',
                 max_destroy_duration,
-                TESTER_STATE_INSTANCE_UNISTALLED,
+                TESTER_STATE_INSTANCE_UNINSTALLED,
                 None,
                 INSTANCE_STATE_UNKNOWN,
             ),
-            TESTER_STATE_INSTANCE_UNISTALLED: (
+            TESTER_STATE_INSTANCE_UNINSTALLED: (
                 'uninstall',
                 max_uninstall_duration,
                 None,
@@ -280,7 +280,7 @@ class SoftwareReleaseTester(RPCRetry):
         if self.request_kw is not None:
             self.destroy()
         self.uninstall()
-        self.state = TESTER_STATE_INSTANCE_UNISTALLED
+        self.state = TESTER_STATE_INSTANCE_UNINSTALLED
 
     def tic(self, now):
         """
