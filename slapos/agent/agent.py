@@ -1,5 +1,6 @@
 import ConfigParser
 import argparse
+import datetime
 import httplib
 import json
 import logging
@@ -37,35 +38,17 @@ class AutoSTemp(object):
     def __del__(self):
         self.__unlink(self.__name)
 
-# XXX: scripts should be merged in a single one
-GET_DESTROYING_METHOD_ID = \
-    'Agent_getDestroyingSoftwareReleaseReferenceListOnComputer'
-GET_INSTALLED_METHOD_ID = \
-    'Agent_getInstalledSoftwareReleaseReferenceListOnComputer'
-GET_INSTALLING_METHOD_ID = \
-    'Agent_getInstallingSoftwareReleaseReferenceListOnComputer'
 SOFTWARE_STATE_UNKNOWN = -1
 SOFTWARE_STATE_INSTALLING = 0
 SOFTWARE_STATE_INSTALLED = 1
 SOFTWARE_STATE_DESTROYING = 2
 
-GET_PARTITION_STATE_METHOD_ID = 'Agent_getComputerPartitionState'
 INSTANCE_STATE_UNKNOWN = -1
 INSTANCE_STATE_STARTING = 0
 INSTANCE_STATE_STARTED = 1
 INSTANCE_STATE_STOPPING = 2
 INSTANCE_STATE_STOPPED = 3
 INSTANCE_STATE_DESTROYING = 4
-
-INSTANCE_STATE_DICT = {
-    'Looking for a free partition': INSTANCE_STATE_UNKNOWN,
-    'Started': INSTANCE_STATE_STARTED,
-    'Start in progress': INSTANCE_STATE_STARTING,
-    'Stopped': INSTANCE_STATE_STOPPED,
-    'Stop in progress': INSTANCE_STATE_STOPPING,
-    'Destruction in progress': INSTANCE_STATE_DESTROYING,
-    'Destroyed': INSTANCE_STATE_UNKNOWN,
-}
 
 TESTER_STATE_INITIAL = -1
 TESTER_STATE_NOTHING = 0
@@ -184,8 +167,8 @@ class SoftwareReleaseTester(RPCRetry):
                 lambda t: t.uninstall(),
                 max_uninstall_duration,
                 None,
-                SOFTWARE_STATE_UNKNOWN,
                 None,
+                INSTANCE_STATE_UNKNOWN,
             ),
         }
 
@@ -215,39 +198,41 @@ class SoftwareReleaseTester(RPCRetry):
         )
 
     def _getSoftwareState(self):
-        # TODO: replace with simpler slap-based API
-        # TODO: merge all 3 entrypoints into a single, to reduce server load.
-        for state, method_id in (
-                    (SOFTWARE_STATE_DESTROYING, GET_DESTROYING_METHOD_ID),
-                    (SOFTWARE_STATE_INSTALLED, GET_INSTALLED_METHOD_ID),
-                    (SOFTWARE_STATE_INSTALLING, GET_INSTALLING_METHOD_ID),
-                ):
-            if self.url in self._retryRPC(method_id, (self.computer_guid,
-                    [self.url])):
-                return state
-        return SOFTWARE_STATE_UNKNOWN
+        return SOFTWARE_STATE_INSTALLED
 
     def _getInstanceState(self):
-        # TODO: replace with simpler slap-based API
         latest_state = self.latest_state
         self._logger.debug('latest_state = %r', latest_state)
+
         if latest_state is None:
             return INSTANCE_STATE_UNKNOWN
         try:
             requested = self._request(latest_state)
+            if requested._computer_id is None:
+                return INSTANCE_STATE_UNKNOWN
         except slapos.slap.ServerError:
             self._logger.exception('Got an error requesting partition for '
                 'its state')
             return INSTANCE_STATE_UNKNOWN
-        part_id = requested.getId()
-        self._logger.debug('part_id = %r', part_id)
-        if not part_id:
-            # Master did not allocate a partition yet.
+
+        try:
+            instance_state = requested.getStatus()
+            # the following does NOT take TZ into account
+            created_at = datetime.datetime.strptime(instance_state['created_at'], '%a, %d %b %Y %H:%M:%S %Z')
+            gmt_now = datetime.datetime(*time.gmtime()[:6])
+
+            self._logger.debug('Instance state: ', instance_state)
+            self._logger.debug('Created at: %s (%d)' % (instance_state['created_at'], (gmt_now - created_at).seconds))
+
+            if instance_state['text'].startswith('#error no data found'):
+                return INSTANCE_STATE_UNKNOWN
+            elif instance_state['text'].startswith('#access') \
+                    and (gmt_now - created_at).seconds < 300:
+                return INSTANCE_STATE_STARTED
+        except slapos.slap.ResourceNotReady:
             return INSTANCE_STATE_UNKNOWN
-        return INSTANCE_STATE_DICT[self._retryRPC(
-            GET_PARTITION_STATE_METHOD_ID,
-            (self.computer_guid, part_id)
-        )]
+
+        return INSTANCE_STATE_UNKNOWN
 
     def install(self):
         """
