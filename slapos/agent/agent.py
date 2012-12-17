@@ -375,27 +375,29 @@ def main():
             key_file_dict[cert] = (temp_key, temp_cert)
         return temp_key.name, temp_cert.name
     args = parser.parse_args()
+
+    log = args.log
+    formatter = logging.Formatter('%(asctime)s %(message)s')
+    logger = logging.getLogger()
+    if args.verbose:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
+    logger.setLevel(log_level)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    if log:
+        handler = logging.FileHandler(log)
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        log_file = open(log)
+        log_file.seek(0, 2)
+
     pidfile = args.pidfile
     if pidfile:
         setRunning(pidfile)
     try:
-        log = args.log
-        formatter = logging.Formatter('%(asctime)s %(message)s')
-        logger = logging.getLogger()
-        if args.verbose:
-            log_level = logging.DEBUG
-        else:
-            log_level = logging.INFO
-        logger.setLevel(log_level)
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        if log:
-            handler = logging.FileHandler(log)
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-            log_file = open(log)
-            log_file.seek(0, 2)
         section_dict = collections.OrderedDict()
         configuration = ConfigParser.SafeConfigParser()
         configuration.readfp(args.configuration_file)
