@@ -1,6 +1,7 @@
 0.32.1 (unreleased)
 ===================
- * agent: run tests in order [Marco Mariani]
+ * agent: attempt to run tests in order (TODO: check the behavior of the task
+    distribution tool) [Marco Mariani]
 
 0.32 (2012-12-13)
 =================
