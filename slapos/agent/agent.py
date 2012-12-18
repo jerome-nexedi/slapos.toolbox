@@ -1,5 +1,6 @@
 import ConfigParser
 import argparse
+import collections
 import datetime
 import httplib
 import json
@@ -301,9 +302,10 @@ class SoftwareReleaseTester(RPCRetry):
             stepfunc(self)
         return self.deadline
 
+
 class TestMap(object):
    def __init__(self, test_dict):
-       self.test_map_dict = {}
+       self.test_map_dict = collections.OrderedDict()
        for key in test_dict:
            target_computer = test_dict[key]["target_computer"]
            if target_computer not in self.test_map_dict:
@@ -394,7 +396,7 @@ def main():
             logger.addHandler(handler)
             log_file = open(log)
             log_file.seek(0, 2)
-        section_dict = {}
+        section_dict = collections.OrderedDict()
         configuration = ConfigParser.SafeConfigParser()
         configuration.readfp(args.configuration_file)
         for section in configuration.sections():
