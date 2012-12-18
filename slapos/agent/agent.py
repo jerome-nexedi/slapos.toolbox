@@ -444,16 +444,16 @@ def main():
             test_title=test_title,
             project_title=project_title,
         )
+        assert test_result is not None
         test_result.watcher_period = 300
         if log:
             test_result.addWatch(log, log_file, max_history_bytes=10000)
-        assert test_result is not None
         test_mapping = TestMap(section_dict)
-        logger.info("Running %s tests in parallel." % \
+        logger.info("Running %d tests in parallel." % \
                       len(test_mapping.getComputerList()))
 
         ran_test_set = set()
-        running_test_dict = {}
+        running_test_dict = collections.OrderedDict()
         more_tests = True
         logger.info('Starting Test Agent run %s ' % node_title)
         while True:
