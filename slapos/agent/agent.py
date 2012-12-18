@@ -58,6 +58,15 @@ TESTER_STATE_INSTANCE_INSTALLED = 2
 TESTER_STATE_INSTANCE_STARTED = 4
 TESTER_STATE_INSTANCE_UNINSTALLED = 5
 
+
+
+def compute_response_age(created_at):
+    # the following does NOT take TZ into account
+    created_at = datetime.datetime.strptime(created_at, '%a, %d %b %Y %H:%M:%S %Z')
+    gmt_now = datetime.datetime(*time.gmtime()[:6])
+    return (gmt_now - created_at).seconds
+
+
 class x509Transport(xmlrpclib.Transport):
     """
     Similar to xmlrpclib.SecureTransport, but with actually usable x509
@@ -199,6 +208,7 @@ class SoftwareReleaseTester(RPCRetry):
         )
 
     def _getSoftwareState(self):
+        # the state of the software release is not reported anymore with the current API.
         return SOFTWARE_STATE_INSTALLED
 
     def _getInstanceState(self):
@@ -218,17 +228,13 @@ class SoftwareReleaseTester(RPCRetry):
 
         try:
             instance_state = requested.getStatus()
-            # the following does NOT take TZ into account
-            created_at = datetime.datetime.strptime(instance_state['created_at'], '%a, %d %b %Y %H:%M:%S %Z')
-            gmt_now = datetime.datetime(*time.gmtime()[:6])
-
-            self._logger.debug('Instance state: ', instance_state)
-            self._logger.debug('Created at: %s (%d)' % (instance_state['created_at'], (gmt_now - created_at).seconds))
-
-            if instance_state['text'].startswith('#error no data found'):
+            if instance_state['text'].startswith('#error'):
                 return INSTANCE_STATE_UNKNOWN
-            elif instance_state['text'].startswith('#access') \
-                    and (gmt_now - created_at).seconds < 300:
+
+            server_response_age = compute_response_age(instance_state['created_at'])
+            self._logger.debug('Created at: %s (%d secs ago)' % (instance_state['created_at'], server_response_age))
+
+            if instance_state['text'].startswith('#access') and server_response_age < 60*5:
                 return INSTANCE_STATE_STARTED
         except slapos.slap.ResourceNotReady:
             return INSTANCE_STATE_UNKNOWN
@@ -531,12 +537,50 @@ def main():
             # Change test_result.watcher_period outside this loop if you wish
             # to change sleep duration.
             next_deadline = now + test_result.watcher_period
-            for section, (test_line, tester, target_computer) in running_test_dict.items():
+            for section, (test_line, tester, target_computer) in list(running_test_dict.items()):
                 logger.info('Checking %s: %r...', section, tester)
+
+                computer_state = slap.registerComputer(target_computer).getStatus()
+
+                # check if the computer has successfullly connected to report its status.
+
+                if not computer_state['text'].startswith('#access'):
+                    error_msg = 'Error while retrieving computer status for %s (%s). Test and teardown skipped.' % (
+                                                section, computer_state['text'])
+                    logger.error(error_msg)
+                    test_line.stop(
+                        test_count=1,
+                        error_count=0,
+                        failure_count=1,
+                        skip_count=0,
+                        stderr=error_msg,
+                    )
+                    del running_test_dict[section]
+                    continue
+
+                # check if the computer has connected in the last 15 minutes
+                # if it has not: report the failure, skip the rest of the test and the teardown as well.
+
+                server_response_age = compute_response_age(computer_state['created_at'])
+
+                if server_response_age > 60*15:
+                    error_msg = 'Computer is unavailable (since %s minutes) for %s. Test and teardown skipped.' % (
+                                                int(server_response_age/60), section)
+                    logger.error(error_msg)
+                    test_line.stop(
+                        test_count=1,
+                        error_count=0,
+                        failure_count=1,
+                        skip_count=0,
+                        stderr=error_msg,
+                    )
+                    del running_test_dict[section]
+                    continue
+
                 try:
                     deadline = tester.tic(now)
                 except Exception:
-                    logger.exception('Test execution fail for  %s' % (section))
+                    logger.exception('Test execution failed for %s' % section)
                     test_line.stop(
                         test_count=1,
                         error_count=1,
