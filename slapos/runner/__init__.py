@@ -144,7 +144,6 @@ def serve(config):
     os.mkdir(workdir)
   if not os.path.exists(software_link):
     os.mkdir(software_link)
-  runInstanceWithLock(app.config)
   slapos.runner.process.setHandler()
   runInstanceWithLock(app.config)
   app.run(host=config.runner_host, port=int(config.runner_port),
