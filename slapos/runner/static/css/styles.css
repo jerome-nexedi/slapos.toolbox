@@ -508,6 +508,7 @@ h2.hight:hover{
     height: 450px;
     font-size: 13px;
     overflow-y: auto;
+    white-space: pre-wrap;
 }
 .log_btn{border: 1px solid #678dad; border-top:none; height: 22px; width: 654px; margin: 0 40px 10px 40px;
     padding:4px 10px 4px 10px; font-size: 16px; color: #4c6172;}
