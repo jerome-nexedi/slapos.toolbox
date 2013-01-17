@@ -465,7 +465,7 @@ if (jQuery) (function(jQuery){
                 var fileshtml = '';
                 var gs_lastparent = jQuery('#' + jQuery("#curDir").attr('rel')).parent().parent().parent().children('a');
                 if (gs_lastparent.length > 0) {
-                    fileshtml += "<tr><td class='first'><div class='directory directory_info gsItem' rel=\'up\'><a href='javascript:void(0)' onclick=\"jQuery('#" + jQuery("#curDir").attr('rel')+ "').parent().parent().parent().children('a').trigger('click'); return false\"> parent...</a></div></td align='center'><td align='center'>Folder</td><td align='center'>-</td><td align='center'>-</td></tr>";
+                    fileshtml += "<tr><td class='first'><div class='directory directory_info gsItem' rel=\'up\'><a href='javascript:void(0)' onclick=\"jQuery('#" + jQuery("#curDir").attr('rel')+ "').parent().parent().parent().children('a').trigger('click'); return false\"> ..</a></div></td align='center'><td align='center'>Folder</td><td align='center'>-</td><td align='center'>-</td></tr>";
                 }
                 if (gsfiless.length > 0) {
                     for (var numf in gsfiless) {
