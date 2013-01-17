@@ -24,7 +24,7 @@ $(document).ready(function () {
             $("#error").Popup("Please enter a valid email adress!", {type: 'alert', duration: 3000});
             return false;
         }
-        if (!hasAccount && !$("input#password").val().match(/^[\w\d\._\-]+$/)) {
+        if (!hasAccount && !$("input#password").val()) {
             $("#error").Popup("Please enter your new password!", {type: 'alert', duration: 3000});
             return false;
         }
@@ -33,7 +33,7 @@ $(document).ready(function () {
             return false;
         }
         if ($("input#password").val() !== "") {
-            if ($("input#password").val() === "" || !$("input#password").val().match(/^[\w\d\._\-]+$/)) {
+            if ($("input#password").val() === "" || !$("input#password").val()) {
                 $("#error").Popup("Please enter your new password!", {type: 'alert', duration: 3000});
                 return false;
             }
