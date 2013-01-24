@@ -12,9 +12,8 @@
 
 {% endblock %}
 {% block body %}
-<h2>Inspect software release</h2>
 <input type="hidden" name="runnerdir" id="runnerdir" value="{{softwareRoot}}" />
-<label for='softwarelist'>Software Release: </label>
+<label for='softwarelist' class='header'>Inspect software release </label>
 <select name="softwarelist" id="softwarelist">
 {%if not softwares %}<option >No Software Release found</option>{% endif %}
 {%for soft in softwares %}

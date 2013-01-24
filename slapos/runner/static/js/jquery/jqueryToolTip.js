@@ -45,7 +45,7 @@ $(function () {
                     $('.popup').css('display', 'none');
                     shown = false;
                 });
-            }, hideDelay)
+            }, hideDelay);
         return false;
     });
 });

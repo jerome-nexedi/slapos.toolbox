@@ -1,35 +1,29 @@
 # -*- coding: utf-8 -*-
+# vim: set et sts=2:
+# pylint: disable-msg=W0311,C0301,C0103,C0111,W0141,W0142
+
+
+import md5
+import logging
+import multiprocessing
+import re
+from slapos.runner.process import Popen, isRunning, killRunningProcess
+import shutil
+import os
+import time
+import urllib
+from xml.dom import minidom
+
+import xml_marshaller
+from flask import jsonify
 
 import slapos.slap
-import time
-import subprocess
-import os
-from xml_marshaller import xml_marshaller
-from xml.dom import minidom
-import re
-import urllib
-from flask import jsonify
-import shutil
-import string
-import hashlib
-import signal
-import multiprocessing
+
 
 # Setup default flask (werkzeug) parser
-import logging
+
 logger = logging.getLogger('werkzeug')
 
-
-class Popen(subprocess.Popen):
-  def __init__(self, *args, **kwargs):
-    kwargs['stdin'] = subprocess.PIPE
-    kwargs['stderr'] = subprocess.STDOUT
-    kwargs.setdefault('stdout', subprocess.PIPE)
-    kwargs.setdefault('close_fds', True)
-    subprocess.Popen.__init__(self, *args, **kwargs)
-    self.stdin.flush()
-    self.stdin.close()
-    self.stdin = None
 
 html_escape_table = {
   "&": "&amp;",
@@ -41,7 +35,7 @@ html_escape_table = {
 
 def html_escape(text):
   """Produce entities within text."""
-  return "".join(html_escape_table.get(c,c) for c in text)
+  return "".join(html_escape_table.get(c, c) for c in text)
 
 def getSession(config):
   """
@@ -86,7 +80,7 @@ def saveSession(config, account):
     #save new account data
     open(user, 'w').write((';'.join(account)).encode("utf-8"))
     return True
-  except Exception, e:
+  except Exception as e:
     try:
       if backup:
         os.remove(user)
@@ -169,23 +163,8 @@ def updateProxy(config):
                      'reference': partition_reference,
                      'tap': {'name': partition_reference},
                      })
-  computer.updateConfiguration(xml_marshaller.dumps(slap_config))
+  computer.updateConfiguration(xml_marshaller.xml_marshaller.dumps(slap_config))
   return True
-
-def readPid(file):
-  """Read process pid from file `file`"""
-  if os.path.exists(file):
-    data = open(file).read().strip()
-    try:
-      return int(data)
-    except Exception:
-      return 0
-  return 0
-
-
-def writePid(file, pid):
-  """Save process pid into a file `file`"""
-  open(file, 'w').write(str(pid))
 
 def updateInstanceParameter(config, software_type=None):
   """
@@ -200,31 +179,17 @@ def updateInstanceParameter(config, software_type=None):
 
 def startProxy(config):
   """Start Slapproxy server"""
-  proxy_pid = os.path.join(config['etc_dir'], 'proxy.pid')
-  pid = readPid(proxy_pid)
-  running = False
-  if pid:
-    try:
-      os.kill(pid, 0)
-    except Exception:
-      pass
-    else:
-      running = True
-  if not running:
-    proxy = Popen([config['slapproxy'], config['configuration_file_path']])
-    proxy_pid = os.path.join(config['etc_dir'], 'proxy.pid')
-    writePid(proxy_pid, proxy.pid)
-    time.sleep(5)
+  if not isRunning('slapproxy'):
+    log = os.path.join(config['log_dir'], 'slapproxy.log')
+    Popen([config['slapproxy'], '--log_file', log,
+           config['configuration_file_path']],
+          name='slapproxy')
+    time.sleep(4)
 
 
 def stopProxy(config):
   """Stop Slapproxy server"""
-  pid = readPid(os.path.join(config['etc_dir'], 'proxy.pid'))
-  if pid:
-    try:
-      os.kill(pid)
-    except:
-      pass
+  pass
 
 
 def removeProxyDb(config):
@@ -233,22 +198,11 @@ def removeProxyDb(config):
   if os.path.exists(config['database_uri']):
     os.unlink(config['database_uri'])
 
-def isSoftwareRunning(config):
+def isSoftwareRunning(config=None):
   """
     Return True if slapgrid-sr is still running and false if slapgrid if not
   """
-  slapgrid_pid = os.path.join(config['etc_dir'], 'slapgrid-sr.pid')
-  pid = readPid(slapgrid_pid)
-  if pid:
-    try:
-      os.kill(pid, 0)
-    except Exception:
-      running = False
-    else:
-      running = True
-  else:
-    running = False
-  return running
+  return isRunning('slapgrid-sr')
 
 
 def runSoftwareWithLock(config):
@@ -256,8 +210,8 @@ def runSoftwareWithLock(config):
     Use Slapgrid to compile current Software Release and wait until
     compilation is done
   """
-  slapgrid_pid = os.path.join(config['etc_dir'], 'slapgrid-sr.pid')
-  if not isSoftwareRunning(config):
+  slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-sr.pid')
+  if not isSoftwareRunning():
     if not os.path.exists(config['software_root']):
       os.mkdir(config['software_root'])
     stopProxy(config)
@@ -270,9 +224,10 @@ def runSoftwareWithLock(config):
     environment = os.environ.copy()
     environment['MAKEFLAGS'] = '-j%r' % multiprocessing.cpu_count()
     slapgrid = Popen([config['slapgrid_sr'], '-vc',
-        config['configuration_file_path'], '--now', '--develop'],
-        stdout=logfile, env=environment)
-    writePid(slapgrid_pid, slapgrid.pid)
+                      '--pidfile', slapgrid_pid,
+                      config['configuration_file_path'], '--now', '--develop'],
+                     stdout=logfile, env=environment,
+                     name='slapgrid-sr')
     slapgrid.wait()
     #Saves the current compile software for re-use
     config_SR_folder(config)
@@ -328,68 +283,28 @@ def loadSoftwareRList(config):
       list.append(dict(md5=cfg[1], path=cfg[0], title=path))
   return list
 
-def isInstanceRunning(config):
+def isInstanceRunning(config=None):
   """
     Return True if slapgrid-cp is still running and false if slapgrid if not
   """
-  slapgrid_pid = os.path.join(config['etc_dir'], 'slapgrid-cp.pid')
-  pid = readPid(slapgrid_pid)
-  if pid:
-    try:
-      os.kill(pid, 0)
-    except Exception:
-      running = False
-    else:
-      running = True
-  else:
-    running = False
-  return running
+  return isRunning('slapgrid-cp')
 
-def killRunningSlapgrid(config, ptype):
-  """Kill slapgrid process and all running children process"""
-  slapgrid_pid = os.path.join(config['etc_dir'], ptype)
-  pid = readPid(slapgrid_pid)
-  if pid:
-      recursifKill([pid])
-  else:
-    return False
-
-def recursifKill(pids):
-  """Try to kill a list of proccess by the given pid list"""
-  if pids == []:
-    return
-  else:
-    for pid in pids:
-      ppids = pidppid(pid)
-      try:
-        os.kill(pid, signal.SIGKILL) #kill current process
-      except Exception:
-              pass
-      recursifKill(ppids) #kill all children of this process
-
-def pidppid(pid):
-  """get the list of the children pids of a process `pid`"""
-  proc = Popen('ps -o pid,ppid ax | grep "%d"' % pid, shell=True,
-               stdout=subprocess.PIPE)
-  ppid  = [x.split() for x in proc.communicate()[0].split("\n") if x]
-  return list(int(p) for p, pp in ppid if int(pp) == pid)
 
 def runInstanceWithLock(config):
   """
     Use Slapgrid to deploy current Software Release and wait until
     deployment is done.
   """
-  slapgrid_pid = os.path.join(config['etc_dir'], 'slapgrid-cp.pid')
-  if not isInstanceRunning(config):
+  slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-cp.pid')
+  if not isInstanceRunning():
     startProxy(config)
     logfile = open(config['instance_log'], 'w')
     if not (updateProxy(config) and requestInstance(config)):
       return False
-    svcStopAll(config) #prevent lost control of process
     slapgrid = Popen([config['slapgrid_cp'], '-vc',
-        config['configuration_file_path'], '--now'],
-        stdout=logfile)
-    writePid(slapgrid_pid, slapgrid.pid)
+                      '--pidfile', slapgrid_pid,
+                      config['configuration_file_path'], '--now'],
+                     stdout=logfile, name='slapgrid-cp')
     slapgrid.wait()
     return True
   return False
@@ -425,7 +340,7 @@ def getSlapStatus(config):
   if partition_list:
     for i in xrange(0, int(config['partition_amount'])):
       slappart_id = '%s%s' % ("slappart", i)
-      if not [x[0] for x in partition_list if slappart_id==x[0]]:
+      if not [x[0] for x in partition_list if slappart_id == x[0]]:
         partition_list.append((slappart_id, []))
   return partition_list
 
@@ -438,7 +353,7 @@ def removeInstanceRoot(config):
   """Clean instance directory and stop all its running process"""
   if os.path.exists(config['instance_root']):
     svcStopAll(config)
-    for root, dirs, files in os.walk(config['instance_root']):
+    for root, dirs, _ in os.walk(config['instance_root']):
       for fname in dirs:
         fullPath = os.path.join(root, fname)
         if not os.access(fullPath, os.W_OK) :
@@ -450,14 +365,12 @@ def getSvcStatus(config):
   """Return all Softwares Instances process Informations"""
   result = Popen([config['supervisor'], config['configuration_file_path'],
                   'status']).communicate()[0]
-  regex = "(^unix:.+\.socket)|(^error:).*$"
+  regex = "(^unix:.+\.socket)|(^error:)|(^watchdog).*$"
   supervisord = []
   for item in result.split('\n'):
     if item.strip() != "":
       if re.search(regex, item, re.IGNORECASE) == None:
         supervisord.append(re.split('[\s,]+', item))
-      else:
-        return [] #ignore because it is an error message
   return supervisord
 
 def getSvcTailProcess(config, process):
@@ -495,11 +408,11 @@ def getFolderContent(config, folder):
   Returns:
     Html formated string or error message when fail.
   """
-  r=['<ul class="jqueryFileTree" style="display: none;">']
+  r = ['<ul class="jqueryFileTree" style="display: none;">']
   try:
     folder = str(folder)
-    r=['<ul class="jqueryFileTree" style="display: none;">']
-    d=urllib.unquote(folder)
+    r = ['<ul class="jqueryFileTree" style="display: none;">']
+    d = urllib.unquote(folder)
     realdir = realpath(config, d)
     if not realdir:
       r.append('Could not load directory: Permission denied')
@@ -509,14 +422,14 @@ def getFolderContent(config, folder):
     for f in ldir:
       if f.startswith('.'): #do not displays this file/folder
         continue
-      ff=os.path.join(d,f)
-      if os.path.isdir(os.path.join(realdir,f)):
-        r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff,f))
+      ff = os.path.join(d, f)
+      if os.path.isdir(os.path.join(realdir, f)):
+        r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff, f))
       else:
-        e=os.path.splitext(f)[1][1:] # get .ext and remove dot
-        r.append('<li class="file ext_%s"><a href="#%s" rel="%s">%s</a></li>' % (e, ff,ff,f))
+        e = os.path.splitext(f)[1][1:] # get .ext and remove dot
+        r.append('<li class="file ext_%s"><a href="#%s" rel="%s">%s</a></li>' % (e, ff, ff, f))
     r.append('</ul>')
-  except Exception,e:
+  except Exception as e:
     r.append('Could not load directory: %s' % str(e))
   r.append('</ul>')
   return jsonify(result=''.join(r))
@@ -532,11 +445,11 @@ def getFolder(config, folder):
   Returns:
     Html formated string or error message when fail.
   """
-  r=['<ul class="jqueryFileTree" style="display: none;">']
+  r = ['<ul class="jqueryFileTree" style="display: none;">']
   try:
     folder = str(folder)
-    r=['<ul class="jqueryFileTree" style="display: none;">']
-    d=urllib.unquote(folder)
+    r = ['<ul class="jqueryFileTree" style="display: none;">']
+    d = urllib.unquote(folder)
     realdir = realpath(config, d)
     if not realdir:
       r.append('Could not load directory: Permission denied')
@@ -546,11 +459,11 @@ def getFolder(config, folder):
     for f in ldir:
       if f.startswith('.'): #do not display this file/folder
         continue
-      ff=os.path.join(d,f)
-      if os.path.isdir(os.path.join(realdir,f)):
+      ff = os.path.join(d, f)
+      if os.path.isdir(os.path.join(realdir, f)):
         r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff, f))
     r.append('</ul>')
-  except Exception,e:
+  except Exception as e:
     r.append('Could not load directory: %s' % str(e))
   r.append('</ul>')
   return jsonify(result=''.join(r))
@@ -581,10 +494,10 @@ def configNewSR(config, projectpath):
   """
   folder = realpath(config, projectpath)
   if folder:
-    if isInstanceRunning(config):
-      killRunningSlapgrid(config, "slapgrid-cp.pid")
-    if isSoftwareRunning(config):
-      killRunningSlapgrid(config, "slapgrid-sr.pid")
+    if isInstanceRunning():
+      killRunningProcess('slapgrid-cp')
+    if isSoftwareRunning():
+      killRunningProcess('slapgrid-sr')
     stopProxy(config)
     removeProxyDb(config)
     startProxy(config)
@@ -623,12 +536,18 @@ def newSoftware(folder, config, session):
       open(os.path.join(folderPath, config['software_profile']), 'w').write(softwareContent)
       open(os.path.join(folderPath, config['instance_profile']), 'w').write("")
       open(os.path.join(basedir, ".project"), 'w').write(folder + "/")
+      #Clean sapproxy Database
+      stopProxy(config)
+      removeProxyDb(config)
+      startProxy(config)
+      #Stop runngin process and remove existing instance
+      removeInstanceRoot(config)
       session['title'] = getProjectTitle(config)
       code = 1
     else:
       json = "Bad folder or Directory '" + folder + \
         "' already exist, please enter a new name for your software"
-  except Exception, e:
+  except Exception as e:
     json = "Can not create your software, please try again! : " + str(e)
     if os.path.exists(folderPath):
       shutil.rmtree(folderPath)
@@ -646,8 +565,8 @@ def getProjectTitle(config):
   conf = os.path.join(config['etc_dir'], ".project")
   if os.path.exists(conf):
     project = open(conf, "r").read().split("/")
-    software = project[len(project) - 2]
-    return software + " (" + string.join(project[:(len(project) - 2)], '/') + ")"
+    software = project[-2]
+    return '%s (%s)' % (software, '/'.join(project[:-2]))
   return "No Profile"
 
 def getSoftwareReleaseName(config):
@@ -655,7 +574,7 @@ def getSoftwareReleaseName(config):
   sr_profile = os.path.join(config['etc_dir'], ".project")
   if os.path.exists(sr_profile):
     project = open(sr_profile, "r").read().split("/")
-    software = project[len(project) - 2]
+    software = project[-2]
     return software.replace(' ', '_')
   return "No_name"
 
@@ -666,7 +585,7 @@ def removeSoftwareByName(config, md5, folderName):
     config: slaprunner configuration
     foldername: the link name given to the software release
     md5: the md5 filename given by slapgrid to SR folder"""
-  if isSoftwareRunning(config) or isInstanceRunning(config):
+  if isSoftwareRunning() or isInstanceRunning():
     raise Exception("Software installation or instantiation in progress, cannot remove")
   path = os.path.join(config['software_root'], md5)
   linkpath = os.path.join(config['software_link'], folderName)
@@ -698,19 +617,20 @@ def tail(f, lines=20):
           data.insert(0, f.read(BUFSIZ))
       else:
           # file too small, start from begining
-          f.seek(0,0)
+          f.seek(0, 0)
           # only read what was not read
           data.insert(0, f.read(bytes))
       linesFound = data[0].count('\n')
       size -= linesFound
       bytes -= BUFSIZ
       block -= 1
-  return string.join(''.join(data).splitlines()[-lines:], '\n')
+  return '\n'.join(''.join(data).splitlines()[-lines:])
 
-def readFileFrom(f, lastPosition):
+def readFileFrom(f, lastPosition, limit=20000):
   """
   Returns the last lines of file `f`, from position lastPosition.
   and the last position
+  limit = max number of caracter to read
   """
   BUFSIZ = 1024
   f.seek(0, 2)
@@ -718,8 +638,10 @@ def readFileFrom(f, lastPosition):
   block = -1
   data = ""
   length = bytes
-  if lastPosition <= 0 and length > 30000:
-    lastPosition = length-30000
+  truncated = False #True if a part of log data has been truncated
+  if (lastPosition <= 0 and length > limit) or (length-lastPosition > limit):
+    lastPosition = length - limit
+    truncated = True
   size = bytes - lastPosition
   while bytes > lastPosition:
     if abs(block*BUFSIZ) <= size:
@@ -729,7 +651,7 @@ def readFileFrom(f, lastPosition):
     else:
       margin = abs(block*BUFSIZ) - size
       if length < BUFSIZ:
-        f.seek(0,0)
+        f.seek(0, 0)
       else:
         seek = block * BUFSIZ + margin
         f.seek(seek, 2)
@@ -737,13 +659,13 @@ def readFileFrom(f, lastPosition):
     bytes -= BUFSIZ
     block -= 1
   f.close()
-  return {"content":data, "position":length}
+  return {"content":data, "position":length, "truncated":truncated}
 
 def isText(file):
   """Return True if the mimetype of file is Text"""
   if not os.path.exists(file):
     return False
-  text_range = ''.join(map(chr, [7,8,9,10,12,13,27] + range(0x20, 0x100)))
+  text_range = ''.join(map(chr, [7, 8, 9, 10, 12, 13, 27] + range(0x20, 0x100)))
   is_binary_string = lambda bytes: bool(bytes.translate(None, text_range))
   try:
     return not is_binary_string(open(file).read(1024))
@@ -756,7 +678,7 @@ def md5sum(file):
     return False
   try:
     fh = open(file, 'rb')
-    m = hashlib.md5()
+    m = md5.md5()
     while True:
       data = fh.read(8192)
       if not data:
@@ -799,14 +721,14 @@ def readParameters(path):
   if os.path.exists(path):
     try:
       xmldoc = minidom.parse(path)
-      object = {}
+      obj = {}
       for elt in xmldoc.childNodes:
-        sub_object = {}
+        sub_obj = {}
         for subnode in elt.childNodes:
           if subnode.nodeType != subnode.TEXT_NODE:
-            sub_object[str(subnode.getAttribute('id'))] = subnode.childNodes[0].data #.decode('utf-8').decode('utf-8')
-            object[str(elt.tagName)] = sub_object
-      return object
+            sub_obj[str(subnode.getAttribute('id'))] = subnode.childNodes[0].data #.decode('utf-8').decode('utf-8')
+            obj[str(elt.tagName)] = sub_obj
+      return obj
     except Exception, e:
       return str(e)
   else:

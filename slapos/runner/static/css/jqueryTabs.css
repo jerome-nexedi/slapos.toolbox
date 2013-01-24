@@ -2,7 +2,7 @@
 	background: #e4e4e4;
 	padding:3px;
 	/*position:relative;*/
-	width:757px;
+	width:930px;
 	font-size: 14px;
   border-radius: 4px 4px 0 0;
 }
@@ -10,9 +10,9 @@
 #tabContaier textarea {
 	width:702px;
 }
-#tabContaier textarea.slap{white-space: pre-wrap;word-wrap: break-word;overflow: hidden;color: #6F6F6F;width:430px; max-height:120px;
+#tabContaier textarea.slap{white-space: pre-wrap;word-wrap: break-word;overflow: hidden;color: #6F6F6F;width:616px; max-height:120px;
   resize: none; height:18px;padding:3px;min-height:18px;font-size: 13px;}
-#tabContaier textarea.mb_style{width:560px;}
+#tabContaier textarea.mb_style{width:713px;}
 #tabContaier > ul{
 	overflow:hidden;
 	height:34px;

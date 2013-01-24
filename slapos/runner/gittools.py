@@ -1,26 +1,15 @@
 # -*- coding: utf-8 -*-
+# vim: set et sts=2:
+# pylint: disable-msg=W0311,C0301,C0103,C0111
 
-import slapos.slap
-import time
-import subprocess
+
 import os
 import re
-import urllib
-from flask import jsonify
 import shutil
-import string
-from git import *
 
-class Popen(subprocess.Popen):
-  def __init__(self, *args, **kwargs):
-    kwargs['stdin'] = subprocess.PIPE
-    kwargs['stderr'] = subprocess.STDOUT
-    kwargs.setdefault('stdout', subprocess.PIPE)
-    kwargs.setdefault('close_fds', True)
-    subprocess.Popen.__init__(self, *args, **kwargs)
-    self.stdin.flush()
-    self.stdin.close()
-    self.stdin = None
+from git import Repo
+from flask import jsonify
+
 
 def cloneRepo(data):
   """Clonne a repository
@@ -49,7 +38,7 @@ def cloneRepo(data):
     if data["email"] != "":
       config_writer.set_value("user", "email", data["email"])
     code = 1
-  except Exception, e:
+  except Exception as e:
     json = safeResult(str(e))
     if os.path.exists(workDir):
       shutil.rmtree(workDir)
@@ -70,7 +59,7 @@ def gitStatus(project):
     branch = git.branch().replace(' ', '').split('\n')
     isdirty = repo.is_dirty(untracked_files=True)
     code = 1
-  except Exception, e:
+  except Exception as e:
     json = safeResult(str(e))
   return jsonify(code=code, result=json, branch=branch, dirty=isdirty)
 
@@ -85,7 +74,6 @@ def switchBranch(project, name):
   json = ""
   try:
     repo = Repo(project)
-    branches = repo.branches
     current_branch = repo.active_branch.name
     if name == current_branch:
       json = "This is already your active branch for this project"
@@ -93,7 +81,7 @@ def switchBranch(project, name):
       git  = repo.git
       git.checkout(name)
       code = 1
-  except Exception, e:
+  except Exception as e:
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
 
@@ -115,7 +103,7 @@ def addBranch(project, name, onlyCheckout=False):
     else:
       git.checkout(name)
     code = 1
-  except Exception, e:
+  except Exception as e:
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
 
@@ -127,7 +115,7 @@ def getDiff(project):
     git = repo.git
     current_branch = repo.active_branch.name
     result = git.diff(current_branch)
-  except Exception, e:
+  except Exception as e:
     result = safeResult(str(e))
   return result
 
@@ -157,7 +145,7 @@ def gitPush(project, msg):
     else:
       json = "Nothing to be commited"
       code = 1
-  except Exception, e:
+  except Exception as e:
     if undo_commit:
       git.reset("HEAD~") #undo previous commit
     json = safeResult(str(e))
@@ -169,14 +157,13 @@ def gitPull(project):
   try:
     repo = Repo(project)
     git = repo.git
-    current_branch = repo.active_branch.name
     git.pull()
     code = 1
-  except Exception, e:
+  except Exception as e:
     result = safeResult(str(e))
   return jsonify(code=code, result=result)
 
 def safeResult(result):
   """Parse string and remove credential of the user"""
-  regex=re.compile("(https:\/\/)([\w\d\._-]+:[\w\d\._-]+)\@([\S]+\s)", re.VERBOSE)
+  regex = re.compile("(https:\/\/)([\w\d\._-]+:[\w\d\._-]+)\@([\S]+\s)", re.VERBOSE)
   return regex.sub(r'\1\3', result)

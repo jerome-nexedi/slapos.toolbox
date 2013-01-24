@@ -23,18 +23,17 @@
     </dl>
 </form>
 <div id="tooltip-editOption" style="display:none">
-  <span class="list">MD5 SUM for the current file</span>
-    <div style="margin-top:3px; margin-bottom:5px;border-bottom: 1px dashed #666666; heigth:1px"></div>
+  <span class="list">Current profile options</span>
     <a id='getmd5' href="#">Get or Update md5sum</a>
-    <br/><span class="list">Add Project to Develop</span><br/>
-    <div style="margin-top:3px;border-bottom: 1px dashed #666666; heigth:1px"></div>
+    <a href="{{ url_for('editCurrentProject')}}">Edit software release files</a>
+    <div class="sep"></div>
+    <span class="list">Add Project to Develop</span>
     <ul id="plist">
     {% for name in projectList%}
-  <li><input type="checkbox" name="develop" value="{{name}}" id="{{name}}">
-  <label>{{name}}</label></li>
+      <li><input type="checkbox" name="develop" value="{{name}}" id="{{name}}">
+      <label>{{name}}</label></li>
     {% endfor %}
     </ul>
-    <br/>
     <a href="#" id="adddevelop" class="lshare">Add to profile</a>
 </div>
 {% endblock %}

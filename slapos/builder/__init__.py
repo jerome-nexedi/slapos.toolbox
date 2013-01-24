@@ -152,19 +152,19 @@ def run(config):
     fdisk_output_path = "/tmp/a_generated_file"
   try:
     if not config.virtual:
-    	offset = 0
-    	fdisk_output_file = open(fdisk_output_path, 'w')
-    	_call(['sfdisk', '-d', '-uS', config.system_path], stdout=fdisk_output_file)
-    	fdisk_output_file.close()
-    	fdisk_output_file = open(fdisk_output_path, 'r')
-    	for line in fdisk_output_file:
-    	  line = line.rstrip().replace(' ', '')
-    	  if line.endswith("bootable"):
-    	    offset = int(line.split(':')[1].split(',')[0].split('=')[1])
-    	fdisk_output_file.close()
-    	offset = offset * 512
-    	_call(['mount', '-o', 'loop,offset=%i' % offset, config.system_path,
-    	       mount_dir_path], dry_run=dry_run)
+      offset = 0
+      fdisk_output_file = open(fdisk_output_path, 'w')
+      _call(['sfdisk', '-d', '-uS', config.system_path], stdout=fdisk_output_file)
+      fdisk_output_file.close()
+      fdisk_output_file = open(fdisk_output_path, 'r')
+      for line in fdisk_output_file:
+        line = line.rstrip().replace(' ', '')
+        if line.endswith("bootable"):
+          offset = int(line.split(':')[1].split(',')[0].split('=')[1])
+      fdisk_output_file.close()
+      offset = offset * 512
+      _call(['mount', '-o', 'loop,offset=%i' % offset, config.system_path,
+             mount_dir_path], dry_run=dry_run)
     # Call vmware-mount to mount Virtual disk image
     else:
       print "Mount Virtual Image"
@@ -191,7 +191,7 @@ def run(config):
                                               cert_file]))
       for (src, dst) in [(config.key_file, key_file_dest), (config.cert_file,
         cert_file_dest)]:
-        print "Coping %r to %r, and setting minimum privileges" % (src, dst)
+        print "Coping %r to %r, and setting minimal privileges" % (src, dst)
         if not dry_run:
           shutil.copy(src, dst)
           os.chmod(dst, 0600)
@@ -302,16 +302,16 @@ def run(config):
         
       # Adding slapos_firstboot in case of MultiDisk usage    
       if not config.one_disk :
-      	for script in ['slapos_firstboot']:
-      	  path = os.path.join(mount_dir_path, 'etc', 'init.d', script)
-      	  print "Creating %r" % path
-      	  if not dry_run:
-      	    open(path, 'w').write(pkg_resources.resource_stream(__name__,
-      	      'script/%s' % script).read())
-      	    os.chmod(path, 0755)	  
+        for script in ['slapos_firstboot']:
+          path = os.path.join(mount_dir_path, 'etc', 'init.d', script)
+          print "Creating %r" % path
+          if not dry_run:
+            open(path, 'w').write(pkg_resources.resource_stream(__name__,
+              'script/%s' % script).read())
+            os.chmod(path, 0755)
       else:
         for script in ['slapos_firstboot']:
-      	  path = os.path.join(mount_dir_path, 'etc', 'init.d', script)
+          path = os.path.join(mount_dir_path, 'etc', 'init.d', script)
           if os.path.exists(path):
             print "Removing %r" % path
             os.remove(path)

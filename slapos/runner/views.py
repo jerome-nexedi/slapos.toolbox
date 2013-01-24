@@ -1,22 +1,41 @@
 # -*- coding: utf-8 -*-
+# vim: set et sts=2:
+# pylint: disable-msg=W0311,C0301,C0103,C0111
 
-from flask import Flask, request, redirect, url_for, \
-         render_template, g, flash, jsonify, session, abort, send_file
-from utils import *
+
 import os
 import shutil
-import md5
-from gittools import cloneRepo, gitStatus, switchBranch, addBranch, getDiff, \
-     gitPush, gitPull
-from flaskext.auth import Auth, AuthUser, login_required, logout
-from fileBrowser import fileBrowser
 import urllib
+
+from flaskext.auth import Auth, AuthUser, login_required, logout
+from flask import (Flask, request, redirect, url_for, render_template,
+                   g, flash, jsonify, session, abort, send_file)
+
+from slapos.runner.process import killRunningProcess
+from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getFolder,
+                                 getFolderContent, getProfilePath,
+                                 getProjectList, getProjectTitle, getSession,
+                                 getSlapStatus, getSvcStatus,
+                                 getSvcTailProcess, isInstanceRunning,
+                                 isSoftwareRunning, isText,
+                                 loadSoftwareRList, md5sum, newSoftware,
+                                 readFileFrom, readParameters, realpath,
+                                 removeInstanceRoot, removeProxyDb,
+                                 removeSoftwareByName, runInstanceWithLock,
+                                 runSoftwareWithLock, saveSession,
+                                 svcStartStopProcess, svcStopAll, tail,
+                                 updateInstanceParameter)
+
+from slapos.runner.fileBrowser import FileBrowser
+from slapos.runner.gittools import (cloneRepo, gitStatus, switchBranch,
+                                    addBranch, getDiff, gitPush, gitPull)
+
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
 auth = Auth(app, login_url_name='login')
 auth.user_timeout = 0
-file_request = fileBrowser(app.config)
+file_request = FileBrowser(app.config)
 
 # Setup default flask (werkzeug) parser
 import logging
@@ -45,6 +64,11 @@ def before_request():
 def home():
   return render_template('index.html')
 
+# general views
+@login_required()
+def browseWorkspace():
+  return render_template('workspace.html')
+
 @app.route("/login")
 def login():
   return render_template('login.html')
@@ -64,7 +88,7 @@ def myAccount():
 
 @app.route("/dologout")
 def dologout():
-  user_data = logout()
+  _ = logout()
   return redirect(url_for('login'))
 
 @login_required()
@@ -95,10 +119,6 @@ def editSoftwareProfile():
 
 @login_required()
 def inspectSoftware():
-  if not os.path.exists(app.config['software_root']):
-    result = ""
-  else:
-    result = app.config['software_root']
   return render_template('runResult.html', softwareRoot='software_link/',
                          softwares=loadSoftwareRList(app.config))
 
@@ -164,11 +184,17 @@ def supervisordStatus():
   html = "<tr><th>Partition and Process name</th><th>Status</th><th>Process PID </th><th> UpTime</th><th></th></tr>"
   for item in result:
     html += "<tr>"
-    html +="<td  class='first'><b><a href='" + url_for('tailProcess', process=item[0])+"'>"+item[0]+"</a></b></td>"
-    html +="<td align='center'><a href='"+url_for('startStopProccess', process=item[0], action=item[1])+"'>"+item[1]+"</a></td>"
-    html +="<td align='center'>"+item[3]+"</td><td>"+item[5]+"</td>"
-    html +="<td align='center'><a href='"+url_for('startStopProccess', process=item[0], action='RESTART')+"'>Restart</a></td>"
-    html +="</tr>"
+    html += "<td  class='first'><b><a href='" \
+        + url_for('tailProcess', process=item[0]) + "'>" \
+        + item[0] + "</a></b></td>"
+    html += "<td align='center'><a href='" \
+        + url_for('startStopProccess', process=item[0], action=item[1]) \
+        + "'>" + item[1] + "</a></td>"
+    html += "<td align='center'>" + item[3] + "</td><td>" + item[5] + "</td>"
+    html += "<td align='center'><a href='" \
+        + url_for('startStopProccess', process=item[0], action='RESTART') \
+        + "'>Restart</a></td>"
+    html += "</tr>"
   return jsonify(code=1, result=html)
 
 @login_required()
@@ -176,9 +202,8 @@ def removeInstance():
   if isInstanceRunning(app.config):
     flash('Instantiation in progress, cannot remove')
   else:
-    stopProxy(app.config)
     removeProxyDb(app.config)
-    startProxy(app.config)
+    svcStopAll(app.config) #Stop All instance process
     removeInstanceRoot(app.config)
     param_path = os.path.join(app.config['etc_dir'], ".parameter.xml")
     if os.path.exists(param_path):
@@ -287,11 +312,11 @@ def createFile():
                    request.form['type'] + ": Permission Denied")
   try:
     if request.form['type'] == "file":
-      f = open(path, 'w').write(" ")
+      open(path, 'w')
     else:
       os.mkdir(path)
     return jsonify(code=1, result="")
-  except Exception, e:
+  except Exception as e:
     return jsonify(code=0, result=str(e))
 
 #remove file or directory
@@ -303,7 +328,7 @@ def removeFile():
     else:
       os.remove(request.form['path'])
     return jsonify(code=1, result="")
-  except Exception, e:
+  except Exception as e:
     return jsonify(code=0, result=str(e))
 
 @login_required()
@@ -312,7 +337,7 @@ def removeSoftwareDir():
     data = removeSoftwareByName(app.config, request.form['md5'],
             request.form['title'])
     return jsonify(code=1, result=data)
-  except Exception, e:
+  except Exception as e:
     return jsonify(code=0, result=str(e))
 
 #read file and return content to ajax
@@ -320,6 +345,9 @@ def removeSoftwareDir():
 def getFileContent():
   file_path = realpath(app.config, request.form['file'])
   if file_path:
+    if not isText(file_path):
+      return jsonify(code=0,
+            result="Can not open a binary file, please select a text file!")
     if not request.form.has_key('truncate'):
       return jsonify(code=1, result=open(file_path, 'r').read())
     else:
@@ -386,7 +414,8 @@ def checkFileType():
   if isText(path):
     return jsonify(code=1, result="text")
   else:
-    return jsonify(code=0, result="Can not open a binary file, please select a text file!")
+    return jsonify(code=0,
+                   result="Can not open a binary file, please select a text file!")
 
 @login_required()
 def getmd5sum():
@@ -404,7 +433,7 @@ def getmd5sum():
 def slapgridResult():
   software_state = isSoftwareRunning(app.config)
   instance_state = isInstanceRunning(app.config)
-  log_result = {"content":"", "position":0}
+  log_result = {"content":"", "position":0, "truncated":False}
   if request.form['log'] == "software"  or\
      request.form['log'] == "instance":
     log_file = request.form['log'] + "_log"
@@ -416,7 +445,7 @@ def slapgridResult():
 
 @login_required()
 def stopSlapgrid():
-  result = killRunningSlapgrid(app.config, request.form['type'])
+  result = killRunningProcess(request.form['type'])
   return jsonify(result=result)
 
 @login_required()
@@ -430,9 +459,10 @@ def getPath():
       break
     else:
       list.append(path)
-  realfile = string.join(list, "#")
+  realfile = '#'.join(list)
   if not realfile:
-    return jsonify(code=0, result="Can not access to this file: Permission Denied!")
+    return jsonify(code=0,
+                   result="Can not access to this file: Permission Denied!")
   else:
     return jsonify(code=1, result=realfile)
 
@@ -451,7 +481,7 @@ def saveParameterXml():
     f.write(content)
     f.close()
     result = readParameters(param_path)
-  except Exception, e:
+  except Exception as e:
       result = str(e)
   software_type = None
   if request.form['software_type']:
@@ -461,8 +491,10 @@ def saveParameterXml():
   else:
     try:
       updateInstanceParameter(app.config, software_type)
-    except Exception, e:
-      return jsonify(code=0, result="An error occurred while applying your settings!<br/>" + str(e))
+    except Exception as e:
+      return jsonify(
+        code=0,
+        result="An error occurred while applying your settings!<br/>" + str(e))
     return jsonify(code=1, result="")
 
 #read instance parameters into the local xml file and return a dict
@@ -520,7 +552,8 @@ def configAccount():
       return jsonify(code=0, result=result)
     else:
       return jsonify(code=1, result="")
-  return jsonify(code=0, result="Unable to respond to your request, permission denied.")
+  return jsonify(code=0,
+                 result="Unable to respond to your request, permission denied.")
 
 #Global File Manager
 @login_required()
@@ -567,8 +600,7 @@ def fileBrowser():
       except:
         abort(404)
     elif opt == 9:
-      truncateTo = int(request.form.get('truncate', '0'))
-      result = file_request.readFile(dir, filename)
+      result = file_request.readFile(dir, filename, False)
     elif opt == 11:
       #Upload file
       result = file_request.uploadFile(dir, request.files)
@@ -583,7 +615,7 @@ def fileBrowser():
       result = file_request.unzipFile(dir, filename, newfilename)
     else:
       result = "ARGS PARSE ERROR: Bad option..."
-  except Exception, e:
+  except Exception as e:
     return str(e)
   return result
 
@@ -596,49 +628,78 @@ def editFile():
 
 #Setup List of URLs
 app.add_url_rule('/', 'home', home)
-app.add_url_rule('/editSoftwareProfile', 'editSoftwareProfile', editSoftwareProfile)
+app.add_url_rule('/browseWorkspace', 'browseWorkspace', browseWorkspace)
+app.add_url_rule('/editSoftwareProfile', 'editSoftwareProfile',
+                editSoftwareProfile)
 app.add_url_rule('/inspectSoftware', 'inspectSoftware', inspectSoftware)
 app.add_url_rule('/removeSoftware', 'removeSoftware', removeSoftware)
-app.add_url_rule('/runSoftwareProfile', 'runSoftwareProfile', runSoftwareProfile, methods=['POST'])
-app.add_url_rule('/viewSoftwareLog', 'viewSoftwareLog', viewSoftwareLog, methods=['GET'])
-app.add_url_rule('/editInstanceProfile', 'editInstanceProfile', editInstanceProfile)
-app.add_url_rule('/inspectInstance', 'inspectInstance', inspectInstance, methods=['GET'])
-app.add_url_rule('/supervisordStatus', 'supervisordStatus', supervisordStatus, methods=['GET'])
-app.add_url_rule('/runInstanceProfile', 'runInstanceProfile', runInstanceProfile, methods=['POST'])
+app.add_url_rule('/runSoftwareProfile', 'runSoftwareProfile',
+                 runSoftwareProfile, methods=['POST'])
+app.add_url_rule('/viewSoftwareLog', 'viewSoftwareLog',
+                 viewSoftwareLog, methods=['GET'])
+app.add_url_rule('/editInstanceProfile', 'editInstanceProfile',
+                 editInstanceProfile)
+app.add_url_rule('/inspectInstance', 'inspectInstance',
+                 inspectInstance, methods=['GET'])
+app.add_url_rule('/supervisordStatus', 'supervisordStatus',
+                 supervisordStatus, methods=['GET'])
+app.add_url_rule('/runInstanceProfile', 'runInstanceProfile',
+                 runInstanceProfile, methods=['POST'])
 app.add_url_rule('/removeInstance', 'removeInstance', removeInstance)
-app.add_url_rule('/viewInstanceLog', 'viewInstanceLog', viewInstanceLog, methods=['GET'])
-app.add_url_rule('/stopAllPartition', 'stopAllPartition', stopAllPartition, methods=['GET'])
-app.add_url_rule('/tailProcess/name/<process>', 'tailProcess', tailProcess, methods=['GET'])
-app.add_url_rule('/startStopProccess/name/<process>/cmd/<action>', 'startStopProccess', startStopProccess, methods=['GET'])
-app.add_url_rule("/getParameterXml/<request>", 'getParameterXml', getParameterXml, methods=['GET'])
+app.add_url_rule('/viewInstanceLog', 'viewInstanceLog',
+                 viewInstanceLog, methods=['GET'])
+app.add_url_rule('/stopAllPartition', 'stopAllPartition',
+                 stopAllPartition, methods=['GET'])
+app.add_url_rule('/tailProcess/name/<process>', 'tailProcess',
+                 tailProcess, methods=['GET'])
+app.add_url_rule('/startStopProccess/name/<process>/cmd/<action>',
+                 'startStopProccess', startStopProccess, methods=['GET'])
+app.add_url_rule("/getParameterXml/<request>", 'getParameterXml',
+                 getParameterXml, methods=['GET'])
 app.add_url_rule("/stopSlapgrid", 'stopSlapgrid', stopSlapgrid, methods=['POST'])
-app.add_url_rule("/slapgridResult", 'slapgridResult', slapgridResult, methods=['POST'])
+app.add_url_rule("/slapgridResult", 'slapgridResult',
+                 slapgridResult, methods=['POST'])
 app.add_url_rule("/getmd5sum", 'getmd5sum', getmd5sum, methods=['POST'])
-app.add_url_rule("/checkFileType", 'checkFileType', checkFileType, methods=['POST'])
-app.add_url_rule("/pullProjectFiles", 'pullProjectFiles', pullProjectFiles, methods=['POST'])
-app.add_url_rule("/pushProjectFiles", 'pushProjectFiles', pushProjectFiles, methods=['POST'])
-app.add_url_rule("/getProjectDiff/<project>", 'getProjectDiff', getProjectDiff, methods=['GET'])
+app.add_url_rule("/checkFileType", 'checkFileType', checkFileType,
+                 methods=['POST'])
+app.add_url_rule("/pullProjectFiles", 'pullProjectFiles', pullProjectFiles,
+                 methods=['POST'])
+app.add_url_rule("/pushProjectFiles", 'pushProjectFiles', pushProjectFiles,
+                 methods=['POST'])
+app.add_url_rule("/getProjectDiff/<project>", 'getProjectDiff', getProjectDiff,
+                 methods=['GET'])
 app.add_url_rule("/newBranch", 'newBranch', newBranch, methods=['POST'])
 app.add_url_rule("/changeBranch", 'changeBranch', changeBranch, methods=['POST'])
-app.add_url_rule("/saveFileContent", 'saveFileContent', saveFileContent, methods=['POST'])
-app.add_url_rule("/removeSoftwareDir", 'removeSoftwareDir', removeSoftwareDir, methods=['POST'])
-app.add_url_rule("/getFileContent", 'getFileContent', getFileContent, methods=['POST'])
+app.add_url_rule("/saveFileContent", 'saveFileContent', saveFileContent,
+                 methods=['POST'])
+app.add_url_rule("/removeSoftwareDir", 'removeSoftwareDir', removeSoftwareDir,
+                 methods=['POST'])
+app.add_url_rule("/getFileContent", 'getFileContent', getFileContent,
+                 methods=['POST'])
 app.add_url_rule("/removeFile", 'removeFile', removeFile, methods=['POST'])
 app.add_url_rule("/createFile", 'createFile', createFile, methods=['POST'])
 app.add_url_rule("/editCurrentProject", 'editCurrentProject', editCurrentProject)
-app.add_url_rule("/getProjectStatus", 'getProjectStatus', getProjectStatus, methods=['POST'])
-app.add_url_rule('/openProject/<method>', 'openProject', openProject, methods=['GET'])
+app.add_url_rule("/getProjectStatus", 'getProjectStatus', getProjectStatus,
+                 methods=['POST'])
+app.add_url_rule('/openProject/<method>', 'openProject', openProject,
+                 methods=['GET'])
 app.add_url_rule("/manageProject", 'manageProject', manageProject, methods=['GET'])
-app.add_url_rule("/setCurrentProject", 'setCurrentProject', setCurrentProject, methods=['POST'])
+app.add_url_rule("/setCurrentProject", 'setCurrentProject', setCurrentProject,
+                 methods=['POST'])
 app.add_url_rule("/checkFolder", 'checkFolder', checkFolder, methods=['POST'])
-app.add_url_rule('/createSoftware', 'createSoftware', createSoftware, methods=['POST'])
-app.add_url_rule('/cloneRepository', 'cloneRepository', cloneRepository, methods=['POST'])
+app.add_url_rule('/createSoftware', 'createSoftware', createSoftware,
+                 methods=['POST'])
+app.add_url_rule('/cloneRepository', 'cloneRepository', cloneRepository,
+                 methods=['POST'])
 app.add_url_rule('/openFolder', 'openFolder', openFolder, methods=['POST'])
 app.add_url_rule('/readFolder', 'readFolder', readFolder, methods=['POST'])
 app.add_url_rule('/configRepo', 'configRepo', configRepo)
-app.add_url_rule("/saveParameterXml", 'saveParameterXml', saveParameterXml, methods=['POST'])
+app.add_url_rule("/saveParameterXml", 'saveParameterXml', saveParameterXml,
+                 methods=['POST'])
 app.add_url_rule("/getPath", 'getPath', getPath, methods=['POST'])
 app.add_url_rule("/myAccount", 'myAccount', myAccount)
-app.add_url_rule("/updateAccount", 'updateAccount', updateAccount, methods=['POST'])
-app.add_url_rule("/fileBrowser", 'fileBrowser', fileBrowser, methods=['GET', 'POST'])
+app.add_url_rule("/updateAccount", 'updateAccount', updateAccount,
+                 methods=['POST'])
+app.add_url_rule("/fileBrowser", 'fileBrowser', fileBrowser,
+                 methods=['GET', 'POST'])
 app.add_url_rule("/editFile", 'editFile', editFile, methods=['GET'])

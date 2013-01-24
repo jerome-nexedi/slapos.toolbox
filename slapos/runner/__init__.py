@@ -1,11 +1,17 @@
-from optparse import OptionParser, Option
+# -*- coding: utf-8 -*-
+# vim: set et sts=2:
+# pylint: disable-msg=W0311,C0301,C0103,C0111,R0904,R0903
+
 import ConfigParser
+import datetime
 import logging
 import logging.handlers
+from optparse import OptionParser, Option
 import os
+import slapos.runner.process
 import sys
-import subprocess
-from datetime import timedelta
+from slapos.runner.utils import runInstanceWithLock
+
 
 class Parser(OptionParser):
   """
@@ -13,7 +19,7 @@ class Parser(OptionParser):
   """
   def __init__(self, usage=None, version=None):
     """
-    Initialize all options possibles.
+    Initialize all possible options.
     """
     OptionParser.__init__(self, usage=usage, version=version,
                           option_list=[
@@ -45,6 +51,13 @@ class Parser(OptionParser):
     return options, args[0]
 
 class Config:
+  def __init__(self):
+    self.configuration_file_path = None
+    self.console = None
+    self.log_file = None
+    self.logger = None
+    self.verbose = None
+
   def setConfig(self, option_dict, configuration_file_path):
     """
     Set options given by parameters.
@@ -100,9 +113,13 @@ def run():
     config = Config()
     config.setConfig(*Parser(usage=usage).check_args())
 
+    if os.getuid() == 0:
+        # avoid mistakes (mainly in development mode)
+        raise Exception('Do not run SlapRunner as root.')
+
     serve(config)
     return_code = 0
-  except SystemExit, err:
+  except SystemExit as err:
     # Catch exception raise by optparse
     return_code = err
 
@@ -121,11 +138,13 @@ def serve(config):
     instance_profile='instance.cfg',
     software_profile='software.cfg',
     SECRET_KEY=os.urandom(24),
-    PERMANENT_SESSION_LIFETIME=timedelta(days=31),
+    PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=31),
   )
   if not os.path.exists(workdir):
     os.mkdir(workdir)
   if not os.path.exists(software_link):
     os.mkdir(software_link)
+  slapos.runner.process.setHandler()
+  runInstanceWithLock(app.config)
   app.run(host=config.runner_host, port=int(config.runner_port),
       debug=config.debug, threaded=True)
