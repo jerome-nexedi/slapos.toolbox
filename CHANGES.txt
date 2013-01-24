@@ -1,6 +1,13 @@
-0.32.1 (unreleased)
-===================
- * agent: run tests in order [Marco Mariani]
+0.33 (2013-01-24)
+=================
+
+ * agent: run tests in order. [Marco Mariani]
+ * slaprunner: Add process killer killing all processes when instance is
+   stopped. [Cedric Le Ninivin]
+ * slaprunner: slapgrid-cp will be run at startup. [Cedric Le Ninivin]
+ * slaprunner: Improved design. [Alain Takoudjou]
+ * slaprunner: Don't set arbitrary limitations on the complexity of password.
+   [Cedric de Saint Martin]
 
 0.32 (2012-12-13)
 =================
