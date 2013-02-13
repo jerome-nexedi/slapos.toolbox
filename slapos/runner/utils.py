@@ -19,6 +19,8 @@ from flask import jsonify
 
 import slapos.slap
 
+# Global variable
+global_software_type = 'default'
 
 # Setup default flask (werkzeug) parser
 
@@ -105,8 +107,9 @@ def requestInstance(config, software_type=None):
   """
   Request the main instance of our environment
   """
-  if not software_type:
-    software_type = None
+  if software_type:
+    global global_software_type
+    global_software_type = software_type
 
   slap = slapos.slap.slap()
   profile = getCurrentSoftwareReleaseProfile(config)
@@ -122,7 +125,7 @@ def requestInstance(config, software_type=None):
       profile,
       partition_reference=getSoftwareReleaseName(config),
       partition_parameter_kw=partition_parameter_kw,
-      software_type=software_type,
+      software_type=global_software_type,
       filter_kw=None,
       state=None,
       shared=False)
