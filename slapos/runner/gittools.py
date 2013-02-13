@@ -40,8 +40,6 @@ def cloneRepo(data):
     code = 1
   except Exception as e:
     json = safeResult(str(e))
-    if os.path.exists(workDir):
-      shutil.rmtree(workDir)
   return jsonify(code=code, result=json)
 
 def gitStatus(project):
