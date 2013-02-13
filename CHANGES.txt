@@ -1,3 +1,10 @@
+0.33.1 (2013-02-12)
+===================
+
+ * runner: Add default values for git repository while cloning. [Cedric de Saint Martin]
+ * runner: Don't remove git repo if error occurred during clone. [Cedric de Saint Martin]
+ * runner: Fix bug where software_type of main instance is *impossible* to set reliably. [Cedric de Saint Martin]
+
 0.33 (2013-01-24)
 =================
 
