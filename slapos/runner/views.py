@@ -12,7 +12,7 @@ from flask import (Flask, request, redirect, url_for, render_template,
                    g, flash, jsonify, session, abort, send_file)
 
 from slapos.runner.process import killRunningProcess
-from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getFolder,
+from slapos.runner.utils import (configNewSR,
                                  getFolderContent, getProfilePath,
                                  getProjectList, getProjectTitle, getSession,
                                  getSlapStatus, getSvcStatus,
@@ -111,7 +111,7 @@ def doLogin():
 # software views
 @login_required()
 def editSoftwareProfile():
-  profile = getProfilePath(app.config['etc_dir'], app.config['software_profile'])
+  profile = getProfilePath(app.config['etc_dir'])
   if profile == "":
     flash('Error: can not open profile, please select your project first')
   return render_template('updateSoftwareProfile.html', workDir='workspace',
@@ -154,7 +154,8 @@ def viewSoftwareLog():
 # instance views
 @login_required()
 def editInstanceProfile():
-  profile = getProfilePath(app.config['etc_dir'], app.config['instance_profile'])
+  # XXX-Cedric: adapt to new SlapOS Behavior
+  profile = getProfilePath(app.config['etc_dir'])
   if profile == "":
     flash('Error: can not open instance profile for this Software Release')
   return render_template('updateInstanceProfile.html', workDir='workspace',
@@ -261,16 +262,8 @@ def readFolder():
   return getFolderContent(app.config, request.form['dir'])
 
 @login_required()
-def openFolder():
-  return getFolder(app.config, request.form['dir'])
-
-@login_required()
 def createSoftware():
   return newSoftware(request.form['folder'], app.config, session)
-
-@login_required()
-def checkFolder():
-  return checkSoftwareFolder(request.form['path'], app.config)
 
 @login_required()
 def setCurrentProject():
@@ -695,12 +688,10 @@ app.add_url_rule('/openProject/<method>', 'openProject', openProject,
 app.add_url_rule("/manageProject", 'manageProject', manageProject, methods=['GET'])
 app.add_url_rule("/setCurrentProject", 'setCurrentProject', setCurrentProject,
                  methods=['POST'])
-app.add_url_rule("/checkFolder", 'checkFolder', checkFolder, methods=['POST'])
 app.add_url_rule('/createSoftware', 'createSoftware', createSoftware,
                  methods=['POST'])
 app.add_url_rule('/cloneRepository', 'cloneRepository', cloneRepository,
                  methods=['POST'])
-app.add_url_rule('/openFolder', 'openFolder', openFolder, methods=['POST'])
 app.add_url_rule('/readFolder', 'readFolder', readFolder, methods=['POST'])
 app.add_url_rule('/configRepo', 'configRepo', configRepo)
 app.add_url_rule("/saveParameterXml", 'saveParameterXml', saveParameterXml,

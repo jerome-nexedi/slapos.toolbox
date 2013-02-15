@@ -93,10 +93,9 @@ def getCurrentSoftwareReleaseProfile(config):
   Returns used Software Release profile as a string.
   """
   try:
-    software_folder = open(
+    software_profile_path = open(
         os.path.join(config['etc_dir'], ".project")).read()
-    return realpath(
-        config, os.path.join(software_folder, config['software_profile']))
+    return realpath(config, software_profile_path)
   except:
     return False
 
@@ -315,7 +314,7 @@ def runInstanceWithLock(config):
     return True
   return False
 
-def getProfilePath(projectDir, profile):
+def getProfilePath(projectDir):
   """
   Return the path of the current Software Release `profile`
 
@@ -329,7 +328,7 @@ def getProfilePath(projectDir, profile):
   if not os.path.exists(os.path.join(projectDir, ".project")):
     return False
   projectFolder = open(os.path.join(projectDir, ".project")).read()
-  return os.path.join(projectFolder, profile)
+  return projectFolder
 
 def getSlapStatus(config):
   """Return all Slapos Partitions with associate informations"""
@@ -440,40 +439,6 @@ def getFolderContent(config, folder):
   r.append('</ul>')
   return jsonify(result=''.join(r))
 
-def getFolder(config, folder):
-  """
-  Read list of folder for the specified directory
-
-  Args:
-    config: Slaprunner configuration.
-    folder: the directory to read.
-
-  Returns:
-    Html formated string or error message when fail.
-  """
-  r = ['<ul class="jqueryFileTree" style="display: none;">']
-  try:
-    folder = str(folder)
-    r = ['<ul class="jqueryFileTree" style="display: none;">']
-    d = urllib.unquote(folder)
-    realdir = realpath(config, d)
-    if not realdir:
-      r.append('Could not load directory: Permission denied')
-      ldir = []
-    else:
-      ldir = sorted(os.listdir(realdir), key=str.lower)
-    for f in ldir:
-      if f.startswith('.'): #do not display this file/folder
-        continue
-      ff = os.path.join(d, f)
-      if os.path.isdir(os.path.join(realdir, f)):
-        r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff, f))
-    r.append('</ul>')
-  except Exception as e:
-    r.append('Could not load directory: %s' % str(e))
-  r.append('</ul>')
-  return jsonify(result=''.join(r))
-
 def getProjectList(folder):
   """Return the list of projet (folder) into the workspace
 
@@ -524,6 +489,9 @@ def newSoftware(folder, config, session):
     folder: directory of the new software release
     config: slraprunner configuration
     session: Flask session directory"""
+  # XXX-Cedric completely broken. refactor to "profile_path" and refactor to work with new behavior.
+  return jsonify(code=0, result="Not implemented.")
+
   json = ""
   code = 0
   basedir = config['etc_dir']
@@ -558,13 +526,6 @@ def newSoftware(folder, config, session):
     if os.path.exists(folderPath):
       shutil.rmtree(folderPath)
   return jsonify(code=code, result=json)
-
-def checkSoftwareFolder(path, config):
-  """Check id `path` is a valid Software Release folder"""
-  realdir = realpath(config, path)
-  if realdir and os.path.exists(os.path.join(realdir, config['software_profile'])):
-    return jsonify(result=path)
-  return jsonify(result="")
 
 def getProjectTitle(config):
   """Generate the name of the current software Release (for slaprunner UI)"""

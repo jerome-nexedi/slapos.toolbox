@@ -8,21 +8,19 @@ $(document).ready(function () {
     var method = $("input#method").val(),
         workdir = $("input#workdir").val();
 
-    function checkFolder(path) {
-        $.ajax({
-            type: "POST",
-            url: $SCRIPT_ROOT + '/checkFolder',
-            data: "path=" + path,
-            success: function (data) {
-                var path = data.result;
-                $("input#path").val(path);
-                if (path !== "") {
-                    $("#check").fadeIn('normal');
-                } else {
-                    $("#check").hide();
-                }
-            }
-        });
+    /*
+     * Check if path is a .cfg (buildout profile) file.
+     **/
+    function isBuildoutFile(path) {
+        var suffix = '.cfg',
+            isBuildoutFile = path.indexOf(suffix, path.length - suffix.length) !== -1;
+        $("#check").fadeIn('normal');
+        if (isBuildoutFile) {
+            $("input#path").val(path);
+        } else {
+            $("input#path").val('');
+            $("#check").hide();
+        }
         return "";
     }
 
@@ -31,7 +29,7 @@ $(document).ready(function () {
         $("input#subfolder").val(file);
         if (method === "open") {
             $("#info").append("Selection: " + file);
-            checkFolder(file);
+            isBuildoutFile(file);
         } else {
             if ($("input#software").val() !== "" && $("input#software").val().match(/^[\w\d._\-]+$/)) {
                 $("#info").append("New Software in: " + file + $("input#software").val());
@@ -43,7 +41,7 @@ $(document).ready(function () {
     }
 
     if (method !== "file") {
-        $('#fileTree').fileTree({root: workdir, script: $SCRIPT_ROOT + '/openFolder', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function (file) {
+        $('#fileTree').fileTree({root: workdir, script: $SCRIPT_ROOT + '/readFolder', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function (file) {
             selectFile(file);
         });
     }
