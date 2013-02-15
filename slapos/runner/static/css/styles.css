@@ -502,6 +502,7 @@ h2.hight:hover{
     width: 926px;
     padding: 2px;
     height: 450px;
+    resize: both;
     font-size: 13px;
     overflow-y: auto;
     white-space: pre-wrap;
