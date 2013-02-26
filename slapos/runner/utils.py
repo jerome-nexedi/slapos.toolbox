@@ -186,7 +186,8 @@ def startProxy(config):
     log = os.path.join(config['log_dir'], 'slapproxy.log')
     Popen([config['slapproxy'], '--log_file', log,
            config['configuration_file_path']],
-          name='slapproxy')
+          name='slapproxy',
+          stdout=None)
     time.sleep(4)
 
 
