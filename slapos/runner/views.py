@@ -497,6 +497,13 @@ def saveParameterXml():
         result="An error occurred while applying your settings!<br/>" + str(e))
     return jsonify(code=1, result="")
 
+@login_required()
+def getSoftwareType():
+  software_type_path = os.path.join(app.config['etc_dir'], ".software_type.xml")
+  if os.path.exists(software_type_path):
+    return jsonify(code=1, result=open(software_type_path, 'r').read())
+  return jsonify(code=1, result="default")
+
 #read instance parameters into the local xml file and return a dict
 @login_required()
 def getParameterXml(request):
@@ -656,6 +663,8 @@ app.add_url_rule('/startStopProccess/name/<process>/cmd/<action>',
                  'startStopProccess', startStopProccess, methods=['GET'])
 app.add_url_rule("/getParameterXml/<request>", 'getParameterXml',
                  getParameterXml, methods=['GET'])
+app.add_url_rule('/getSoftwareType', 'getSoftwareType',
+                 getSoftwareType, methods=['GET'])
 app.add_url_rule("/stopSlapgrid", 'stopSlapgrid', stopSlapgrid, methods=['POST'])
 app.add_url_rule("/slapgridResult", 'slapgridResult',
                  slapgridResult, methods=['POST'])
