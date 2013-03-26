@@ -23,7 +23,7 @@ var currentLogSize = 0; //Define the size of log actually displayed
 var isRunning = function () {
     "use strict";
     if (running) {
-        $("#error").Popup("Slapgrid is currently under execution!",
+        $("#error").Popup("Slapgrid is currently running!",
                           {type: 'alert', duration: 3000});
     }
     return running;
