@@ -22,7 +22,7 @@ import sys
 import argparse
 
 def run():
-  """Start the instance runner. this may run a python script, move or/and rename 
+  """Start the instance runner. this may run a python script, move or/and rename
   file or directory when dondition is filled. the condition may be when file exist or when an entry
   exist into database.
   """
@@ -50,7 +50,7 @@ def run():
   subparsers = parser.add_subparsers(help='commands')
   # A delete command
   delete_parser = subparsers.add_parser('delete', help='Remove file or directory')
-  delete_parser.add_argument('delete_target', action='store', help='The list of file or directory to remove', 
+  delete_parser.add_argument('delete_target', action='store', help='The list of file or directory to remove',
                              nargs='+')
   # A rename command
   rename_parser = subparsers.add_parser('rename', help='Rename SOURCE to DESTINATION')
@@ -62,6 +62,12 @@ def run():
   script_parser = subparsers.add_parser('run', help='Run python script')
   script_parser.add_argument('script', action='store', help='The path of python script to execute')
   script_parser.add_argument('-v', action='store', help='Other argument to pass to the script', nargs='+', dest='args')
+
+  # A SQL script command
+  sql_parser = subparsers.add_parser('sql', help='Run SQL script')
+  sql_parser.add_argument('sql_script', action='store', help='The path of python script to execute')
+  sql_parser.add_argument('-v', action='store', help='Other argument to pass to the script', nargs='+', dest='args')
+
   #A chmod command
   chmod_parser = subparsers.add_parser('chmod', help='Set the mode of file or directory')
   chmod_parser.add_argument('mode', action='store', help='the mode to apply to TARGET')
@@ -73,7 +79,7 @@ def run():
     print "lampconfigure: Error: Please specify where condition will be taken, use -d or -f option"
     return
   setup(arguments)
-  
+
 def setup(arguments):
   timeout = 5;
   while True:
@@ -84,13 +90,16 @@ def setup(arguments):
     time.sleep(timeout)
     if arguments.has_key('delete_target'):
       delete(arguments)
-      
+
     if arguments.has_key('source'):
       rename(arguments)
-      
+
     if arguments.has_key('script'):
       run_script(arguments)
-    
+
+    if arguments.has_key('sql_script'):
+      run_sql_script(arguments)
+
     if arguments.has_key('chmod_target'):
       chmod(arguments)
     return
@@ -119,19 +128,19 @@ def checkAction(arguments):
     row = cursor.fetchone ()
     if row == None:
       conn.close()
-      return False
+      return True
     else:
       arguments['table'] = row[0]
     cursor.execute ("SELECT * FROM " + arguments['table'] + " WHERE " + arguments['condition'])
     row = cursor.fetchone ()
     conn.close()
     if row == None:
-      return False
-    else:
       return True
+    else:
+      return False
   else:
-    return os.path.exists(os.path.join(arguments['target_directory'], arguments['file_token']))
-  
+    return not os.path.exists(os.path.join(arguments['target_directory'], arguments['file_token']))
+
 def rename(arguments):
   source = os.path.join(arguments['target_directory'], arguments['source'])
   destination = os.path.join(arguments['target_directory'], arguments['destination'])
@@ -141,7 +150,7 @@ def rename(arguments):
   os.rename(source, destination)
   if arguments['mode'] != None:
     os.chmod(destination, int(arguments['mode'], 8))
-      
+
 def delete(arguments):
   for path in arguments['delete_target']:
     path = os.path.join(arguments['target_directory'], path)
@@ -155,6 +164,7 @@ def delete(arguments):
 
 def run_script(arguments):
   script = os.path.join(arguments['target_directory'], arguments['script'])
+  print 'Running script: %s' % script
   if os.path.exists(script):
     import subprocess
     #run python script with predefined data
@@ -167,7 +177,29 @@ def run_script(arguments):
     result.wait()
   else:
     print "Error: can not read file '%s'" % script
-  
+
+
+def run_sql_script(arguments):
+  script = os.path.join(arguments['target_directory'], arguments['sql_script'])
+  print 'Running SQL script: %s' % script
+  if os.path.exists(script):
+    conn = MySQLdb.connect(host=arguments['mysql_host'],
+                           port=int(arguments['mysql_port']),
+                           user=arguments['mysql_user'],
+                           passwd=arguments['mysql_password'],
+                           # XXX ugly, to simplify
+                           db=arguments['args'][0])
+    cursor = conn.cursor ()
+    with open(script, 'r') as f:
+      sql_script = f.read()
+      cursor.execute(sql_script)
+      conn.close()
+
+  else:
+    print "Error: can not read file '%s'" % script
+
+
+
 def chmod(arguments):
   for path in arguments['chmod_target']:
     path = os.path.join(arguments['target_directory'], path)
