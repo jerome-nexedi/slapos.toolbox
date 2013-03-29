@@ -124,6 +124,18 @@ $(document).ready(function () {
         }
     }
 
+    function loadSoftwareType() {
+        $.ajax({
+            type: 'GET',
+            url: $SCRIPT_ROOT + '/getSoftwareType',
+            success: function updateSoftwareType(data) {
+                if (data.code === 1 && data.result) {
+                    $("#software_type").val(data.result);
+                }
+            }
+        });
+    }
+
     function loadParameter() {
         $.ajax({
             type: 'GET',
@@ -267,6 +279,7 @@ $(document).ready(function () {
     });
     //Load previous instance parameters
     loadParameter();
+    loadSoftwareType();
     $('a#parameterTab').click(function () {
         var i,
             size = $('#partitionParameter > tbody > tr').length;

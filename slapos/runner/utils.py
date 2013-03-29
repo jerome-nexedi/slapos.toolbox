@@ -19,9 +19,6 @@ from flask import jsonify
 
 import slapos.slap
 
-# Global variable
-global_software_type = 'default'
-
 # Setup default flask (werkzeug) parser
 
 logger = logging.getLogger('werkzeug')
@@ -107,9 +104,14 @@ def requestInstance(config, software_type=None):
   """
   Request the main instance of our environment
   """
+  software_type_path = os.path.join(config['etc_dir'], ".software_type.xml")
   if software_type:
-    global global_software_type
-    global_software_type = software_type
+    # Write it to conf file for later use
+    open(software_type_path, 'w').write(software_type)
+  elif os.path.exists(software_type_path):
+    software_type = open(software_type_path, 'r').read()
+  else:
+    software_type = 'default'
 
   slap = slapos.slap.slap()
   profile = getCurrentSoftwareReleaseProfile(config)
@@ -125,7 +127,7 @@ def requestInstance(config, software_type=None):
       profile,
       partition_reference=getSoftwareReleaseName(config),
       partition_parameter_kw=partition_parameter_kw,
-      software_type=global_software_type,
+      software_type=software_type,
       filter_kw=None,
       state=None,
       shared=False)
@@ -186,7 +188,8 @@ def startProxy(config):
     log = os.path.join(config['log_dir'], 'slapproxy.log')
     Popen([config['slapproxy'], '--log_file', log,
            config['configuration_file_path']],
-          name='slapproxy')
+          name='slapproxy',
+          stdout=None)
     time.sleep(4)
 
 
