@@ -1,3 +1,11 @@
+0.34.0 (2013-03-28)
+===================
+
+ * runner: Log textarea is resizable. [Cedric de Saint Martin]
+ * runner: Fix bug where slaproxy hangs: Redirect slapproxy output to stdout. [Cedric de Saint Martin]
+ * lampconfigure: Add support for running SQL scripts in lampconfigure. [Cedric de Saint Martin]
+ * runner: software_type now survives to slaprunner reboot. [Cedric de Saint Martin]
+
 0.33.1 (2013-02-12)
 ===================
 
