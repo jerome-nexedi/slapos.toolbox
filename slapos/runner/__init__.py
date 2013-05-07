@@ -145,6 +145,8 @@ def serve(config):
   if not os.path.exists(software_link):
     os.mkdir(software_link)
   slapos.runner.process.setHandler()
+  self.logger.info('Running slapgrid...')
   runInstanceWithLock(app.config)
+  self.logger.info('Done.')
   app.run(host=config.runner_host, port=int(config.runner_port),
       debug=config.debug, threaded=True)
