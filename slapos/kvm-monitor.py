@@ -76,11 +76,15 @@ def parseCli():
   """
   Parser definition for the command line interface
   """
-  usage = """ %(prog)s <filepath> -s [sections] -opts [options] """
-  parser = ArgumentParser(prog="test_conso", usage=usage)
+  usage = """ %(prog)s <filepath> <xml-path> -s [sections] -opts [options] """
+  parser = ArgumentParser(prog="kvm-monitor.py", usage=usage)
 
   parser.add_argument("filepath",
                       help="Path to the configuration file with the informations"
+  )
+  
+  parser.add_argument("xml_path",
+                      help="Path to the xml output file"
   )
 
   parser.add_argument("-s","--sections", nargs='+', required=True,
@@ -104,6 +108,7 @@ def runMonitor():
   args = parser.parse_args()
 
   info_dict = MonitorConfig(args.filepath,
+            args.xml_path,
             args.sections,
             args.options,
   ).getConfig()
