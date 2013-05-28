@@ -79,10 +79,6 @@ def parseCli():
   usage = """ %(prog)s <filepath> <xml-path> -s [sections] -opts [options] """
   parser = ArgumentParser(prog="kvm_monitor.py", usage=usage)
 
-  parser.add_argument("script_name",
-                      help="Script name passed as argument because sys.exit wrapper"
-  )
-
   parser.add_argument("filepath",
                       help="Path to the configuration file with the informations"
   )
@@ -112,10 +108,9 @@ def runMonitor():
   args = parser.parse_args()
 
   info_dict = MonitorConfig(args.filepath,
-            args.xml_path,
             args.sections,
             args.options
   ).getConfig()
 
-  serializer = GenerateXMLFile("report.xml",info_dict)
+  serializer = GenerateXMLFile(args.xml_path,info_dict)
   serializer.outputFile()
