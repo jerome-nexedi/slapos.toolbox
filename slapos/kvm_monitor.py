@@ -79,6 +79,10 @@ def parseCli():
   usage = """ %(prog)s <filepath> <xml-path> -s [sections] -opts [options] """
   parser = ArgumentParser(prog="kvm_monitor.py", usage=usage)
 
+  parser.add_argument("script_name",
+                      help="Script name passed as argument because sys.exit wrapper"
+  )
+
   parser.add_argument("filepath",
                       help="Path to the configuration file with the informations"
   )
