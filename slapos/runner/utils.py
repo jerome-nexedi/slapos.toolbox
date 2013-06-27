@@ -84,7 +84,8 @@ def saveSession(config, account):
     # Htpasswd file for cloud9
     # XXX Cedric Le N order of account list values suppose to be fixed
     # Remove former file to avoid aoutdated accounts
-    os.remove(htpasswdfile)
+    if os.path.exists(htpasswdfile):
+      os.remove(htpasswdfile)
     passwd = HtpasswdFile(htpasswdfile, create=True)
     passwd.update(account[0], account[1])
     passwd.save()
