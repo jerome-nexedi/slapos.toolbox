@@ -8,6 +8,7 @@ import logging
 import multiprocessing
 import re
 from slapos.runner.process import Popen, isRunning, killRunningProcess
+from slapos.htpasswd import HtpasswdFile
 import shutil
 import os
 import time
@@ -64,7 +65,9 @@ def saveSession(config, account):
   Returns:
     True if all goes well or str (error message) if fail
   """
+  # XXX Cedric LN hardcoded path for files
   user = os.path.join(config['etc_dir'], '.users')
+  htpasswdfile = os.path.join(config['etc_dir'], '.htpasswd')
   backup = False
   try:
     if os.path.exists(user):
@@ -78,6 +81,13 @@ def saveSession(config, account):
         account[1] = data.split(';')[1]
     #save new account data
     open(user, 'w').write((';'.join(account)).encode("utf-8"))
+    # Htpasswd file for cloud9
+    # XXX Cedric Le N order of account list values suppose to be fixed
+    # Remove former file to avoid aoutdated accounts
+    os.remove(htpasswdfile)
+    passwd = HtpasswdFile(htpasswdfile, create=options.create)
+    passwd.update(account[0], account[1])
+    passwd.save()
     return True
   except Exception as e:
     try:
