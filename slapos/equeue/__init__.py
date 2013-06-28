@@ -27,6 +27,7 @@
 ##############################################################################
 
 import argparse
+import errno
 import gdbm
 import json
 import logging
@@ -143,10 +144,16 @@ def main():
   signal.signal(signal.SIGHUP, lambda *args: sys.exit(-1))
   signal.signal(signal.SIGTERM, lambda *args: sys.exit())
 
-  server = EqueueServer(socketpath, **{'equeue_options':args})
-  server.logger.info("Starting server on %r", socketpath)
-  server.serve_forever()
-
+  try:
+    server = EqueueServer(socketpath, **{'equeue_options':args})
+    server.logger.info("Starting server on %r", socketpath)
+    server.serve_forever()
+  finally:
+    try:
+      os.remove(socketpath)
+    except OSError, e:
+      if e.errno != errno.ENOENT:
+        raise
 
 if __name__ == '__main__':
   main()
