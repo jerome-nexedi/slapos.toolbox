@@ -119,6 +119,14 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
       else:
         self.logger.info("%s already runned.", command)
 
+# Well the following function is made for schrodinger's files,
+# It will work if the file exists or not
+def remove_existing_file(path):
+  try:
+    os.remove(path)
+  except OSError, e:
+    if e.errno != errno.ENOENT:
+      raise
 
 def main():
   parser = argparse.ArgumentParser(
@@ -144,16 +152,13 @@ def main():
   signal.signal(signal.SIGHUP, lambda *args: sys.exit(-1))
   signal.signal(signal.SIGTERM, lambda *args: sys.exit())
 
+  remove_existing_file(socketpath)
   try:
     server = EqueueServer(socketpath, **{'equeue_options':args})
     server.logger.info("Starting server on %r", socketpath)
     server.serve_forever()
   finally:
-    try:
-      os.remove(socketpath)
-    except OSError, e:
-      if e.errno != errno.ENOENT:
-        raise
+    remove_existing_file(socketpath)
 
 if __name__ == '__main__':
   main()
