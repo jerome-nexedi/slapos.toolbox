@@ -159,6 +159,7 @@ def main():
     server.serve_forever()
   finally:
     remove_existing_file(socketpath)
+    os.kill(0, 9)
 
 if __name__ == '__main__':
   main()
