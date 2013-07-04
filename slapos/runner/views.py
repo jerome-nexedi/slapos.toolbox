@@ -428,7 +428,7 @@ def getmd5sum():
   else:
     return jsonify(code=0, result="Can not get md5sum for this file!")
 
-#return informations about state of slapgrid process
+#return information about state of slapgrid process
 @login_required()
 def slapgridResult():
   software_state = isSoftwareRunning(app.config)

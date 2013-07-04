@@ -41,7 +41,7 @@ def getSession(config):
   """
   Get the session data of current user.
   Returns:
-    a list of user informations or False if fail to read data.
+    a list of user information or False if fail to read data.
   """
   user_path = os.path.join(config['etc_dir'], '.users')
   user = ""
@@ -343,7 +343,7 @@ def getProfilePath(projectDir, profile):
   return os.path.join(projectFolder, profile)
 
 def getSlapStatus(config):
-  """Return all Slapos Partitions with associate informations"""
+  """Return all Slapos Partitions with associate information"""
   slap = slapos.slap.slap()
   slap.initializeConnection(config['master_url'])
   partition_list = []
@@ -379,7 +379,7 @@ def removeInstanceRoot(config):
     shutil.rmtree(config['instance_root'])
 
 def getSvcStatus(config):
-  """Return all Softwares Instances process Informations"""
+  """Return all Softwares Instances process Information"""
   result = Popen([config['supervisor'], config['configuration_file_path'],
                   'status']).communicate()[0]
   regex = "(^unix:.+\.socket)|(^error:)|(^watchdog).*$"

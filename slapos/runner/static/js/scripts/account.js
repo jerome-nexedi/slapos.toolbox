@@ -21,7 +21,7 @@ $(document).ready(function () {
             return false;
         }
         if (!$("input#email").val().match(/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)) {
-            $("#error").Popup("Please enter a valid email adress!", {type: 'alert', duration: 3000});
+            $("#error").Popup("Please enter a valid email address!", {type: 'alert', duration: 3000});
             return false;
         }
         if (!hasAccount && !$("input#password").val()) {

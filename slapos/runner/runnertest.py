@@ -214,7 +214,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     """Test Login user before create session. This should return error value"""
     response = self.login(self.users[0], self.users[1])
     #redirect to config account page
-    assert "<h2 class='title'>Your personal informations</h2><br/>" in response.data
+    assert "<h2 class='title'>Your personal information</h2><br/>" in response.data
 
   def test_configAccount(self):
     """For the first lauch of slaprunner user need do create first account"""

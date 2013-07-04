@@ -64,9 +64,9 @@ $(document).ready(function () {
         if ($("input#user").val() !== "") {
             name = $("input#user").val();
         }
-        if ($("input#email").val() !== '' && $("input#email").val() !== "Enter your email adress...") {
+        if ($("input#email").val() !== '' && $("input#email").val() !== "Enter your email address...") {
             if (!$("input#email").val().match(/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)) {
-                $("#error").Popup("Please enter a valid email adress!", {type: 'alert', duration: 3000});
+                $("#error").Popup("Please enter a valid email address!", {type: 'alert', duration: 3000});
                 return false;
             }
             email = $("input#email").val();
