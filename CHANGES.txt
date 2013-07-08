@@ -1,3 +1,10 @@
+0.35.0 (2013-07-08)
+===================
+
+ * Resiliency: equeue is rewriten extending SocketServer.ThreadingUnixStreamServer (Thanks to Julien M.). So far outputs of commands invoked by equeue are redirected to /dev/null to avoid locking the whole process. [Cedric Le Ninivin]
+ * Add htpasswd script. This script is meant to produce htpasswd file without installing apache. [Cedric Le Ninivin]
+ * slaprunner: Grammar improvements.
+
 0.34.0 (2013-03-28)
 ===================
 
