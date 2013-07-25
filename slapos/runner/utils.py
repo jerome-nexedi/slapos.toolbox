@@ -734,7 +734,7 @@ def readParameters(path):
     path: path of the xml file that contains parameters
 
   Return:
-    a dictionnary of instance parameters."""
+    a dictionary of instance parameters."""
   if os.path.exists(path):
     try:
       xmldoc = minidom.parse(path)
