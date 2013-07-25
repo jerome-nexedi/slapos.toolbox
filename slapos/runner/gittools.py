@@ -14,7 +14,7 @@ from flask import jsonify
 def cloneRepo(data):
   """Clonne a repository
   Args:
-    data: a dictionnary of parameters to use:
+    data: a dictionary of parameters to use:
       data['path'] is the path of the new project
       data['repo'] is the url of the repository to be cloned
       data['email'] is the user email
