@@ -127,6 +127,7 @@ def run():
 
 def serve(config):
   from views import app
+  from werkzeug.contrib.fixers import ProxyFix
   workdir = os.path.join(config.runner_workdir, 'project')
   software_link = os.path.join(config.runner_workdir, 'softwareLink')
   app.config.update(**config.__dict__)
@@ -148,5 +149,6 @@ def serve(config):
   config.logger.info('Running slapgrid...')
   runInstanceWithLock(app.config)
   config.logger.info('Done.')
+  app.wsgi_app = ProxyFix(app.wsgi_app)
   app.run(host=config.runner_host, port=int(config.runner_port),
       debug=config.debug, threaded=True)
