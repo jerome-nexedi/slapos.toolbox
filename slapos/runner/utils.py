@@ -182,6 +182,7 @@ def updateProxy(config):
   computer.updateConfiguration(xml_marshaller.xml_marshaller.dumps(slap_config))
   return True
 
+
 def updateInstanceParameter(config, software_type=None):
   """
   Reconfigure Slapproxy to re-deploy current Software Instance with parameters.
@@ -193,15 +194,18 @@ def updateInstanceParameter(config, software_type=None):
   if not (updateProxy(config) and requestInstance(config, software_type)):
     return False
 
+
 def startProxy(config):
   """Start Slapproxy server"""
-  if not isRunning('slapproxy'):
-    log = os.path.join(config['log_dir'], 'slapproxy.log')
-    Popen([config['slapproxy'], '--log_file', log,
-           config['configuration_file_path']],
-          name='slapproxy',
-          stdout=None)
-    time.sleep(4)
+  if isRunning('slapproxy'):
+    return
+
+  log = os.path.join(config['log_dir'], 'slapproxy.log')
+  Popen([config['slapproxy'], '--log_file', log,
+         config['configuration_file_path']],
+        name='slapproxy',
+        stdout=None)
+  time.sleep(4)
 
 
 def stopProxy(config):
@@ -219,6 +223,7 @@ def isSoftwareRunning(config=None):
   """
     Return True if slapgrid-sr is still running and false if slapgrid if not
   """
+  # XXX-Marco what is 'config' for?
   return isRunning('slapgrid-sr')
 
 
@@ -227,29 +232,32 @@ def runSoftwareWithLock(config):
     Use Slapgrid to compile current Software Release and wait until
     compilation is done
   """
+  if isSoftwareRunning():
+    return False
+
   slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-sr.pid')
-  if not isSoftwareRunning():
-    if not os.path.exists(config['software_root']):
-      os.mkdir(config['software_root'])
-    stopProxy(config)
-    removeProxyDb(config)
-    startProxy(config)
-    logfile = open(config['software_log'], 'w')
-    if not updateProxy(config):
-      return False
-    # Accelerate compilation by setting make -jX
-    environment = os.environ.copy()
-    environment['MAKEFLAGS'] = '-j%r' % multiprocessing.cpu_count()
-    slapgrid = Popen([config['slapgrid_sr'], '-vc',
-                      '--pidfile', slapgrid_pid,
-                      config['configuration_file_path'], '--now', '--develop'],
-                     stdout=logfile, env=environment,
-                     name='slapgrid-sr')
-    slapgrid.wait()
-    #Saves the current compile software for re-use
-    config_SR_folder(config)
-    return True
-  return False
+  if not os.path.exists(config['software_root']):
+    os.mkdir(config['software_root'])
+  stopProxy(config)
+  removeProxyDb(config)
+  startProxy(config)
+  logfile = open(config['software_log'], 'w')
+  if not updateProxy(config):
+    return False
+  # Accelerate compilation by setting make -jX
+  # XXX-Marco can have issues with implicit dependencies or recursive makefiles. should be configurable.
+  environment = os.environ.copy()
+  environment['MAKEFLAGS'] = '-j%r' % multiprocessing.cpu_count()
+  slapgrid = Popen([config['slapgrid_sr'], '-vc',
+                    '--pidfile', slapgrid_pid,
+                    config['configuration_file_path'], '--now', '--develop'],
+                   stdout=logfile, env=environment,
+                   name='slapgrid-sr')
+  slapgrid.wait()
+  #Saves the current compile software for re-use
+  config_SR_folder(config)
+  return True
+
 
 def config_SR_folder(config):
   """Create a symbolik link for each folder in software folder. That allow
@@ -302,8 +310,9 @@ def loadSoftwareRList(config):
 
 def isInstanceRunning(config=None):
   """
-    Return True if slapgrid-cp is still running and false if slapgrid if not
+    Return True if slapgrid-cp is still running and False otherwise
   """
+  # XXX-Marco what is 'config' for?
   return isRunning('slapgrid-cp')
 
 
@@ -312,19 +321,21 @@ def runInstanceWithLock(config):
     Use Slapgrid to deploy current Software Release and wait until
     deployment is done.
   """
+  if isInstanceRunning():
+    return False
+
   slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-cp.pid')
-  if not isInstanceRunning():
-    startProxy(config)
-    logfile = open(config['instance_log'], 'w')
-    if not (updateProxy(config) and requestInstance(config)):
-      return False
-    slapgrid = Popen([config['slapgrid_cp'], '-vc',
-                      '--pidfile', slapgrid_pid,
-                      config['configuration_file_path'], '--now'],
-                     stdout=logfile, name='slapgrid-cp')
-    slapgrid.wait()
-    return True
-  return False
+  startProxy(config)
+  logfile = open(config['instance_log'], 'w')
+  if not (updateProxy(config) and requestInstance(config)):
+    return False
+  slapgrid = Popen([config['slapgrid_cp'], '-vc',
+                    '--pidfile', slapgrid_pid,
+                    config['configuration_file_path'], '--now'],
+                   stdout=logfile, name='slapgrid-cp')
+  slapgrid.wait()
+  return True
+
 
 def getProfilePath(projectDir, profile):
   """
@@ -431,11 +442,12 @@ def getFolderContent(config, folder):
     r = ['<ul class="jqueryFileTree" style="display: none;">']
     d = urllib.unquote(folder)
     realdir = realpath(config, d)
-    if not realdir:
+    if realdir:
+      ldir = sorted(os.listdir(realdir), key=str.lower)
+    else:
       r.append('Could not load directory: Permission denied')
       ldir = []
-    else:
-      ldir = sorted(os.listdir(realdir), key=str.lower)
+
     for f in ldir:
       if f.startswith('.'): #do not displays this file/folder
         continue

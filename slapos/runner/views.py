@@ -47,17 +47,20 @@ def login_redirect(*args, **kwargs):
 #Access Control: Only static files and login pages are allowed to guest
 @app.before_request
 def before_request():
-  if not request.path.startswith('/static'):
-    account = getSession(app.config)
-    if account:
-      user = AuthUser(username=account[0])
-      user.set_and_encrypt_password(account[1], "123400ZYX")
-      session['title'] = getProjectTitle(app.config)
-      g.users = {account[0]: user}
-    else:
-      session['title'] = "No account is defined"
-      if request.path != "/setAccount" and request.path != "/configAccount":
-        return redirect(url_for('setAccount'))
+  if request.path.startswith('/static'):
+    return
+
+  account = getSession(app.config)
+  if account:
+    user = AuthUser(username=account[0])
+    user.set_and_encrypt_password(account[1], "123400ZYX")
+    session['title'] = getProjectTitle(app.config)
+    g.users = {account[0]: user}
+  else:
+    session['title'] = "No account is defined"
+    if request.path != "/setAccount" and request.path != "/configAccount":
+      return redirect(url_for('setAccount'))
+
 
 # general views
 @login_required()
@@ -179,7 +182,7 @@ def inspectInstance():
 @login_required()
 def supervisordStatus():
   result = getSvcStatus(app.config)
-  if not (result):
+  if not result:
     return jsonify(code=0, result="")
   html = "<tr><th>Partition and Process name</th><th>Status</th><th>Process PID </th><th> UpTime</th><th></th></tr>"
   for item in result:
@@ -521,16 +524,44 @@ def getParameterXml(request):
   else:
     return jsonify(code=1, result=parameters)
 
+
 #update user account data
 @login_required()
 def updateAccount():
+  code = request.form['rcode'].strip()
+  recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"), "r").read()
+  if code != recovery_code:
+    return jsonify(code=0, result="Your password recovery code is not valid!")
+
+  account = [
+    request.form['username'].strip(),
+    request.form['password'].strip(),
+    request.form['email'].strip(),
+    request.form['name'].strip()
+  ]
+  result = saveSession(app.config, account)
+  if type(result) == type(""):
+    return jsonify(code=0, result=result)
+  else:
+    return jsonify(code=1, result="")
+
+
+#update user account data
+@app.route("/configAccount", methods=['POST'])
+def configAccount():
+  last_account = getSession(app.config)
+  if last_account:
+    return jsonify(code=0,
+                   result="Unable to respond to your request, permission denied.")
+
   account = []
   account.append(request.form['username'].strip())
   account.append(request.form['password'].strip())
   account.append(request.form['email'].strip())
   account.append(request.form['name'].strip())
   code = request.form['rcode'].strip()
-  recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"), "r").read()
+  recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"),
+                      "r").read()
   if code != recovery_code:
     return jsonify(code=0, result="Your password recovery code is not valid!")
   result = saveSession(app.config, account)
@@ -539,28 +570,6 @@ def updateAccount():
   else:
     return jsonify(code=1, result="")
 
-#update user account data
-@app.route("/configAccount", methods=['POST'])
-def configAccount():
-  last_account = getSession(app.config)
-  if not last_account:
-    account = []
-    account.append(request.form['username'].strip())
-    account.append(request.form['password'].strip())
-    account.append(request.form['email'].strip())
-    account.append(request.form['name'].strip())
-    code = request.form['rcode'].strip()
-    recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"),
-                        "r").read()
-    if code != recovery_code:
-      return jsonify(code=0, result="Your password recovery code is not valid!")
-    result = saveSession(app.config, account)
-    if type(result) == type(""):
-      return jsonify(code=0, result=result)
-    else:
-      return jsonify(code=1, result="")
-  return jsonify(code=0,
-                 result="Unable to respond to your request, permission denied.")
 
 #Global File Manager
 @login_required()
@@ -576,6 +585,7 @@ def fileBrowser():
       opt = int(request.form['opt'])
   else:
     opt = int(request.args.get('opt'))
+
   try:
     if opt == 1:
       #list files and directories
