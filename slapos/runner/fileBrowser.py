@@ -31,19 +31,19 @@ class FileBrowser(object):
     html = 'var gsdirs = [], gsfiles = [];'
 
     dir = urllib.unquote(dir)
-    # 'dir' is used below. XXX should not shadow a builtin name
+    # XXX-Marco 'dir' and 'all' should not shadow builtin names
     realdir = realpath(self.config, dir)
     if not realdir:
       raise NameError('Could not load directory %s: Permission denied' % dir)
 
     ldir = sorted(os.listdir(realdir), key=str.lower)
     for f in ldir:
-      if f.startswith('.') and not all: #do not display this file/folder
+      if f.startswith('.') and not all:  # do not display this file/folder
         continue
       ff = os.path.join(dir, f)
       realfile = os.path.join(realdir, f)
       mdate = datetime.datetime.fromtimestamp(os.path.getmtime(realfile)
-                    ).strftime("%Y-%d-%m %I:%M")
+                                              ).strftime("%Y-%d-%m %I:%M")
       md5sum = md5.md5(realfile).hexdigest()
       if not os.path.isdir(realfile):
         size = os.path.getsize(realfile)
@@ -61,7 +61,6 @@ class FileBrowser(object):
                   ff + '", "0", "' + md5sum + '", "dir", "' + mdate + '"));'
     return html
 
-
   def makeDirectory(self, dir, filename):
     """Create a directory"""
     realdir = self._realdir(dir)
@@ -71,7 +70,6 @@ class FileBrowser(object):
       return '{result: \'1\'}'
     else:
       return '{result: \'0\'}'
-
 
   def makeFile(self, dir, filename):
     """Create a file in a directory dir taken"""
@@ -85,17 +83,19 @@ class FileBrowser(object):
 
   def deleteItem(self, dir, files):
     """Delete a list of files or directories"""
+    # XXX-Marco do not shadow 'dir'
     realdir = self._realdir(dir)
     lfiles = urllib.unquote(files).split(',,,')
     try:
+      # XXX-Marco do not shadow 'file'
       for file in lfiles:
         file = os.path.join(realdir, file)
         if not os.path.exists(file):
-          continue #silent skip file....
+          continue  # silent skip file....
         details = file.split('/')
         last = details[-1]
         if last and last.startswith('.'):
-          continue #cannot delete this file/directory, to prevent security
+          continue  # cannot delete this file/directory, to prevent security
         if os.path.isdir(file):
           shutil.rmtree(file)
         else:
@@ -109,6 +109,7 @@ class FileBrowser(object):
     realdir = self._realdir(dir)
     lfiles = urllib.unquote(files).split(',,,')
     try:
+      # XXX-Marco do not shadow 'file'
       for file in lfiles:
         realfile = realpath(self.config, file)
         if not realfile:

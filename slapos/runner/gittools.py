@@ -29,7 +29,7 @@ def cloneRepo(data):
   json = ""
   try:
     if os.path.exists(workDir) and len(os.listdir(workDir)) < 2:
-      shutil.rmtree(workDir) #delete useless files
+      shutil.rmtree(workDir)  # delete useless files
     repo = Repo.clone_from(data["repo"], workDir)
     config_writer = repo.config_writer()
     config_writer.add_section("user")
@@ -41,6 +41,7 @@ def cloneRepo(data):
   except Exception as e:
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
+
 
 def gitStatus(project):
   """Run git status and return status of specified project folder
@@ -61,6 +62,7 @@ def gitStatus(project):
     json = safeResult(str(e))
   return jsonify(code=code, result=json, branch=branch, dirty=isdirty)
 
+
 def switchBranch(project, name):
   """Switch a git branch
   Args:
@@ -76,12 +78,13 @@ def switchBranch(project, name):
     if name == current_branch:
       json = "This is already your active branch for this project"
     else:
-      git  = repo.git
+      git = repo.git
       git.checkout(name)
       code = 1
   except Exception as e:
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
+
 
 def addBranch(project, name, onlyCheckout=False):
   """Add new git branch to the repository
@@ -95,7 +98,7 @@ def addBranch(project, name, onlyCheckout=False):
   json = ""
   try:
     repo = Repo(project)
-    git  = repo.git
+    git = repo.git
     if not onlyCheckout:
       git.checkout('-b', name)
     else:
@@ -104,6 +107,7 @@ def addBranch(project, name, onlyCheckout=False):
   except Exception as e:
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
+
 
 def getDiff(project):
   """Get git diff for the specified project directory"""
@@ -116,6 +120,7 @@ def getDiff(project):
   except Exception as e:
     result = safeResult(str(e))
   return result
+
 
 def gitPush(project, msg):
   """Commit and Push changes for the specified repository
@@ -145,9 +150,10 @@ def gitPush(project, msg):
       code = 1
   except Exception as e:
     if undo_commit:
-      git.reset("HEAD~") #undo previous commit
+      git.reset("HEAD~")  # undo previous commit
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
+
 
 def gitPull(project):
   result = ""
@@ -160,6 +166,7 @@ def gitPull(project):
   except Exception as e:
     result = safeResult(str(e))
   return jsonify(code=code, result=result)
+
 
 def safeResult(result):
   """Parse string and remove credential of the user"""

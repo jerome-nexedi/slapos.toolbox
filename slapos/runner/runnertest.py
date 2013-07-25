@@ -18,6 +18,7 @@ from slapos.runner.process import killRunningProcess, isRunning
 from slapos.runner import views
 import slapos.slap
 
+
 #Helpers
 def loadJson(response):
   return json.loads(response.data)
@@ -48,6 +49,7 @@ class Config:
         if not getattr(self, key, None):
           setattr(self, key, configuration_dict[key])
 
+
 class SlaprunnerTestCase(unittest.TestCase):
 
   def setUp(self):
@@ -57,8 +59,8 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.updateUser = ["newslapuser", "newslappwd", "slaprunner@nexedi.com", "SlapOS web runner"]
     self.rcode = "41bf2657"
     self.repo = 'http://git.erp5.org/repos/slapos.git'
-    self.software = "workspace/slapos/software/" #relative directory fo SR
-    self.project = 'slapos' #Default project name
+    self.software = "workspace/slapos/software/"  # relative directory fo SR
+    self.project = 'slapos'  # Default project name
     self.template = 'template.cfg'
     self.partitionPrefix = 'slappart'
     self.slaposBuildout = "1.6.0-dev-SlapOS-010"
@@ -77,7 +79,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     views.app.config.update(
       software_log=config.software_root.rstrip('/') + '.log',
       instance_log=config.instance_root.rstrip('/') + '.log',
-      workspace = workdir,
+      workspace=workdir,
       software_link=software_link,
       instance_profile='instance.cfg',
       software_profile='software.cfg',
@@ -117,20 +119,24 @@ class SlaprunnerTestCase(unittest.TestCase):
 
   def configAccount(self, username, password, email, name, rcode):
     """Helper for configAccount"""
-    return self.app.post('/configAccount', data=dict(
-            username=username,
-            password=password,
-            email=email,
-            name=name,
-            rcode=rcode
-          ), follow_redirects=True)
+    return self.app.post('/configAccount',
+                         data=dict(
+                           username=username,
+                           password=password,
+                           email=email,
+                           name=name,
+                           rcode=rcode
+                         ),
+                         follow_redirects=True)
 
   def login(self, username, password):
     """Helper for Login method"""
-    return self.app.post('/doLogin', data=dict(
-            clogin=username,
-            cpwd=password
-          ), follow_redirects=True)
+    return self.app.post('/doLogin',
+                         data=dict(
+                           clogin=username,
+                           cpwd=password
+                         ),
+                         follow_redirects=True)
 
   def setAccount(self):
     """Initialize user account and log user in"""
@@ -146,13 +152,15 @@ class SlaprunnerTestCase(unittest.TestCase):
 
   def updateAccount(self, newaccount, rcode):
     """Helper for update user account data"""
-    return self.app.post('/updateAccount', data=dict(
-            username=newaccount[0],
-            password=newaccount[1],
-            email=newaccount[2],
-            name=newaccount[3],
-            rcode=rcode
-          ), follow_redirects=True)
+    return self.app.post('/updateAccount',
+                         data=dict(
+                           username=newaccount[0],
+                           password=newaccount[1],
+                           email=newaccount[2],
+                           name=newaccount[3],
+                           rcode=rcode
+                         ),
+                         follow_redirects=True)
 
   def getCurrentSR(self):
    return getProfilePath(self.app.config['etc_dir'],
@@ -189,14 +197,15 @@ class SlaprunnerTestCase(unittest.TestCase):
     """Helper for setup compiled software release dir"""
     self.setupProjectFolder(withSoftware=True)
     md5 = hashlib.md5(os.path.join(self.app.config['workspace'],
-        "slapos/software/slaprunner-test", self.app.config['software_profile'])
-      ).hexdigest()
+                                   "slapos/software/slaprunner-test",
+                                   self.app.config['software_profile'])
+                      ).hexdigest()
     base = os.path.join(self.app.config['software_root'], md5)
     template = os.path.join(base, self.template)
     content = "[buildout]\n"
     content += "parts = \n  create-file\n\n"
     content += "eggs-directory = %s\n" % os.path.join(base, 'eggs')
-    content += "develop-eggs-directory = %s\n\n"  % os.path.join(base, 'develop-eggs')
+    content += "develop-eggs-directory = %s\n\n" % os.path.join(base, 'develop-eggs')
     content += "[create-file]\nrecipe = plone.recipe.command\n"
     content += "filename = ${buildout:directory}/etc\n"
     content += "command = mkdir ${:filename} && echo 'simple file' > ${:filename}/testfile\n"
@@ -207,7 +216,6 @@ class SlaprunnerTestCase(unittest.TestCase):
   def stopSlapproxy(self):
     """Kill slapproxy process"""
     killRunningProcess('slapproxy', recursive=True)
-
 
   #Begin test case here
   def test_wrong_login(self):
@@ -266,12 +274,16 @@ class SlaprunnerTestCase(unittest.TestCase):
     """Start scenario 1 for deploying SR: Clone a project from git repository"""
     self.setAccount()
     folder = 'workspace/' + self.project
-    data = {"repo":self.repo, "user":'Slaprunner test',
-          "email":'slaprunner@nexedi.com', "name":folder}
+    data = {
+      'repo': self.repo,
+      'user': 'Slaprunner test',
+      'email': 'slaprunner@nexedi.com',
+      'name': folder
+    }
     response = loadJson(self.app.post('/cloneRepository', data=data,
                     follow_redirects=True))
     self.assertEqual(response['result'], "")
-    #Get realpath of create project
+    # Get realpath of create project
     path_data = dict(file=folder)
     response = loadJson(self.app.post('/getPath', data=path_data,
                     follow_redirects=True))
@@ -281,11 +293,13 @@ class SlaprunnerTestCase(unittest.TestCase):
     config = open(os.path.join(realFolder, '.git/config'), 'r').read()
     assert "slaprunner@nexedi.com" in config and "Slaprunner test" in config
     #Checkout to slaprunner branch, this supose that branch slaprunner exit
-    response = loadJson(self.app.post('/newBranch', data=dict(
-                    project=folder,
-                    create='0',
-                    name='slaprunner'),
-                    follow_redirects=True))
+    response = loadJson(self.app.post('/newBranch',
+                                      data=dict(
+                                        project=folder,
+                                        create='0',
+                                        name='slaprunner'
+                                      ),
+                                      follow_redirects=True))
     self.assertEqual(response['result'], "")
     self.logout()
 
@@ -296,8 +310,8 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.setupProjectFolder()
     newSoftware = os.path.join(self.software, 'slaprunner-test')
     response = loadJson(self.app.post('/createSoftware',
-                    data=dict(folder=newSoftware),
-                    follow_redirects=True))
+                                      data=dict(folder=newSoftware),
+                                      follow_redirects=True))
     self.assertEqual(response['result'], "")
     currentSR = self.getCurrentSR()
     assert newSoftware in currentSR
@@ -308,10 +322,10 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.test_cloneProject()
     #Login
     self.login(self.users[0], self.users[1])
-    software = os.path.join(self.software, 'drupal') #Drupal SR must exist in SR folder
+    software = os.path.join(self.software, 'drupal')  # Drupal SR must exist in SR folder
     response = loadJson(self.app.post('/setCurrentProject',
-                    data=dict(path=software),
-                    follow_redirects=True))
+                                      data=dict(path=software),
+                                      follow_redirects=True))
     self.assertEqual(response['result'], "")
     currentSR = self.getCurrentSR()
     assert software in currentSR
@@ -340,15 +354,15 @@ class SlaprunnerTestCase(unittest.TestCase):
     softwareRelease += "filename = slapos.git\n"
     softwareRelease += "download-only = true\n"
     response = loadJson(self.app.post('/saveFileContent',
-                    data=dict(file=newSoftware,
-                    content=softwareRelease),
-                    follow_redirects=True))
+                                      data=dict(file=newSoftware,
+                                                content=softwareRelease),
+                                      follow_redirects=True))
     self.assertEqual(response['result'], "")
     #Compile software and wait until slapgrid it end
     #this is supose to use curent SR
     response = loadJson(self.app.post('/runSoftwareProfile',
-                    data=dict(),
-                    follow_redirects=True))
+                                      data=dict(),
+                                      follow_redirects=True))
     self.assertTrue(response['result'])
     self.assertTrue(os.path.exists(self.app.config['software_root']))
     self.assertTrue(os.path.exists(self.app.config['software_log']))
@@ -369,8 +383,8 @@ class SlaprunnerTestCase(unittest.TestCase):
     #Set current projet and run Slapgrid-cp
     software = os.path.join(self.software, 'slaprunner-test')
     response = loadJson(self.app.post('/setCurrentProject',
-                    data=dict(path=software),
-                    follow_redirects=True))
+                                      data=dict(path=software),
+                                      follow_redirects=True))
     self.assertEqual(response['result'], "")
     self.proxyStatus(True)
     #Send paramters for the instance
@@ -380,9 +394,9 @@ class SlaprunnerTestCase(unittest.TestCase):
     parameterXml += '<parameter id="cacountry">France</parameter>\n</instance>'
     software_type = 'production'
     response = loadJson(self.app.post('/saveParameterXml',
-                    data=dict(parameter=parameterXml,
-                              software_type=software_type),
-                    follow_redirects=True))
+                                      data=dict(parameter=parameterXml,
+                                                software_type=software_type),
+                                      follow_redirects=True))
     self.assertEqual(response['result'], "")
     slap = slapos.slap.slap()
     slap.initializeConnection(self.app.config['master_url'])
@@ -391,8 +405,8 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertNotEqual(partitionList, [])
     #Assume that the requested partition is partition 0
     slapParameterDict = partitionList[0].getInstanceParameterDict()
-    self.assertTrue(slapParameterDict.has_key('appname'))
-    self.assertTrue(slapParameterDict.has_key('cacountry'))
+    self.assertTrue('appname' in slapParameterDict)
+    self.assertTrue('cacountry' in slapParameterDict)
     self.assertEqual(slapParameterDict['appname'], 'slaprunnerTest')
     self.assertEqual(slapParameterDict['cacountry'], 'France')
     self.assertEqual(slapParameterDict['slap_software_type'], 'production')
@@ -413,13 +427,13 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.proxyStatus(False, sleep_time=1)
     #run Software profile
     response = loadJson(self.app.post('/runSoftwareProfile',
-                    data=dict(),
-                    follow_redirects=True))
+                                      data=dict(),
+                                      follow_redirects=True))
     self.assertTrue(response['result'])
     #run instance profile
     response = loadJson(self.app.post('/runInstanceProfile',
-                    data=dict(),
-                    follow_redirects=True))
+                                      data=dict(),
+                                      follow_redirects=True))
     self.assertTrue(response['result'])
     #Check that all partitions has been created
     assert "create-file" in open(self.app.config['instance_log'], 'r').read()
@@ -438,6 +452,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.proxyStatus(True)
     self.stopSlapproxy()
     self.logout()
+
 
 def main():
   # Empty parser for now - so that erp5testnode is happy when doing --help

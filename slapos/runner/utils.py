@@ -33,9 +33,11 @@ html_escape_table = {
   "<": "&lt;",
 }
 
+
 def html_escape(text):
   """Produce entities within text."""
   return "".join(html_escape_table.get(c, c) for c in text)
+
 
 def getSession(config):
   """
@@ -52,6 +54,7 @@ def getSession(config):
   if type(user) == type(""):
     return False
   return user
+
 
 def saveSession(config, account):
   """
@@ -74,7 +77,7 @@ def saveSession(config, account):
       f = open(user, 'r')
       #backup previous data
       data = f.read()
-      open(user+'.back', 'w').write(data)
+      open('%s.back' % user, 'w').write(data)
       f.close()
       backup = True
       if not account[1]:
@@ -94,10 +97,11 @@ def saveSession(config, account):
     try:
       if backup:
         os.remove(user)
-        os.rename(user+'.back', user)
+        os.rename('%s.back' % user, user)
     except:
       pass
     return str(e)
+
 
 def getCurrentSoftwareReleaseProfile(config):
   """
@@ -110,6 +114,7 @@ def getCurrentSoftwareReleaseProfile(config):
         config, os.path.join(software_folder, config['software_profile']))
   except:
     return False
+
 
 def requestInstance(config, software_type=None):
   """
@@ -131,7 +136,7 @@ def requestInstance(config, software_type=None):
   param_path = os.path.join(config['etc_dir'], ".parameter.xml")
   xml_result = readParameters(param_path)
   partition_parameter_kw = None
-  if type(xml_result) != type('') and xml_result.has_key('instance'):
+  if type(xml_result) != type('') and 'instance' in xml_result:
     partition_parameter_kw = xml_result['instance']
 
   return slap.registerOpenOrder().request(
@@ -142,6 +147,7 @@ def requestInstance(config, software_type=None):
       filter_kw=None,
       state=None,
       shared=False)
+
 
 def updateProxy(config):
   """
@@ -158,27 +164,33 @@ def updateProxy(config):
   computer = slap.registerComputer(config['computer_id'])
   prefix = 'slappart'
   slap_config = {
- 'address': config['ipv4_address'],
- 'instance_root': config['instance_root'],
- 'netmask': '255.255.255.255',
- 'partition_list': [],
- 'reference': config['computer_id'],
- 'software_root': config['software_root']}
+    'address': config['ipv4_address'],
+    'instance_root': config['instance_root'],
+    'netmask': '255.255.255.255',
+    'partition_list': [],
+    'reference': config['computer_id'],
+    'software_root': config['software_root']
+  }
+
   for i in xrange(0, int(config['partition_amount'])):
     partition_reference = '%s%s' % (prefix, i)
     partition_path = os.path.join(config['instance_root'], partition_reference)
     if not os.path.exists(partition_path):
       os.mkdir(partition_path)
     os.chmod(partition_path, 0750)
-    slap_config['partition_list'].append({'address_list': [{'addr': config['ipv4_address'],
-                                       'netmask': '255.255.255.255'},
-                                      {'addr': config['ipv6_address'],
-                                       'netmask': 'ffff:ffff:ffff::'},
-                      ],
-                     'path': partition_path,
-                     'reference': partition_reference,
-                     'tap': {'name': partition_reference},
-                     })
+    slap_config['partition_list'].append({
+                                           'address_list': [
+                                              {
+                                                'addr': config['ipv4_address'],
+                                                'netmask': '255.255.255.255'
+                                              }, {
+                                                'addr': config['ipv6_address'],
+                                                'netmask': 'ffff:ffff:ffff::'
+                                              },
+                                           ],
+                                           'path': partition_path,
+                                           'reference': partition_reference,
+                                           'tap': {'name': partition_reference}})
   computer.updateConfiguration(xml_marshaller.xml_marshaller.dumps(slap_config))
   return True
 
@@ -218,6 +230,7 @@ def removeProxyDb(config):
     configuring new Software Release"""
   if os.path.exists(config['database_uri']):
     os.unlink(config['database_uri'])
+
 
 def isSoftwareRunning(config=None):
   """
@@ -263,13 +276,14 @@ def config_SR_folder(config):
   """Create a symbolik link for each folder in software folder. That allow
     user to customize software release folder"""
   list = []
+  # XXX-Marco do not shadow 'list'
   config_name = 'slaprunner.config'
   for path in os.listdir(config['software_link']):
     cfg_path = os.path.join(config['software_link'], path, config_name)
     if os.path.exists(cfg_path):
       cfg = open(cfg_path, 'r').read().split("#")
       if len(cfg) != 2:
-        continue #there is a broken config file
+        continue  # there is a broken config file
       list.append(cfg[1])
   folder_list = os.listdir(config['software_root'])
   if len(folder_list) < 1:
@@ -280,7 +294,7 @@ def config_SR_folder(config):
   name = projects[len(projects) - 2]
   for folder in folder_list:
     if folder in list:
-      continue #this folder is already registered
+      continue  # this folder is already registered
     else:
       if not os.path.exists(os.path.join(config['software_link'], name)):
         destination = os.path.join(config['software_link'], name)
@@ -292,8 +306,9 @@ def config_SR_folder(config):
       os.symlink(source, destination)
       #write config file
       cf = open(cfg, 'w')
-      cf.write(curent_project+"#"+folder)
+      cf.write(curent_project + "#" + folder)
       cf.close()
+
 
 def loadSoftwareRList(config):
   """Return list (of dict) of Software Release from symbolik SR folder"""
@@ -304,9 +319,10 @@ def loadSoftwareRList(config):
     if os.path.exists(cfg_path):
       cfg = open(cfg_path, 'r').read().split("#")
       if len(cfg) != 2:
-        continue #there is a broken config file
+        continue  # there is a broken config file
       list.append(dict(md5=cfg[1], path=cfg[0], title=path))
   return list
+
 
 def isInstanceRunning(config=None):
   """
@@ -353,6 +369,7 @@ def getProfilePath(projectDir, profile):
   projectFolder = open(os.path.join(projectDir, ".project")).read()
   return os.path.join(projectFolder, profile)
 
+
 def getSlapStatus(config):
   """Return all Slapos Partitions with associate information"""
   slap = slapos.slap.slap()
@@ -372,10 +389,12 @@ def getSlapStatus(config):
         partition_list.append((slappart_id, []))
   return partition_list
 
+
 def svcStopAll(config):
   """Stop all Instance process on this computer"""
   return Popen([config['supervisor'], config['configuration_file_path'],
                 'shutdown']).communicate()[0]
+
 
 def removeInstanceRoot(config):
   """Clean instance directory and stop all its running process"""
@@ -384,10 +403,11 @@ def removeInstanceRoot(config):
     for root, dirs, _ in os.walk(config['instance_root']):
       for fname in dirs:
         fullPath = os.path.join(root, fname)
-        if not os.access(fullPath, os.W_OK) :
+        if not os.access(fullPath, os.W_OK):
           # Some directories may be read-only, preventing to remove files in it
           os.chmod(fullPath, 0744)
     shutil.rmtree(config['instance_root'])
+
 
 def getSvcStatus(config):
   """Return all Softwares Instances process Information"""
@@ -397,9 +417,10 @@ def getSvcStatus(config):
   supervisord = []
   for item in result.split('\n'):
     if item.strip() != "":
-      if re.search(regex, item, re.IGNORECASE) == None:
+      if re.search(regex, item, re.IGNORECASE) is None:
         supervisord.append(re.split('[\s,]+', item))
   return supervisord
+
 
 def getSvcTailProcess(config, process):
   """Get log for the specifie process
@@ -413,6 +434,7 @@ def getSvcTailProcess(config, process):
   return Popen([config['supervisor'], config['configuration_file_path'],
                 "tail", process]).communicate()[0]
 
+
 def svcStartStopProcess(config, process, action):
   """Send start or stop process command to supervisord
 
@@ -421,9 +443,16 @@ def svcStartStopProcess(config, process, action):
     process: process to start or stop.
     action: current state which is used to generate the new process state.
   """
-  cmd = {"RESTART":"restart", "STOPPED":"start", "RUNNING":"stop", "EXITED":"start", "STOP":"stop"}
+  cmd = {
+    'RESTART': 'restart',
+    'STOPPED': 'start',
+    'RUNNING': 'stop',
+    'EXITED': 'start',
+    'STOP': 'stop'
+  }
   return Popen([config['supervisor'], config['configuration_file_path'],
                 cmd[action], process]).communicate()[0]
+
 
 def getFolderContent(config, folder):
   """
@@ -449,19 +478,20 @@ def getFolderContent(config, folder):
       ldir = []
 
     for f in ldir:
-      if f.startswith('.'): #do not displays this file/folder
+      if f.startswith('.'):  # do not displays this file/folder
         continue
       ff = os.path.join(d, f)
       if os.path.isdir(os.path.join(realdir, f)):
         r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff, f))
       else:
-        e = os.path.splitext(f)[1][1:] # get .ext and remove dot
+        e = os.path.splitext(f)[1][1:]  # get .ext and remove dot
         r.append('<li class="file ext_%s"><a href="#%s" rel="%s">%s</a></li>' % (e, ff, ff, f))
     r.append('</ul>')
   except Exception as e:
     r.append('Could not load directory: %s' % str(e))
   r.append('</ul>')
   return jsonify(result=''.join(r))
+
 
 def getFolder(config, folder):
   """
@@ -486,7 +516,7 @@ def getFolder(config, folder):
     else:
       ldir = sorted(os.listdir(realdir), key=str.lower)
     for f in ldir:
-      if f.startswith('.'): #do not display this file/folder
+      if f.startswith('.'):  # do not display this file/folder
         continue
       ff = os.path.join(d, f)
       if os.path.isdir(os.path.join(realdir, f)):
@@ -496,6 +526,7 @@ def getFolder(config, folder):
     r.append('Could not load directory: %s' % str(e))
   r.append('</ul>')
   return jsonify(result=''.join(r))
+
 
 def getProjectList(folder):
   """Return the list of projet (folder) into the workspace
@@ -511,6 +542,7 @@ def getProjectList(folder):
     if os.path.isdir(os.path.join(folder, elt)):
       project.append(elt)
   return project
+
 
 def configNewSR(config, projectpath):
   """Configure a Software Release as current Software Release
@@ -538,6 +570,7 @@ def configNewSR(config, projectpath):
     return True
   else:
     return False
+
 
 def newSoftware(folder, config, session):
   """
@@ -582,12 +615,14 @@ def newSoftware(folder, config, session):
       shutil.rmtree(folderPath)
   return jsonify(code=code, result=json)
 
+
 def checkSoftwareFolder(path, config):
   """Check id `path` is a valid Software Release folder"""
   realdir = realpath(config, path)
   if realdir and os.path.exists(os.path.join(realdir, config['software_profile'])):
     return jsonify(result=path)
   return jsonify(result="")
+
 
 def getProjectTitle(config):
   """Generate the name of the current software Release (for slaprunner UI)"""
@@ -598,6 +633,7 @@ def getProjectTitle(config):
     return '%s (%s)' % (software, '/'.join(project[:-2]))
   return "No Profile"
 
+
 def getSoftwareReleaseName(config):
   """Get the name of the current Software Release"""
   sr_profile = os.path.join(config['etc_dir'], ".project")
@@ -606,6 +642,7 @@ def getSoftwareReleaseName(config):
     software = project[-2]
     return software.replace(' ', '_')
   return "No_name"
+
 
 def removeSoftwareByName(config, md5, folderName):
   """Remove all content of the software release specified by md5
@@ -622,11 +659,12 @@ def removeSoftwareByName(config, md5, folderName):
     raise Exception("Cannot remove software Release: No such file or directory")
   if not os.path.exists(linkpath):
     raise Exception("Cannot remove software Release: No such file or directory %s" %
-                    ('software_root/'+folderName))
+                    ('software_root/' + folderName))
   svcStopAll(config)
   os.unlink(linkpath)
   shutil.rmtree(path)
   return loadSoftwareRList(config)
+
 
 def tail(f, lines=20):
   """
@@ -655,6 +693,7 @@ def tail(f, lines=20):
       block -= 1
   return '\n'.join(''.join(data).splitlines()[-lines:])
 
+
 def readFileFrom(f, lastPosition, limit=20000):
   """
   Returns the last lines of file `f`, from position lastPosition.
@@ -663,22 +702,23 @@ def readFileFrom(f, lastPosition, limit=20000):
   """
   BUFSIZ = 1024
   f.seek(0, 2)
+  # XXX-Marco do now shadow 'bytes'
   bytes = f.tell()
   block = -1
   data = ""
   length = bytes
-  truncated = False #True if a part of log data has been truncated
-  if (lastPosition <= 0 and length > limit) or (length-lastPosition > limit):
+  truncated = False  # True if a part of log data has been truncated
+  if (lastPosition <= 0 and length > limit) or (length - lastPosition > limit):
     lastPosition = length - limit
     truncated = True
   size = bytes - lastPosition
   while bytes > lastPosition:
-    if abs(block*BUFSIZ) <= size:
+    if abs(block * BUFSIZ) <= size:
       # Seek back one whole BUFSIZ
       f.seek(block * BUFSIZ, 2)
       data = f.read(BUFSIZ) + data
     else:
-      margin = abs(block*BUFSIZ) - size
+      margin = abs(block * BUFSIZ) - size
       if length < BUFSIZ:
         f.seek(0, 0)
       else:
@@ -688,7 +728,12 @@ def readFileFrom(f, lastPosition, limit=20000):
     bytes -= BUFSIZ
     block -= 1
   f.close()
-  return {"content":data, "position":length, "truncated":truncated}
+  return {
+    'content': data,
+    'position': length,
+    'truncated': truncated
+  }
+
 
 def isText(file):
   """Return True if the mimetype of file is Text"""
@@ -700,6 +745,7 @@ def isText(file):
     return not is_binary_string(open(file).read(1024))
   except:
     return False
+
 
 def md5sum(file):
   """Compute md5sum of `file` and return hexdigest value"""
@@ -717,6 +763,7 @@ def md5sum(file):
   except:
     return False
 
+
 def realpath(config, path, check_exist=True):
   """
   Get realpath of path or return False if user is not allowed to access to
@@ -724,20 +771,25 @@ def realpath(config, path, check_exist=True):
   """
   split_path = path.split('/')
   key = split_path[0]
-  allow_list = {'software_root':config['software_root'], 'instance_root':
-                config['instance_root'], 'workspace': config['workspace'],
-                'software_link':config['software_link']}
-  if allow_list.has_key(key):
-    del split_path[0]
-    path = os.path.join(allow_list[key], *split_path)
-    if check_exist:
-      if os.path.exists(path):
-        return path
-      else:
-        return False
-    else:
+  allow_list = {
+    'software_root': config['software_root'],
+    'instance_root': config['instance_root'],
+    'workspace': config['workspace'],
+    'software_link': config['software_link']
+  }
+  if key not in allow_list:
+    return False
+
+  del split_path[0]
+  path = os.path.join(allow_list[key], *split_path)
+  if check_exist:
+    if os.path.exists(path):
       return path
-  return False
+    else:
+      return False
+  else:
+    return path
+
 
 def readParameters(path):
   """Read Instance parameters stored into a local file.
@@ -755,7 +807,7 @@ def readParameters(path):
         sub_obj = {}
         for subnode in elt.childNodes:
           if subnode.nodeType != subnode.TEXT_NODE:
-            sub_obj[str(subnode.getAttribute('id'))] = subnode.childNodes[0].data #.decode('utf-8').decode('utf-8')
+            sub_obj[str(subnode.getAttribute('id'))] = subnode.childNodes[0].data  # .decode('utf-8').decode('utf-8')
             obj[str(elt.tagName)] = sub_obj
       return obj
     except Exception, e:

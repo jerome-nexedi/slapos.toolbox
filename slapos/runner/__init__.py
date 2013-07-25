@@ -21,8 +21,7 @@ class Parser(OptionParser):
     """
     Initialize all possible options.
     """
-    OptionParser.__init__(self, usage=usage, version=version,
-                          option_list=[
+    option_list = [
       Option("-l", "--log_file",
              help="The path to the log file used by the script.",
              type=str),
@@ -38,7 +37,10 @@ class Parser(OptionParser):
              default=False,
              action="store_true",
              help="Debug mode."),
-    ])
+    ]
+
+    OptionParser.__init__(self, usage=usage, version=version,
+                          option_list=option_list)
 
   def check_args(self):
     """
@@ -49,6 +51,7 @@ class Parser(OptionParser):
       self.error("Incorrect number of arguments")
 
     return options, args[0]
+
 
 class Config:
   def __init__(self):
@@ -125,6 +128,7 @@ def run():
 
   sys.exit(return_code)
 
+
 def serve(config):
   from views import app
   from werkzeug.contrib.fixers import ProxyFix
@@ -134,7 +138,7 @@ def serve(config):
   app.config.update(
     software_log=config.software_root.rstrip('/') + '.log',
     instance_log=config.instance_root.rstrip('/') + '.log',
-    workspace = workdir,
+    workspace=workdir,
     software_link=software_link,
     instance_profile='instance.cfg',
     software_profile='software.cfg',
