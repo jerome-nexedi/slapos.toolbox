@@ -89,9 +89,8 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.app = views.app.test_client()
     self.app.config = views.app.config
     #Create password recover code
-    rpwd = open(os.path.join(views.app.config['etc_dir'], '.rcode'), 'w')
-    rpwd.write(self.rcode)
-    rpwd.close()
+    with open(os.path.join(views.app.config['etc_dir'], '.rcode'), 'w') as rpwd:
+      rpwd.write(self.rcode)
 
   def tearDown(self):
     """Remove all test data"""

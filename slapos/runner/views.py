@@ -536,12 +536,11 @@ def saveParameterXml():
   content = request.form['parameter'].encode("utf-8")
   param_path = os.path.join(app.config['etc_dir'], ".parameter.xml")
   try:
-    f = open(param_path, 'w')
-    f.write(content)
-    f.close()
+    with open(param_path, 'w') as f:
+      f.write(content)
     result = readParameters(param_path)
   except Exception as e:
-      result = str(e)
+    result = str(e)
   software_type = None
   if request.form['software_type']:
     software_type = request.form['software_type']

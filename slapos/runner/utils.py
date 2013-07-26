@@ -296,9 +296,8 @@ def config_SR_folder(config):
       #create symlink
       os.symlink(source, destination)
       #write config file
-      cf = open(cfg, 'w')
-      cf.write(current_project + "#" + folder)
-      cf.close()
+      with open(cfg, 'w') as cf:
+        cf.write(current_project + '#' + folder)
 
 
 def loadSoftwareRList(config):
