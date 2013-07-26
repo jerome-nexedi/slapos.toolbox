@@ -104,7 +104,7 @@ def dologout():
 
 @login_required()
 def configRepo():
-  public_key = open(app.config['public_key'], 'r').read()
+  public_key = open(app.config['public_key']).read()
   account = getSession(app.config)
   return render_template('cloneRepository.html', workDir='workspace',
             public_key=public_key, name=account[3].decode('utf-8'),
@@ -162,7 +162,7 @@ def runSoftwareProfile():
 @login_required()
 def viewSoftwareLog():
   if os.path.exists(app.config['software_log']):
-    result = tail(open(app.config['software_log'], 'r'), lines=1500)
+    result = tail(open(app.config['software_log']), lines=1500)
   else:
     result = 'Not found yet'
   return render_template('viewLog.html', type='software',
@@ -246,7 +246,7 @@ def runInstanceProfile():
 @login_required()
 def viewInstanceLog():
   if os.path.exists(app.config['instance_log']):
-    result = open(app.config['instance_log'], 'r').read()
+    result = open(app.config['instance_log']).read()
   else:
     result = 'Not found yet'
   return render_template('viewLog.html', type='instance',
@@ -392,10 +392,10 @@ def getFileContent():
       return jsonify(code=0,
             result="Can not open a binary file, please select a text file!")
     if 'truncate' in request.form:
-      content = tail(open(file_path, 'r'), int(request.form['truncate']))
+      content = tail(open(file_path), int(request.form['truncate']))
       return jsonify(code=1, result=content)
     else:
-      return jsonify(code=1, result=open(file_path, 'r').read())
+      return jsonify(code=1, result=open(file_path).read())
   else:
     return jsonify(code=0, result="Error: No such file!")
 
@@ -494,8 +494,8 @@ def slapgridResult():
      request.form['log'] == "instance":
     log_file = request.form['log'] + "_log"
     if os.path.exists(app.config[log_file]):
-      log_result = readFileFrom(open(app.config[log_file], 'r'),
-                            int(request.form['position']))
+      log_result = readFileFrom(open(app.config[log_file]),
+                                int(request.form['position']))
   return jsonify(software=software_state, instance=instance_state,
                  result=(instance_state or software_state), content=log_result)
 
@@ -561,7 +561,7 @@ def saveParameterXml():
 def getSoftwareType():
   software_type_path = os.path.join(app.config['etc_dir'], ".software_type.xml")
   if os.path.exists(software_type_path):
-    return jsonify(code=1, result=open(software_type_path, 'r').read())
+    return jsonify(code=1, result=open(software_type_path).read())
   return jsonify(code=1, result="default")
 
 
@@ -573,7 +573,7 @@ def getParameterXml(request):
     default = '<?xml version="1.0" encoding="utf-8"?>\n<instance>\n</instance>'
     return jsonify(code=1, result=default)
   if request == "xml":
-    parameters = open(param_path, 'r').read()
+    parameters = open(param_path).read()
   else:
     parameters = readParameters(param_path)
   if type(parameters) == type('') and request != "xml":

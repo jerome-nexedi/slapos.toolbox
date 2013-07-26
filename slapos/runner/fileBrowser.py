@@ -219,6 +219,6 @@ class FileBrowser(object):
     if not isText(realfile):
       return "FILE ERROR: Cannot display binary file, please open a text file only!"
     if not truncate:
-      return open(realfile, 'r').read()
+      return open(realfile).read()
     else:
-      return tail(open(realfile, 'r'), 0)
+      return tail(open(realfile), 0)

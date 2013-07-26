@@ -290,7 +290,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertEqual(response['code'], 1)
     realFolder = response['result'].split('#')[0]
     #Check git configuration
-    config = open(os.path.join(realFolder, '.git/config'), 'r').read()
+    config = open(os.path.join(realFolder, '.git/config')).read()
     assert "slaprunner@nexedi.com" in config and "Slaprunner test" in config
     #Checkout to slaprunner branch, this supose that branch slaprunner exit
     response = loadJson(self.app.post('/newBranch',
@@ -366,7 +366,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertTrue(response['result'])
     self.assertTrue(os.path.exists(self.app.config['software_root']))
     self.assertTrue(os.path.exists(self.app.config['software_log']))
-    assert "test-application" in open(self.app.config['software_log'], 'r').read()
+    assert "test-application" in open(self.app.config['software_log']).read()
     sr_dir = os.listdir(self.app.config['software_root'])
     self.assertEqual(len(sr_dir), 1)
     createdFile = os.path.join(self.app.config['software_root'], sr_dir[0],
@@ -436,7 +436,7 @@ class SlaprunnerTestCase(unittest.TestCase):
                                       follow_redirects=True))
     self.assertTrue(response['result'])
     #Check that all partitions has been created
-    assert "create-file" in open(self.app.config['instance_log'], 'r').read()
+    assert "create-file" in open(self.app.config['instance_log']).read()
     instanceDir = os.listdir(self.app.config['instance_root'])
     for num in range(int(self.app.config['partition_amount'])):
       partition = os.path.join(self.app.config['instance_root'],

@@ -43,17 +43,11 @@ def getSession(config):
   """
   Get the session data of current user.
   Returns:
-    a list of user information or False if fail to read data.
+    a list of user information or None if the file does not exist.
   """
   user_path = os.path.join(config['etc_dir'], '.users')
-  user = ""
   if os.path.exists(user_path):
-    f = open(user_path, 'r')
-    user = f.read().split(';')
-    f.close()
-  if type(user) == type(""):
-    return False
-  return user
+    return open(user_path).read().split(';')
 
 
 def saveSession(config, account):
@@ -74,11 +68,9 @@ def saveSession(config, account):
   backup = False
   try:
     if os.path.exists(user):
-      f = open(user, 'r')
       #backup previous data
-      data = f.read()
+      data = open(user).read()
       open('%s.back' % user, 'w').write(data)
-      f.close()
       backup = True
       if not account[1]:
         account[1] = data.split(';')[1]
@@ -125,7 +117,7 @@ def requestInstance(config, software_type=None):
     # Write it to conf file for later use
     open(software_type_path, 'w').write(software_type)
   elif os.path.exists(software_type_path):
-    software_type = open(software_type_path, 'r').read()
+    software_type = open(software_type_path).read()
   else:
     software_type = 'default'
 
@@ -281,15 +273,14 @@ def config_SR_folder(config):
   for path in os.listdir(config['software_link']):
     cfg_path = os.path.join(config['software_link'], path, config_name)
     if os.path.exists(cfg_path):
-      cfg = open(cfg_path, 'r').read().split("#")
+      cfg = open(cfg_path).read().split("#")
       if len(cfg) != 2:
         continue  # there is a broken config file
       list.append(cfg[1])
   folder_list = os.listdir(config['software_root'])
   if len(folder_list) < 1:
     return
-  curent_project = open(os.path.join(config['etc_dir'], ".project"),
-                        'r').read()
+  curent_project = open(os.path.join(config['etc_dir'], ".project")).read()
   projects = curent_project.split("/")
   name = projects[len(projects) - 2]
   for folder in folder_list:
@@ -317,7 +308,7 @@ def loadSoftwareRList(config):
   for path in os.listdir(config['software_link']):
     cfg_path = os.path.join(config['software_link'], path, config_name)
     if os.path.exists(cfg_path):
-      cfg = open(cfg_path, 'r').read().split("#")
+      cfg = open(cfg_path).read().split("#")
       if len(cfg) != 2:
         continue  # there is a broken config file
       list.append(dict(md5=cfg[1], path=cfg[0], title=path))
