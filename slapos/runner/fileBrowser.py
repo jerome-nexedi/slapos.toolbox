@@ -15,7 +15,7 @@ from slapos.runner.utils import realpath, tail, isText
 
 
 class FileBrowser(object):
-  """This class contain all bases function for file browser"""
+  """This class contain all base functions for file browser"""
 
   def __init__(self, config):
     self.config = config
@@ -67,9 +67,9 @@ class FileBrowser(object):
     folder = os.path.join(realdir, filename)
     if not os.path.exists(folder):
       os.mkdir(folder, 0744)
-      return '{result: \'1\'}'
+      return "{result: '1'}"
     else:
-      return '{result: \'0\'}'
+      return "{result: '0'}"
 
   def makeFile(self, dir, filename):
     """Create a file in a directory dir taken"""
@@ -77,9 +77,9 @@ class FileBrowser(object):
     fout = os.path.join(realdir, filename)
     if not os.path.exists(fout):
       open(fout, 'w')
-      return 'var responce = {result: \'1\'}'
+      return "var responce = {result: '1'}"
     else:
-      return '{result: \'0\'}'
+      return "{result: '0'}"
 
   def deleteItem(self, dir, files):
     """Delete a list of files or directories"""
@@ -102,7 +102,7 @@ class FileBrowser(object):
           os.unlink(file)
     except Exception as e:
       return str(e)
-    return '{result: \'1\'}'
+    return "{result: '1'}"
 
   def copyItem(self, dir, files, del_source=False):
     """Copy a list of files or directory to dir"""
@@ -129,7 +129,7 @@ class FileBrowser(object):
             os.unlink(realfile)
     except Exception as e:
       return str(e)
-    return '{result: \'1\'}'
+    return "{result: '1'}"
 
   def rename(self, dir, filename, newfilename):
     """Rename file or directory to dir/filename"""
@@ -140,7 +140,7 @@ class FileBrowser(object):
     tofile = os.path.join(realdir, newfilename)
     if not os.path.exists(tofile):
       os.rename(realfile, tofile)
-      return '{result: \'1\'}'
+      return "{result: '1'}"
     raise NameError('NOT ALLOWED OPERATION : File or directory already exist')
 
   def copyAsFile(self, dir, filename, newfilename):
@@ -152,7 +152,7 @@ class FileBrowser(object):
       raise NameError('NOT ALLOWED OPERATION : File or directory not exist')
     if not os.path.exists(tofile):
       shutil.copy(fromfile, tofile)
-      return '{result: \'1\'}'
+      return "{result: '1'}"
     raise NameError('NOT ALLOWED OPERATION : File or directory already exist')
 
   def uploadFile(self, dir, files):
@@ -163,7 +163,7 @@ class FileBrowser(object):
         filename = werkzeug.secure_filename(files[file].filename)
         if not os.path.exists(os.path.join(dir, filename)):
           files[file].save(os.path.join(realdir, filename))
-    return '{result: \'1\'}'
+    return "{result: '1'}"
 
   def downloadFile(self, dir, filename):
     """Download file dir/filename"""
@@ -192,7 +192,7 @@ class FileBrowser(object):
       else:
         zip.write(fromzip)
       zip.close()
-      return '{result: \'1\'}'
+      return "{result: '1'}"
     raise NameError('NOT ALLOWED OPERATION : File or directory already exist')
 
   def unzipFile(self, dir, filename, newfilename):
@@ -210,7 +210,7 @@ class FileBrowser(object):
       #  zip.extractall(target)
       #else:
       #  zip.extract(member[0], newfilename)
-      return '{result: \'1\'}'
+      return "{result: '1'}"
     raise NameError('NOT ALLOWED OPERATION : File or directory already exist')
 
   def readFile(self, dir, filename, truncate=False):
