@@ -292,7 +292,8 @@ class SlaprunnerTestCase(unittest.TestCase):
     #Check git configuration
     config = open(os.path.join(realFolder, '.git/config')).read()
     assert "slaprunner@nexedi.com" in config and "Slaprunner test" in config
-    #Checkout to slaprunner branch, this supose that branch slaprunner exit
+
+    # Checkout to slaprunner branch, this supposes that branch slaprunner exit
     response = loadJson(self.app.post('/newBranch',
                                       data=dict(
                                         project=folder,
@@ -331,8 +332,9 @@ class SlaprunnerTestCase(unittest.TestCase):
     assert software in currentSR
     self.assertFalse(isInstanceRunning(self.app.config))
     self.assertFalse(isSoftwareRunning(self.app.config))
-    #Slapproxy process is supose to be started
-    #newSoftware = os.path.join(self.software, 'slaprunner-test')
+
+    # Slapproxy process is supposed to be started
+    # newSoftware = os.path.join(self.software, 'slaprunner-test')
     self.proxyStatus(True)
     self.stopSlapproxy()
     self.logout()
@@ -358,8 +360,9 @@ class SlaprunnerTestCase(unittest.TestCase):
                                                 content=softwareRelease),
                                       follow_redirects=True))
     self.assertEqual(response['result'], "")
-    #Compile software and wait until slapgrid it end
-    #this is supose to use curent SR
+
+    # Compile software and wait until slapgrid ends
+    # this is supposed to use current SR
     response = loadJson(self.app.post('/runSoftwareProfile',
                                       data=dict(),
                                       follow_redirects=True))

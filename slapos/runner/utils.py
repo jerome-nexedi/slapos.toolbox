@@ -265,8 +265,8 @@ def runSoftwareWithLock(config):
 
 
 def config_SR_folder(config):
-  """Create a symbolik link for each folder in software folder. That allow
-    user to customize software release folder"""
+  """Create a symbolik link for each folder in software folder. That allows
+    the user to customize software release folder"""
   list = []
   # XXX-Marco do not shadow 'list'
   config_name = 'slaprunner.config'
@@ -280,8 +280,8 @@ def config_SR_folder(config):
   folder_list = os.listdir(config['software_root'])
   if len(folder_list) < 1:
     return
-  curent_project = open(os.path.join(config['etc_dir'], ".project")).read()
-  projects = curent_project.split("/")
+  current_project = open(os.path.join(config['etc_dir'], ".project")).read()
+  projects = current_project.split('/')
   name = projects[len(projects) - 2]
   for folder in folder_list:
     if folder in list:
@@ -297,7 +297,7 @@ def config_SR_folder(config):
       os.symlink(source, destination)
       #write config file
       cf = open(cfg, 'w')
-      cf.write(curent_project + "#" + folder)
+      cf.write(current_project + "#" + folder)
       cf.close()
 
 
