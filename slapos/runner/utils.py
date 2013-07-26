@@ -607,10 +607,9 @@ def newSoftware(folder, config, session):
       session['title'] = getProjectTitle(config)
       code = 1
     else:
-      json = "Bad folder or Directory '" + folder + \
-        "' already exist, please enter a new name for your software"
+      json = "Bad folder or Directory '%s' already exist, please enter a new name for your software" % folder
   except Exception as e:
-    json = "Can not create your software, please try again! : " + str(e)
+    json = "Can not create your software, please try again! : %s " % e
     if os.path.exists(folderPath):
       shutil.rmtree(folderPath)
   return jsonify(code=code, result=json)
@@ -813,4 +812,4 @@ def readParameters(path):
     except Exception, e:
       return str(e)
   else:
-    return "No such file or directory: " + path
+    return "No such file or directory: %s" % path

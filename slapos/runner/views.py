@@ -349,8 +349,7 @@ def editCurrentProject():
 def createFile():
   path = realpath(app.config, request.form['file'], False)
   if not path:
-    return jsonify(code=0, result="Error when creating your " +
-                   request.form['type'] + ": Permission Denied")
+    return jsonify(code=0, result="Error when creating your %s: Permission Denied" % request.form['type'])
   try:
     if request.form['type'] == "file":
       open(path, 'w')
@@ -554,7 +553,7 @@ def saveParameterXml():
     except Exception as e:
       return jsonify(
         code=0,
-        result="An error occurred while applying your settings!<br/>" + str(e))
+        result="An error occurred while applying your settings!<br/>%s" % e)
     return jsonify(code=1, result="")
 
 
@@ -571,8 +570,7 @@ def getSoftwareType():
 def getParameterXml(request):
   param_path = os.path.join(app.config['etc_dir'], ".parameter.xml")
   if not os.path.exists(param_path):
-    default = '<?xml version="1.0" encoding="utf-8"?>\n'
-    default += '<instance>\n</instance>'
+    default = '<?xml version="1.0" encoding="utf-8"?>\n<instance>\n</instance>'
     return jsonify(code=1, result=default)
   if request == "xml":
     parameters = open(param_path, 'r').read()

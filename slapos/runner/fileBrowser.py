@@ -53,12 +53,9 @@ class FileBrowser(object):
           ext = "unknow"
         else:
           ext = str.lower(ext)
-        html += 'gsfiles.push(new gsItem("1", "' + f + '", "' + \
-                  ff + '", "' + str(size) + '", "' + md5sum + \
-                  '", "' + ext + '", "' + mdate + '"));'
+        html += 'gsfiles.push(new gsItem("1", "%s", "%s", "%s", "%s", "%s", "%s"));' % (f, ff, size, md5sum, ext, mdate)
       else:
-        html += 'gsdirs.push(new gsItem("2", "' + f + '", "' + \
-                  ff + '", "0", "' + md5sum + '", "dir", "' + mdate + '"));'
+        html += 'gsdirs.push(new gsItem("2", "%s", "%s", "0", "%s", "dir", "%s"));' % (f, ff, md5sum, mdate)
     return html
 
   def makeDirectory(self, dir, filename):
