@@ -278,11 +278,11 @@ def config_SR_folder(config):
         continue  # there is a broken config file
       list.append(cfg[1])
   folder_list = os.listdir(config['software_root'])
-  if len(folder_list) < 1:
+  if not folder_list:
     return
   current_project = open(os.path.join(config['etc_dir'], ".project")).read()
   projects = current_project.split('/')
-  name = projects[len(projects) - 2]
+  name = projects[-2]
   for folder in folder_list:
     if folder in list:
       continue  # this folder is already registered

@@ -182,17 +182,17 @@ def editInstanceProfile():
 # get status of all computer partitions and process state
 @login_required()
 def inspectInstance():
-  file_content = ''
-  result = ''
   if os.path.exists(app.config['instance_root']):
-    file_content = 'instance_root'
-    result = getSvcStatus(app.config)
-    if len(result) == 0:
-      result = []
+    file_path = 'instance_root'
+    supervisor = getSvcStatus(app.config)
+  else:
+    file_path = ''
+    supervisor = []
   return render_template('instanceInspect.html',
-      file_path=file_content, supervisor=result,
-      slap_status=getSlapStatus(app.config),
-      supervisore=result, partition_amount=app.config['partition_amount'])
+                         file_path=file_path,
+                         supervisor=supervisor,
+                         slap_status=getSlapStatus(app.config),
+                         partition_amount=app.config['partition_amount'])
 
 
 #Reload instance process ans returns new value to ajax
