@@ -5,12 +5,12 @@
 import argparse
 import ConfigParser
 import datetime
+import hashlib
 import json
 import os
 import shutil
 import time
 import unittest
-import hashlib
 
 from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning,
                                  isSoftwareRunning, startProxy)
@@ -174,7 +174,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertEqual(proxy, status)
 
   def setupProjectFolder(self, withSoftware=False):
-    """Helper for create a project folder as for slapos.git"""
+    """Helper to create a project folder as for slapos.git"""
     base = os.path.join(self.app.config['workspace'], 'slapos')
     software = os.path.join(base, 'software')
     os.mkdir(base)
@@ -193,7 +193,7 @@ class SlaprunnerTestCase(unittest.TestCase):
                           'w').write(sr)
 
   def setupSoftwareFolder(self):
-    """Helper for setup compiled software release dir"""
+    """Helper to setup compiled software release dir"""
     self.setupProjectFolder(withSoftware=True)
     md5 = hashlib.md5(os.path.join(self.app.config['workspace'],
                                    "slapos/software/slaprunner-test",
@@ -218,7 +218,7 @@ class SlaprunnerTestCase(unittest.TestCase):
 
   #Begin test case here
   def test_wrong_login(self):
-    """Test Login user before create session. This should return error value"""
+    """Test Login user before create session. This should return an error value"""
     response = self.login(self.users[0], self.users[1])
     #redirect to config account page
     assert "<h2 class='title'>Your personal information</h2><br/>" in response.data
@@ -249,7 +249,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     assert "<h2>Login to Slapos Web Runner</h2>" in result.data
 
   def test_updateAccount(self):
-    """test Update accound, this need user to loging in"""
+    """test Update accound, this needs the user to log in"""
     self.setAccount()
     response = loadJson(self.updateAccount(self.updateUser, self.rcode))
     self.assertEqual(response['code'], 1)

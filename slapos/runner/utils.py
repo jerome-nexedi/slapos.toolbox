@@ -3,12 +3,10 @@
 # pylint: disable-msg=W0311,C0301,C0103,C0111,W0141,W0142
 
 
-import md5
 import logging
+import md5
 import multiprocessing
 import re
-from slapos.runner.process import Popen, isRunning, killRunningProcess
-from slapos.htpasswd import HtpasswdFile
 import shutil
 import os
 import time
@@ -18,6 +16,8 @@ from xml.dom import minidom
 import xml_marshaller
 from flask import jsonify
 
+from slapos.runner.process import Popen, isRunning, killRunningProcess
+from slapos.htpasswd import HtpasswdFile
 import slapos.slap
 
 # Setup default flask (werkzeug) parser

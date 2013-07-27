@@ -490,8 +490,7 @@ def slapgridResult():
     'position': 0,
     'truncated': False
   }
-  if request.form['log'] == "software" or \
-     request.form['log'] == "instance":
+  if request.form['log'] in ['software', 'instance']:
     log_file = request.form['log'] + "_log"
     if os.path.exists(app.config[log_file]):
       log_result = readFileFrom(open(app.config[log_file]),

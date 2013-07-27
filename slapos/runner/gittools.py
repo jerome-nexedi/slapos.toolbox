@@ -12,19 +12,19 @@ from flask import jsonify
 
 
 def cloneRepo(data):
-  """Clonne a repository
+  """Clone a repository
   Args:
     data: a dictionary of parameters to use:
       data['path'] is the path of the new project
       data['repo'] is the url of the repository to be cloned
-      data['email'] is the user email
+      data['email'] is the user's email
       data['user'] is the name of the user
   Returns:
     a jsonify data"""
   workDir = data['path']
   if not workDir:
     return jsonify(code=0,
-                   result="Can not create project folder: Permission Denied")
+                   result="Cannot create project folder: Permission Denied")
   code = 0
   json = ""
   try:
@@ -46,7 +46,7 @@ def cloneRepo(data):
 def gitStatus(project):
   """Run git status and return status of specified project folder
   Args:
-    project: path of the projet ti get status
+    project: path of the projet to get status
   Returns:
     a parsed string that contains the result of git status"""
   code = 0
@@ -146,7 +146,7 @@ def gitPush(project, msg):
       git.push('origin', current_branch)
       code = 1
     else:
-      json = "Nothing to be commited"
+      json = "Nothing to commit"
       code = 1
   except Exception as e:
     if undo_commit:
