@@ -6,5 +6,5 @@
 $(document).ready(function () {
     "use strict";
 
-    $('#fileNavigator').gsFileManager({script: $SCRIPT_ROOT + "/fileBrowser", root:'workspace/'});
+    $('#fileNavigator').gsFileManager({script: $SCRIPT_ROOT + "/fileBrowser", root: 'workspace/'});
 });

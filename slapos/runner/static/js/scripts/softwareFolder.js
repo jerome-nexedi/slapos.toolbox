@@ -19,11 +19,10 @@ $(document).ready(function () {
         send = false,
         edit = false,
         selection = "",
-        edit_status = "";
-
-    var base_path = function() {
-      return softwareDisplay ? projectDir : currentProject;
-    }
+        edit_status = "",
+        base_path = function () {
+            return softwareDisplay ? projectDir : currentProject;
+        };
 
     function setEditMode(file) {
         var i,

@@ -37,8 +37,8 @@ function deleteCookie(name, path, domain) {
 
 function setCookie(name, value, expires, path, domain, secure) {
     "use strict";
-    if (getCookie(name) !== null){
-      deleteCookie(name);
+    if (getCookie(name) !== null) {
+        deleteCookie(name);
     }
     if (!expires) {
         var today = new Date();
