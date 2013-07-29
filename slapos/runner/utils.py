@@ -2,7 +2,6 @@
 # vim: set et sts=2:
 # pylint: disable-msg=W0311,C0301,C0103,C0111,W0141,W0142
 
-
 import logging
 import md5
 import multiprocessing
@@ -78,7 +77,7 @@ def saveSession(config, account):
     open(user, 'w').write((';'.join(account)).encode("utf-8"))
     # Htpasswd file for cloud9
     # XXX Cedric Le N order of account list values suppose to be fixed
-    # Remove former file to avoid aoutdated accounts
+    # Remove former file to avoid outdated accounts
     if os.path.exists(htpasswdfile):
       os.remove(htpasswdfile)
     passwd = HtpasswdFile(htpasswdfile, create=True)
@@ -218,7 +217,7 @@ def stopProxy(config):
 
 
 def removeProxyDb(config):
-  """Remove Slapproxy database, this is use to initialize proxy for example when
+  """Remove Slapproxy database, this is used to initialize proxy for example when
     configuring new Software Release"""
   if os.path.exists(config['database_uri']):
     os.unlink(config['database_uri'])
@@ -381,13 +380,13 @@ def getSlapStatus(config):
 
 
 def svcStopAll(config):
-  """Stop all Instance process on this computer"""
+  """Stop all Instance processes on this computer"""
   return Popen([config['supervisor'], config['configuration_file_path'],
                 'shutdown']).communicate()[0]
 
 
 def removeInstanceRoot(config):
-  """Clean instance directory and stop all its running process"""
+  """Clean instance directory and stop all its running processes"""
   if os.path.exists(config['instance_root']):
     svcStopAll(config)
     for root, dirs, _ in os.walk(config['instance_root']):
@@ -413,11 +412,11 @@ def getSvcStatus(config):
 
 
 def getSvcTailProcess(config, process):
-  """Get log for the specifie process
+  """Get log for the specified process
 
   Args:
     config: Slaprunner configuration
-    process: process name. this value is pass to supervisord.
+    process: process name. this value is passed to supervisord.
   Returns:
     a string that contains the log of the process.
   """
@@ -453,7 +452,7 @@ def getFolderContent(config, folder):
     folder: the directory to read.
 
   Returns:
-    Html formated string or error message when fail.
+    Html formatted string or error message when fail.
   """
   r = ['<ul class="jqueryFileTree" style="display: none;">']
   try:
@@ -492,7 +491,7 @@ def getFolder(config, folder):
     folder: the directory to read.
 
   Returns:
-    Html formated string or error message when fail.
+    Html formatted string or error message when fail.
   """
   r = ['<ul class="jqueryFileTree" style="display: none;">']
   try:
@@ -687,7 +686,7 @@ def readFileFrom(f, lastPosition, limit=20000):
   """
   Returns the last lines of file `f`, from position lastPosition.
   and the last position
-  limit = max number of caracter to read
+  limit = max number of characters to read
   """
   BUFSIZ = 1024
   f.seek(0, 2)
@@ -738,6 +737,7 @@ def isText(file):
 
 def md5sum(file):
   """Compute md5sum of `file` and return hexdigest value"""
+  # XXX-Marco: returning object or False boolean is an anti-pattern. better to return object or None
   if os.path.isdir(file):
     return False
   try:

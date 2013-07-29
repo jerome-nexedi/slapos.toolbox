@@ -201,19 +201,14 @@ def supervisordStatus():
   result = getSvcStatus(app.config)
   if not result:
     return jsonify(code=0, result="")
+  # XXX-Marco -> template
   html = "<tr><th>Partition and Process name</th><th>Status</th><th>Process PID </th><th> UpTime</th><th></th></tr>"
   for item in result:
     html += "<tr>"
-    html += "<td  class='first'><b><a href='" \
-        + url_for('tailProcess', process=item[0]) + "'>" \
-        + item[0] + "</a></b></td>"
-    html += "<td align='center'><a href='" \
-        + url_for('startStopProccess', process=item[0], action=item[1]) \
-        + "'>" + item[1] + "</a></td>"
+    html += "<td  class='first'><b><a href='" + url_for('tailProcess', process=item[0]) + "'>" + item[0] + "</a></b></td>"
+    html += "<td align='center'><a href='" + url_for('startStopProccess', process=item[0], action=item[1]) + "'>" + item[1] + "</a></td>"
     html += "<td align='center'>" + item[3] + "</td><td>" + item[5] + "</td>"
-    html += "<td align='center'><a href='" \
-        + url_for('startStopProccess', process=item[0], action='RESTART') \
-        + "'>Restart</a></td>"
+    html += "<td align='center'><a href='" + url_for('startStopProccess', process=item[0], action='RESTART') + "'>Restart</a></td>"
     html += "</tr>"
   return jsonify(code=1, result=html)
 
