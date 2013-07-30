@@ -67,6 +67,8 @@ def main():
     sys.stderr.write('%s\n' % command_stderr)
     sys.exit(1)
 
+  print 'Fetching %s feed...' % args.feed_url[0]
+
   feed = urllib2.urlopen(args.feed_url[0])
   body = feed.read()
 
