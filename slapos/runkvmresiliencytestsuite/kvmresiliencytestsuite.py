@@ -31,24 +31,14 @@ from slapos.recipe.addresiliency.takeover import takeover
 
 import slapos.slap
 
+import logging
 import argparse
 import random
 import string
 import time
 import urllib
 
-def parseArguments():
-  parser = argparse.ArgumentParser()
-  parser.add_argument('--server-url', type=str)
-  parser.add_argument('--key-file', type=str)
-  parser.add_argument('--cert-file', type=str)
-  parser.add_argument('--computer-id', type=str)
-  parser.add_argument('--partition-id', type=str)
-  parser.add_argument('--software', type=str)
-  parser.add_argument('--namebase', type=str)
-  parser.add_argument('--kvm-rootinstance-name', type=str)
-  args = parser.parse_args()
-  return args
+logger = logging.getLogger('KVMResiliencyTest')
 
 def fetchMainInstanceIP(current_partition, software_release, instance_name):
   return current_partition.request(
@@ -74,57 +64,54 @@ def fetchKey(ip):
   """
   return urllib.urlopen('http://%s:10080/get' % ip).read().strip()
 
-def main():
+def runTestCase(server_url, key_file, cert_file,
+                computer_id, partition_id, software,
+                namebase, kvm_rootinstance_name):
   """
   Run KVM Resiliency Test.
   Requires a specific KVM environment (virtual hard drive), see KVM SR for more
   informations.
   """
-  # XXX-Cedric: add erp5 scalabilitytest so that we can receive/send informations
-
-  arguments = parseArguments()
-
   slap = slapos.slap.slap()
-  slap.initializeConnection(arguments.server_url, arguments.key_file, arguments.cert_file)
+  slap.initializeConnection(server_url, key_file, cert_file)
   partition = slap.registerComputerPartition(
-      computer_guid=arguments.computer_id,
-      partition_id=arguments.partition_id
+      computer_guid=computer_id,
+      partition_id=partition_id
   )
 
-  ip = fetchMainInstanceIP(partition, arguments.software, arguments.kvm_rootinstance_name)
-  print('KVM IP is %s.' % ip)
+  ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
+  logger.info('KVM IP is %s.' % ip)
 
   key = setRandomKey(ip)
-  print('Key set for test in current KVM: %s.' % key)
+  logger.info('Key set for test in current KVM: %s.' % key)
 
   # Wait for XX minutes so that replication is done
   sleep_time = 60 * 15#2 * 60 * 60
-  print('Sleeping for %s seconds.' % sleep_time)
+  logger.info('Sleeping for %s seconds.' % sleep_time)
   time.sleep(sleep_time)
 
   # Make the clone instance takeover the main instance
-  print('Replacing main instance by clone instance...')
+  logger.info('Replacing main instance by clone instance...')
   takeover(
-      server_url=arguments.server_url,
-      key_file=arguments.key_file,
-      cert_file=arguments.cert_file,
-      computer_guid=arguments.computer_id,
-      partition_id=arguments.partition_id,
-      software_release=arguments.software,
-      namebase=arguments.namebase,
+      server_url=server_url,
+      key_file=key_file,
+      cert_file=cert_file,
+      computer_guid=computer_id,
+      partition_id=partition_id,
+      software_release=software,
+      namebase=namebase,
       winner_instance_suffix='1', # XXX: hardcoded value.
   )
-  print('Done.')
+  logger.info('Done.')
 
   # Wait for the new IP (of old-clone new-main instance) to appear.
-  print('Waiting for new main instance to be ready...')
+  logger.info('Waiting for new main instance to be ready...')
   new_ip = None
   while not new_ip or new_ip == 'None' or  new_ip == ip:
-    print ip
-    print('Not ready yet. New IP is %s' % new_ip)
+    logger.info('Not ready yet. New IP is %s' % new_ip)
     time.sleep(60)
-    new_ip = fetchMainInstanceIP(partition, arguments.software, arguments.kvm_rootinstance_name)
-  print('New IP of instance is %s' % new_ip)
+    new_ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
+  logger.info('New IP of instance is %s' % new_ip)
 
   new_key = None
   for i in range(0, 10):
@@ -132,17 +119,43 @@ def main():
       new_key = fetchKey(new_ip)
       break
     except IOError:
-      print('Server in new KVM does not answer.')
+      logger.error('Server in new KVM does not answer.')
       time.sleep(60)
 
   if not new_key:
     raise Exception('Server in new KVM does not answer for too long.')
 
-  print('Key on this new instance is %s' % new_key)
+  logger.info('Key on this new instance is %s' % new_key)
 
   # Compare with original key. If same: success.
+  # XXX TODO
   if new_key == key:
-    print('Success')
+    logger.info('Success')
+    return True
   else:
-    print('Failure')
+    logger.error('Failure')
+    return False
+
+# Used if launched as standalone script
+def parseArguments():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--server-url', type=str)
+  parser.add_argument('--key-file', type=str)
+  parser.add_argument('--cert-file', type=str)
+  parser.add_argument('--computer-id', type=str)
+  parser.add_argument('--partition-id', type=str)
+  parser.add_argument('--software', type=str)
+  parser.add_argument('--namebase', type=str)
+  parser.add_argument('--kvm-rootinstance-name', type=str)
+  args = parser.parse_args()
+  return args
+
+def main():
+  arguments = parseArguments()
+  runTestCase(arguments.server_url, arguments.key_file, arguments.cert_file,
+              arguments.computer_id, arguments.partition_id, arguments.software,
+              arguments.namebase, arguments.kvm_rootinstance_name)
+
+if __name__ == '__main__':
+  main()
 
