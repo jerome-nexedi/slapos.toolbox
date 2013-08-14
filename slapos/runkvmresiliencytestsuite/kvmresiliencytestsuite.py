@@ -51,10 +51,19 @@ def setRandomKey(ip):
   Set a random key that will be stored inside of the virtual hard drive.
   """
   random_key = ''.join(random.SystemRandom().sample(string.ascii_lowercase, 20))
-  connection = urllib.urlopen('http://%s:10080/set?key=%s' % (ip, random_key))
-  if connection.getcode() is not 200:
-    raise Exception('Bad return code when setting key in main instance.')
+  for i in range(0, 60):
+    connection = urllib.urlopen('http://%s:10080/set?key=%s' % (ip, random_key))
+    if connection.getcode() is 200:
+      break
+    else:
+      logger.info('Impossible to connect to virtual machine to set key. sleeping...')
+      time.sleep(60)
+
+    if i is 59:
+      raise Exception('Bad return code when setting key in main instance, after trying for 60 minutes.')
+  
   return random_key
+
 
 def fetchKey(ip):
   """
@@ -62,7 +71,19 @@ def fetchKey(ip):
   If doesn't exist (503), fail. If other error: retry after a few minutes,
   fail after XX (2?) hours.
   """
-  return urllib.urlopen('http://%s:10080/get' % ip).read().strip()
+  new_key = None
+  for i in range(0, 10):
+    try:
+      new_key = urllib.urlopen('http://%s:10080/get' % ip).read().strip()
+      break
+    except IOError:
+      logger.error('Server in new KVM does not answer.')
+      time.sleep(60)
+
+  if not new_key:
+    raise Exception('Server in new KVM does not answer for too long.')
+
+  return new_key
 
 def runTestCase(server_url, key_file, cert_file,
                 computer_id, partition_id, software,
@@ -108,23 +129,12 @@ def runTestCase(server_url, key_file, cert_file,
   logger.info('Waiting for new main instance to be ready...')
   new_ip = None
   while not new_ip or new_ip == 'None' or  new_ip == ip:
-    logger.info('Not ready yet. New IP is %s' % new_ip)
+    logger.info('Not ready yet. SlapOS says main IP is %s' % new_ip)
     time.sleep(60)
     new_ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
   logger.info('New IP of instance is %s' % new_ip)
 
-  new_key = None
-  for i in range(0, 10):
-    try:
-      new_key = fetchKey(new_ip)
-      break
-    except IOError:
-      logger.error('Server in new KVM does not answer.')
-      time.sleep(60)
-
-  if not new_key:
-    raise Exception('Server in new KVM does not answer for too long.')
-
+  new_key = fetchKey(new_ip)
   logger.info('Key on this new instance is %s' % new_key)
 
   # Compare with original key. If same: success.
