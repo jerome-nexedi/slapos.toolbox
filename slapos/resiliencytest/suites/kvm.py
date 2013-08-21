@@ -85,9 +85,9 @@ def fetchKey(ip):
 
   return new_key
 
-def runTestCase(server_url, key_file, cert_file,
-                computer_id, partition_id, software,
-                namebase, kvm_rootinstance_name):
+def runTestSuite(server_url, key_file, cert_file,
+                 computer_id, partition_id, software,
+                 namebase, kvm_rootinstance_name):
   """
   Run KVM Resiliency Test.
   Requires a specific KVM environment (virtual hard drive), see KVM SR for more
