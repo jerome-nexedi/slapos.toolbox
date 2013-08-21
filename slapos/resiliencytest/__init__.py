@@ -28,6 +28,7 @@
 
 import argparse
 import json
+import importlib
 import logging
 import os
 import sys
@@ -36,13 +37,20 @@ import traceback
 from erp5.util import taskdistribution
 from erp5.util.testnode import Utils
 
-from . import kvmresiliencytestsuite
-
 MAX_INSTALLATION_TIME = 60 * 50
 MAX_TESTING_TIME = 60
 MAX_GETTING_CONNECTION_TIME = 60 * 5
 
+def importFrom(name):
+  """
+  Import a test suite module (in the suites module) and return it.
+  """
+  return importlib.import_module('.suites.%s' % name, package=__name__)
+
 def parseArguments():
+  """
+  Parse arguments.
+  """
   parser = argparse.ArgumentParser()
   parser.add_argument('--test-result-path',
                       metavar='ERP5_TEST_RESULT_PATH',
@@ -69,14 +77,7 @@ def parseArguments():
                       metavar='LOG_PATH',
                       help='Log Path')
 
-  parser.add_argument('--server-url', type=str)
-  parser.add_argument('--key-file', type=str)
-  parser.add_argument('--cert-file', type=str)
-  parser.add_argument('--computer-id', type=str)
-  parser.add_argument('--partition-id', type=str)
-  parser.add_argument('--software', type=str)
-  parser.add_argument('--namebase', type=str)
-  parser.add_argument('--kvm-rootinstance-name', type=str)
+  parser.add_argument('additional_arguments', nargs=argparse.REMAINDER)
 
   return parser.parse_args()
 
@@ -130,6 +131,19 @@ class ScalabilityLauncher(object):
     next_test = ScalabilityTest(decoded_data, self.test_result)
     return next_test
 
+  def runCurrentTestSuite(self):
+    try:
+      # Generate the additional arguments that were given using the syntax
+      # additionalargument1=value1 additionalargument2=value2
+      additional_arguments = dict(key.split('=') for key in self._argumentNamespace.additional_arguments)
+      test_suite_module = importFrom(self._argumentNamespace.test_suite)
+      success = test_suite_module.runTestSuite(**additional_arguments)
+    except:
+      self.log('Impossible to run resiliency test:')
+      self.log(traceback.print_exc())
+      success = False
+    return success
+
   def run(self):
     self.log('Resiliency Launcher started, with:')
     self.log('Test suite master url: %s' % self._argumentNamespace.test_suite_master_url)
@@ -158,23 +172,7 @@ class ScalabilityLauncher(object):
                                   current_test.title
                                 )
 
-
-        try:
-          # XXX: How to be generic? Here, we just call the kvm resiliency test. Period.
-          success = kvmresiliencytestsuite.runTestCase(
-              server_url=self._argumentNamespace.server_url,
-              key_file=self._argumentNamespace.key_file,
-              cert_file=self._argumentNamespace.cert_file,
-              computer_id=self._argumentNamespace.computer_id,
-              partition_id=self._argumentNamespace.partition_id,
-              software=self._argumentNamespace.software,
-              namebase=self._argumentNamespace.namebase,
-              kvm_rootinstance_name=self._argumentNamespace.kvm_rootinstance_name,
-          )
-        except:
-          self.log('Impossible to run resiliency test:')
-          self.log(traceback.print_exc())
-          success = False
+        success = self.runCurrentTestSuite()
 
         if success:
           error_count = 0
@@ -190,7 +188,7 @@ class ScalabilityLauncher(object):
 
     return error_message_set, exit_status
 
-def main():
+def runResiliencyTest():
   error_message_set, exit_status = ScalabilityLauncher().run()
   for error_message in error_message_set:
     print >>sys.stderr, 'ERROR: %s' % error_message
