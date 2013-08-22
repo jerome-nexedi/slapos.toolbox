@@ -32,7 +32,6 @@ from slapos.recipe.addresiliency.takeover import takeover
 import slapos.slap
 
 import logging
-import argparse
 import random
 import string
 import time
@@ -45,6 +44,7 @@ def fetchMainInstanceIP(current_partition, software_release, instance_name):
       software_release=software_release,
       software_type='kvm-resilient',
       partition_reference=instance_name).getConnectionParameter('ipv6')
+
 
 def setRandomKey(ip):
   """
@@ -85,9 +85,12 @@ def fetchKey(ip):
 
   return new_key
 
+
 def runTestSuite(server_url, key_file, cert_file,
                  computer_id, partition_id, software,
-                 namebase, kvm_rootinstance_name):
+                 namebase, kvm_rootinstance_name,
+                 # Number of instances: main instance (exporter) + clones (importer).
+                 total_instance_count="3"):
   """
   Run KVM Resiliency Test.
   Requires a specific KVM environment (virtual hard drive), see KVM SR for more
@@ -106,66 +109,58 @@ def runTestSuite(server_url, key_file, cert_file,
   key = setRandomKey(ip)
   logger.info('Key set for test in current KVM: %s.' % key)
 
-  # Wait for XX minutes so that replication is done
-  sleep_time = 60 * 15#2 * 60 * 60
-  logger.info('Sleeping for %s seconds.' % sleep_time)
-  time.sleep(sleep_time)
+  # In resilient stack, main instance (example with KVM) is named "kvm0",
+  # clones are named "kvm1", "kvm2", ...
+  clone_count = int(total_instance_count) - 1
+  # So first clone starts from 1.
+  current_clone = 1
 
-  # Make the clone instance takeover the main instance
-  logger.info('Replacing main instance by clone instance...')
-  takeover(
-      server_url=server_url,
-      key_file=key_file,
-      cert_file=cert_file,
-      computer_guid=computer_id,
-      partition_id=partition_id,
-      software_release=software,
-      namebase=namebase,
-      winner_instance_suffix='1', # XXX: hardcoded value.
-  )
-  logger.info('Done.')
+  # Test each clone
+  while current_clone <= clone_count:
+    logger.info('Testing kvm%s.' % current_clone)
+    # Wait for XX minutes so that replication is done
+    sleep_time = 60 * 15#2 * 60 * 60
+    logger.info('Sleeping for %s seconds.' % sleep_time)
+    time.sleep(sleep_time)
 
-  # Wait for the new IP (of old-clone new-main instance) to appear.
-  logger.info('Waiting for new main instance to be ready...')
-  new_ip = None
-  while not new_ip or new_ip == 'None' or  new_ip == ip:
-    logger.info('Not ready yet. SlapOS says main IP is %s' % new_ip)
-    time.sleep(60)
-    new_ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
-  logger.info('New IP of instance is %s' % new_ip)
+    # Make the clone instance takeover the main instance
+    logger.info('Replacing main instance by clone instance...')
+    takeover(
+        server_url=server_url,
+        key_file=key_file,
+        cert_file=cert_file,
+        computer_guid=computer_id,
+        partition_id=partition_id,
+        software_release=software,
+        namebase=namebase,
+        winner_instance_suffix=str(current_clone),
+    )
+    logger.info('Done.')
 
-  new_key = fetchKey(new_ip)
-  logger.info('Key on this new instance is %s' % new_key)
+    # Wait for the new IP (of old-clone new-main instance) to appear.
+    logger.info('Waiting for new main instance to be ready...')
+    new_ip = None
+    while not new_ip or new_ip == 'None' or  new_ip == ip:
+      logger.info('Not ready yet. SlapOS says main IP is %s' % new_ip)
+      time.sleep(60)
+      new_ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
+    logger.info('New IP of instance is %s' % new_ip)
 
-  # Compare with original key. If same: success.
-  # XXX TODO
-  if new_key == key:
-    logger.info('Success')
-    return True
-  else:
-    logger.error('Failure')
-    return False
+    new_key = fetchKey(new_ip)
+    logger.info('Key on this new instance is %s' % new_key)
 
-# Used if launched as standalone script
-def parseArguments():
-  parser = argparse.ArgumentParser()
-  parser.add_argument('--server-url', type=str)
-  parser.add_argument('--key-file', type=str)
-  parser.add_argument('--cert-file', type=str)
-  parser.add_argument('--computer-id', type=str)
-  parser.add_argument('--partition-id', type=str)
-  parser.add_argument('--software', type=str)
-  parser.add_argument('--namebase', type=str)
-  parser.add_argument('--kvm-rootinstance-name', type=str)
-  args = parser.parse_args()
-  return args
+    # Compare with original key. If same: success.
+    if new_key == key:
+      logger.info('Success for clone %s.' % current_clone)
+    else:
+      logger.info('Failure for clone %s. Aborting.' % current_clone)
+      return False
 
-def main():
-  arguments = parseArguments()
-  runTestCase(arguments.server_url, arguments.key_file, arguments.cert_file,
-              arguments.computer_id, arguments.partition_id, arguments.software,
-              arguments.namebase, arguments.kvm_rootinstance_name)
+    # Setup "new old ip" for next clone, so that it will test it is different
+    # from current clone
+    ip = new_ip
 
-if __name__ == '__main__':
-  main()
+    current_clone = current_clone + 1
 
+  # All clones have been successfully tested: success.
+  return True
