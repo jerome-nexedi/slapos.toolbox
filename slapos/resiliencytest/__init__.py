@@ -81,27 +81,52 @@ def parseArguments():
 
   return parser.parse_args()
 
-def setupLogging(log_path, name=__name__):
+def setupLogging(log_path=None, name=__name__):
   logger_format = '%(asctime)s %(name)-13s: %(levelname)-8s %(message)s'
   formatter = logging.Formatter(logger_format)
   logging.basicConfig(level=logging.INFO,
                       format=logger_format)
   logger = logging.getLogger(name)
   logger.addHandler(logging.NullHandler())
-  file_handler = logging.handlers.RotatingFileHandler(
-      filename=log_path,
-      maxBytes=20000000, backupCount=4)
-  file_handler.setFormatter(formatter)
-  logger.addHandler(file_handler)
+  if log_path:
+    file_handler = logging.handlers.RotatingFileHandler(
+        filename=log_path,
+        maxBytes=20000000, backupCount=4)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
   return logger
 
+def runTestSuite(test_suite_title, test_suite_arguments, log):
+  """
+  Run a specified test suite, by dynamically loading the module and calling
+  its "runTestSuite" method.
+  """
+  try:
+    # Generate the additional arguments that were given using the syntax
+    # additionalargument1=value1 additionalargument2=value2
+    parsed_arguments = dict(key.split('=') for key in test_suite_arguments)
+    test_suite_module = importFrom(test_suite_title)
+    success = test_suite_module.runTestSuite(**parsed_arguments)
+  except:
+    log('Impossible to run resiliency test:')
+    log(traceback.print_exc())
+    success = False
+  return success
+
 class ScalabilityTest(object):
+  """
+  Simple structure carrying test data.
+  """
   def __init__(self, data, test_result):
     self.__dict__ = {}
     self.__dict__.update(data)
     self.test_result = test_result
 
 class ScalabilityLauncher(object):
+  """
+  Core part of the code, responsible of speaking with the ERP5 testnode Master
+  and running tests.
+  """
   def __init__(self):
     self._argumentNamespace = parseArguments()
     log_path = os.path.join(self._argumentNamespace.log_path,
@@ -123,26 +148,13 @@ class ScalabilityLauncher(object):
     or None if no test_case ready
     """
     data = self.test_result.getNextTestCase()
-    if data == None :
+    if data == None:
       return None
     decoded_data = Utils.deunicodeData(json.loads(
                   data
                 ))
     next_test = ScalabilityTest(decoded_data, self.test_result)
     return next_test
-
-  def runCurrentTestSuite(self):
-    try:
-      # Generate the additional arguments that were given using the syntax
-      # additionalargument1=value1 additionalargument2=value2
-      additional_arguments = dict(key.split('=') for key in self._argumentNamespace.additional_arguments)
-      test_suite_module = importFrom(self._argumentNamespace.test_suite)
-      success = test_suite_module.runTestSuite(**additional_arguments)
-    except:
-      self.log('Impossible to run resiliency test:')
-      self.log(traceback.print_exc())
-      success = False
-    return success
 
   def run(self):
     self.log('Resiliency Launcher started, with:')
@@ -172,7 +184,11 @@ class ScalabilityLauncher(object):
                                   current_test.title
                                 )
 
-        success = self.runCurrentTestSuite()
+        success = runTestSuite(
+            self._argumentNamespace.test_suite,
+            self._argumentNamespace.additional_arguments,
+            self.log,
+        )
 
         if success:
           error_count = 0
@@ -189,8 +205,28 @@ class ScalabilityLauncher(object):
     return error_message_set, exit_status
 
 def runResiliencyTest():
+  """
+  Used for automated test suite run from "Scalability" Test Node infrastructure.
+  It means the instance running this code should have been deployed by a
+  "Scalability" Testnode.
+  """
   error_message_set, exit_status = ScalabilityLauncher().run()
   for error_message in error_message_set:
     print >>sys.stderr, 'ERROR: %s' % error_message
 
   sys.exit(exit_status)
+
+def runStandaloneResiliencyTest():
+  """
+  Used to bypass the Test Node infrastructure and manually run a test.
+  Useful for running the test without any infrastructure.
+  """
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--test-suite-title')
+  parser.add_argument('additional_arguments', nargs=argparse.REMAINDER)
+  arguments = parser.parse_args()
+  runTestSuite(
+      arguments.test_suite_title,
+      arguments.additional_arguments,
+      setupLogging().info
+  )
