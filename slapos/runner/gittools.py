@@ -24,7 +24,7 @@ def cloneRepo(data):
   workDir = data['path']
   if not workDir:
     return jsonify(code=0,
-                   result="Can not create project folder: Permission Denied")
+                   result="Can not create project folder.")
   code = 0
   json = ""
   try:
