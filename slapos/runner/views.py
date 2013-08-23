@@ -703,7 +703,7 @@ app.add_url_rule('/editSoftwareProfile', 'editSoftwareProfile',
 app.add_url_rule('/inspectSoftware', 'inspectSoftware', inspectSoftware)
 app.add_url_rule('/removeSoftware', 'removeSoftware', removeSoftware)
 app.add_url_rule('/runSoftwareProfile', 'runSoftwareProfile',
-                 runSoftwareProfile, methods=['POST'])
+                 runSoftwareProfile, methods=['GET', 'POST'])
 app.add_url_rule('/viewSoftwareLog', 'viewSoftwareLog',
                  viewSoftwareLog, methods=['GET'])
 app.add_url_rule('/editInstanceProfile', 'editInstanceProfile',
@@ -713,7 +713,7 @@ app.add_url_rule('/inspectInstance', 'inspectInstance',
 app.add_url_rule('/supervisordStatus', 'supervisordStatus',
                  supervisordStatus, methods=['GET'])
 app.add_url_rule('/runInstanceProfile', 'runInstanceProfile',
-                 runInstanceProfile, methods=['POST'])
+                 runInstanceProfile, methods=['GET', 'POST'])
 app.add_url_rule('/removeInstance', 'removeInstance', removeInstance)
 app.add_url_rule('/viewInstanceLog', 'viewInstanceLog',
                  viewInstanceLog, methods=['GET'])
