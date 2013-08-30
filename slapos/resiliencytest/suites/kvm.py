@@ -26,6 +26,9 @@
 #
 ##############################################################################
 
+# XXX: This module should use the resiliencytestsuite helper module to factor all code,
+#      like slaprunner test suite does.
+
 # XXX: takeover module should be in slapos.toolbox, not in slapos.cookbook
 from slapos.recipe.addresiliency.takeover import takeover
 
@@ -95,6 +98,39 @@ def runTestSuite(server_url, key_file, cert_file,
   Run KVM Resiliency Test.
   Requires a specific KVM environment (virtual hard drive), see KVM SR for more
   informations.
+
+  Scenario:
+  1/ Boot from a custom image
+  2/ The VM from the main instance starts a simple get/set server. It will receive a random number sent from the resiliency test. The VM will store this number, and the test suite will store the number as well.
+  3/ Resilience is done, wait XX seconds
+  4/ For each clone: do a takeover. Check that IPv6 of new main instance is different. Check, when doing a http request to the new VM that will fetch the stored random number, that the sent number is the same.
+
+  Note: disk image is a simple debian with the following python code running at boot:
+
+  import os
+  
+  from flask import Flask, abort, request
+  app = Flask(__name__)
+  
+  storage = 'storage.txt'
+  
+  @app.route("/")
+  def greeting_list(): # 'cause they are several greetings, and plural is forbidden.
+    return "Hello World"
+  
+  @app.route("/get")
+  def get():
+    return open(storage, 'r').read()
+  
+  @app.route("/set")
+  def set():
+    if os.path.exists(storage):
+      abort(503)
+    open(storage, 'w').write(request.args['key'])
+    return "OK"
+  
+  if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=80)
   """
   slap = slapos.slap.slap()
   slap.initializeConnection(server_url, key_file, cert_file)
