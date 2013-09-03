@@ -12,10 +12,6 @@ $(document).ready(function () {
             $("#error").Popup("Invalid user name. Please check it!", {type: 'alert', duration: 3000});
             return false;
         }
-        if ($("input#username").val().length < 6) {
-            $("#error").Popup("Username must have at least 6 characters", {type: 'alert', duration: 3000});
-            return false;
-        }
         if ($("input#name").val() === "") {
             $("#error").Popup("Please enter your name and surname!", {type: 'alert', duration: 3000});
             return false;
@@ -26,10 +22,6 @@ $(document).ready(function () {
         }
         if (!hasAccount && !$("input#password").val()) {
             $("#error").Popup("Please enter your new password!", {type: 'alert', duration: 3000});
-            return false;
-        }
-        if ($("input#password").val() !== "" && $("input#password").val().length < 6) {
-            $("#error").Popup("The password must have at least 6 characters", {type: 'alert', duration: 3000});
             return false;
         }
         if ($("input#password").val() !== "") {
