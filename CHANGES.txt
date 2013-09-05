@@ -1,3 +1,13 @@
+0.36.1 (2013-09-05)
+===================
+
+ * Add resiliency test system.
+ * Add kvm resiliency test suite.
+ * Add slaprunner resiliency test suite.
+ * slaprunner: don't tell user false assumptions [71dc4a08e].
+ * slaprunner: allow profile/instance to be run by GET [4b454814a].
+ * slaprunner: remove boring username/password length check [fcce0336c].
+
 0.35.1 (2013-08-05)
 ===================
 
