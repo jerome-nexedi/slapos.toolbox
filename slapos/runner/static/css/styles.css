@@ -297,6 +297,10 @@ input[type="radio"], input[type="checkbox"]{
 	margin-bottom:10px;
 }
 
+#commitmsg {
+	width:95%;
+}
+
 .message {
 	color:#FF5500;
 	line-height:21px;

@@ -44,7 +44,8 @@
 	<h2>Commit All your changes (On active branch)</h2>
 	<div style="margin-left:15px;">
 	<label for='commitmsg'>Commit message: </label>
-	<input type="text" name="commitmsg" id="commitmsg" size='40' value="Enter message..." />
+	<textarea name="commitmsg" id="commitmsg" cols="40" rows="3">
+	</textarea>
 	<input type="submit" name="commit" id ="commit" value="Commit" class="button"/>
 	<img class="waitting" id="imgwaitting" src="{{ url_for('static', filename='images/waiting.gif') }}" alt="" />
 	</div>

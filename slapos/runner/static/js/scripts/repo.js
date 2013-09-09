@@ -167,7 +167,7 @@ $(document).ready(function () {
         $.ajax({
             type: "POST",
 	    url: $SCRIPT_ROOT + '/pushProjectFiles',
-	    data: {project: $("input#workdir").val() + "/" + project};
+	    data: {project: $("input#workdir").val() + "/" + project},
 	    success: function(data) {
 	        if (data.code === 1) {
 	            if (data.result !== "") {
@@ -184,7 +184,7 @@ $(document).ready(function () {
 	    }
         }); 
 	return false;
-    )};
+    });
     /*
     $("#pullbranch").click(function (){
       if (send){
