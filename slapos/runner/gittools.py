@@ -145,7 +145,10 @@ def gitPush(project):
     msg: commit message"""
   code = 0
   json = ""
+  import pdb;pdb.set_trace()
+  repo = Repo(project)
   try:
+    git = repo.git
     #push changes to repo
     current_branch = repo.active_branch.name
     git.push('origin', current_branch)
