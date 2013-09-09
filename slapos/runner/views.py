@@ -28,7 +28,7 @@ from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getFolder,
 
 from slapos.runner.fileBrowser import FileBrowser
 from slapos.runner.gittools import (cloneRepo, gitStatus, switchBranch,
-                                    addBranch, getDiff, gitPush, gitPull)
+                                    addBranch, getDiff, gitCommit, gitPush, gitPull)
 
 
 app = Flask(__name__)
@@ -389,12 +389,20 @@ def getProjectDiff(project):
   path = os.path.join(app.config['workspace'], project)
   return render_template('projectDiff.html', project=project,
                            diff=getDiff(path))
+@login_required()
+def commitProjectFiles():
+  #import pdb; pdb.set_trace()
+  path = realpath(app.config, request.form['project'])
+  if path:
+    return gitCommit(path, request.form['msg'])
+  else:
+    return jsonify(code=0, result="Can not read folder: Permission Denied")
 
 @login_required()
 def pushProjectFiles():
   path = realpath(app.config, request.form['project'])
   if path:
-    return gitPush(path, request.form['msg'])
+    return gitPush(path)
   else:
     return jsonify(code=0, result="Can not read folder: Permission Denied")
 
@@ -672,6 +680,8 @@ app.add_url_rule("/getmd5sum", 'getmd5sum', getmd5sum, methods=['POST'])
 app.add_url_rule("/checkFileType", 'checkFileType', checkFileType,
                  methods=['POST'])
 app.add_url_rule("/pullProjectFiles", 'pullProjectFiles', pullProjectFiles,
+                 methods=['POST'])
+app.add_url_rule("/commitProjectFiles", 'commitProjectFiles', commitProjectFiles,
                  methods=['POST'])
 app.add_url_rule("/pushProjectFiles", 'pushProjectFiles', pushProjectFiles,
                  methods=['POST'])

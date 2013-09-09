@@ -117,35 +117,40 @@ def getDiff(project):
     result = safeResult(str(e))
   return result
 
-def gitPush(project, msg):
-  """Commit and Push changes for the specified repository
+def gitCommit(project, msg):
+  """Commit changes for the specified repository
   Args:
     project: directory of the local repository
     msg: commit message"""
   code = 0
   json = ""
-  undo_commit = False
+  repo = Repo(project)
+  if repo.is_dirty:
+    git = repo.git
+    #add file to be commited
+    files = repo.untracked_files
+    for f in files:
+      git.add(f)
+    #Commit all modified and untracked files
+    git.commit('-a', '-m', msg)
+  else:
+    code = 1
+    json = "Nothing to be commited"
+  return jsonify(code=code, result=json)
+
+def gitPush(project):
+  """Push changes for the specified repository
+  Args:
+    project: directory of the local repository
+    msg: commit message"""
+  code = 0
+  json = ""
   try:
-    repo = Repo(project)
-    if repo.is_dirty:
-      git = repo.git
-      current_branch = repo.active_branch.name
-      #add file to be commited
-      files = repo.untracked_files
-      for f in files:
-        git.add(f)
-      #Commit all modified and untracked files
-      git.commit('-a', '-m', msg)
-      undo_commit = True
-      #push changes to repo
-      git.push('origin', current_branch)
-      code = 1
-    else:
-      json = "Nothing to be commited"
-      code = 1
+    #push changes to repo
+    current_branch = repo.active_branch.name
+    git.push('origin', current_branch)
+    code = 1
   except Exception as e:
-    if undo_commit:
-      git.reset("HEAD~") #undo previous commit
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
 

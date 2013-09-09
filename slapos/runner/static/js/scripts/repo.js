@@ -23,6 +23,7 @@ $(document).ready(function () {
             urldata = $("input#workdir").val() + "/" + project;
 
         $("#status").empty();
+	$("#commit").hide();
         $("#push").hide();
         $("#flash").empty();
         if (project === "") {
@@ -45,7 +46,8 @@ $(document).ready(function () {
                     //alert(message);
                     $("#status").append("<p>" + message + "</p>");
                     if (data.dirty) {
-                        $("#push").show();
+                        $("#commit").show();
+			$("#push").show();
                         $("#status").append("<br/><h2>Display Diff for current Project</h2>");
                         $("#status").append("<p style='font-size:15px;'>You have changes in your project." +
                             " <a href='" + $SCRIPT_ROOT + "/getProjectDiff/"
@@ -131,11 +133,11 @@ $(document).ready(function () {
         send = true;
         var project = $("#project").val();
         $("#imgwaitting").fadeIn('normal');
-        $("#commit").empty();
+        //$("#commit").empty();
         $("#commit").attr("value", "Wait...");
         $.ajax({
             type: "POST",
-            url: $SCRIPT_ROOT + '/pushProjectFiles',
+            url: $SCRIPT_ROOT + '/commitProjectFiles',
             data: {project: $("input#workdir").val() + "/" + project, msg: $("input#commitmsg").val()},
             success: function (data) {
                 if (data.code === 1) {
@@ -156,7 +158,33 @@ $(document).ready(function () {
         });
         return false;
     });
-
+    $("#push").click(function() {
+        if (send) {
+            return false;
+        }
+        send = true;
+        var project = $("#project").val();
+        $.ajax({
+            type: "POST",
+	    url: $SCRIPT_ROOT + '/pushProjectFiles',
+	    data: {project: $("input#workdir").val() + "/" + project};
+	    success: function(data) {
+	        if (data.code === 1) {
+	            if (data.result !== "") {
+                        $("#error").Popup(data.result, {type: 'error', duration: 5000});
+                    } else {
+                        $("#error").Popup("The local commits have correctly been saved on the server", {type: 'confirm', duration: 3000});
+                    }
+                    gitStatus();
+                } else {
+                    $("#error").Popup(data.result, {type: 'error'});
+                }
+		$("#push").hide();
+		send = false;
+	    }
+        }); 
+	return false;
+    )};
     /*
     $("#pullbranch").click(function (){
       if (send){
