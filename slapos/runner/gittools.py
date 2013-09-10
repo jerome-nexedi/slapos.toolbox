@@ -122,7 +122,7 @@ def gitCommit(project, msg):
   Args:
     project: directory of the local repository
     msg: commit message"""
-  code = 0
+  code = 1
   json = ""
   repo = Repo(project)
   if repo.is_dirty:
@@ -134,7 +134,6 @@ def gitCommit(project, msg):
     #Commit all modified and untracked files
     git.commit('-a', '-m', msg)
   else:
-    code = 1
     json = "Nothing to be commited"
   return jsonify(code=code, result=json)
 
@@ -145,7 +144,6 @@ def gitPush(project):
     msg: commit message"""
   code = 0
   json = ""
-  import pdb;pdb.set_trace()
   repo = Repo(project)
   try:
     git = repo.git

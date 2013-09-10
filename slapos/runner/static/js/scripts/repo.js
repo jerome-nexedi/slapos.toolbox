@@ -2,6 +2,13 @@
 /*global $, document, $SCRIPT_ROOT */
 /* vim: set et sts=4: */
 
+$.valHooks.textarea = {
+    get: function (elem) {
+        "use strict";
+        return elem.value.replace(/\r?\n/g, "\r\n");
+    }
+};
+
 $(document).ready(function () {
     "use strict";
 
@@ -24,7 +31,6 @@ $(document).ready(function () {
 
         $("#status").empty();
 	$("#commit").hide();
-        $("#push").hide();
         $("#flash").empty();
         if (project === "") {
             $("#status").append("<h2>Please select one project...</h2><br/><br/>");
@@ -47,7 +53,6 @@ $(document).ready(function () {
                     $("#status").append("<p>" + message + "</p>");
                     if (data.dirty) {
                         $("#commit").show();
-			$("#push").show();
                         $("#status").append("<br/><h2>Display Diff for current Project</h2>");
                         $("#status").append("<p style='font-size:15px;'>You have changes in your project." +
                             " <a href='" + $SCRIPT_ROOT + "/getProjectDiff/"
@@ -121,9 +126,9 @@ $(document).ready(function () {
         checkout("0");
         return false;
     });
-    $("#commit").click(function () {
+    $("#commitb").click(function () {
         if ($("input#commitmsg").val() === "" ||
-                $("input#commitmsg").val() === "Enter message...") {
+                $("textarea#commitmsg").val() === "Enter message...") {
             $("#error").Popup("Please Enter the commit message", {type: 'alert', duration: 3000});
             return false;
         }
@@ -134,11 +139,11 @@ $(document).ready(function () {
         var project = $("#project").val();
         $("#imgwaitting").fadeIn('normal');
         //$("#commit").empty();
-        $("#commit").attr("value", "Wait...");
+        $("#commitb").attr("value", "Wait...");
         $.ajax({
             type: "POST",
             url: $SCRIPT_ROOT + '/commitProjectFiles',
-            data: {project: $("input#workdir").val() + "/" + project, msg: $("input#commitmsg").val()},
+            data: {project: $("input#workdir").val() + "/" + project, msg: $("textarea#commitmsg").val()},
             success: function (data) {
                 if (data.code === 1) {
                     if (data.result !== "") {
@@ -146,19 +151,20 @@ $(document).ready(function () {
                     } else {
                         $("#error").Popup("Commit done!", {type: 'confirm', duration: 3000});
                     }
+                    $("#commit").hide();
                     gitStatus();
                 } else {
                     $("#error").Popup(data.result, {type: 'error'});
                 }
                 $("#imgwaitting").hide();
-                $("#commit").empty();
-                $("#commit").attr("value", "Commit");
+                $("#commitmsg").empty();
+                $("#commitb").attr("value", "Commit");
                 send = false;
             }
         });
         return false;
     });
-    $("#push").click(function() {
+    $("#push").click(function () {
         if (send) {
             return false;
         }
@@ -168,7 +174,7 @@ $(document).ready(function () {
             type: "POST",
 	    url: $SCRIPT_ROOT + '/pushProjectFiles',
 	    data: {project: $("input#workdir").val() + "/" + project},
-	    success: function(data) {
+	    success: function (data) {
 	        if (data.code === 1) {
 	            if (data.result !== "") {
                         $("#error").Popup(data.result, {type: 'error', duration: 5000});
@@ -182,7 +188,7 @@ $(document).ready(function () {
 		$("#push").hide();
 		send = false;
 	    }
-        }); 
+        });
 	return false;
     });
     /*
