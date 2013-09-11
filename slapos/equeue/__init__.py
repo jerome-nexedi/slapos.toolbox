@@ -90,7 +90,7 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
             e.returncode,
             e.output,
         ))
-      self.db[command] = timestamp
+      self.db[command] = str(timestamp)
 
   def process_request_thread(self, request, client_address):
     # Handle request
