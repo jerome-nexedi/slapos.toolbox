@@ -115,7 +115,7 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
                               command)
         else:
           self.logger.info("%s finished successfully.", command)
-        self.db[command] = timestamp
+        self.db[command] = str(timestamp)
       else:
         self.logger.info("%s already runned.", command)
 
