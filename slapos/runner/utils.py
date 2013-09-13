@@ -809,13 +809,9 @@ def cloneDefaultGit(config):
   """Test if the slapos git has been downloaded yet
   If not, download it in read-only mode"""
   slap = os.path.join(config['runner_workdir'], 'project', 'slapos')
-  slap_ro = os.path.join(config['runner_workdir'], 'project', 'slapos-readonly')
-  if not os.path.exists(slap_ro) or not os.path.exists(slap_ro):
+  if not os.path.exists(slap):
     from gittools import cloneRepo
-    user = getSession(config)
-    data = {'path': slap_ro,
+    data = {'path': slap,
             'repo': 'http://git.erp5.org/repos/slapos.git',
-            'email': user[2],
-            'user': user[3],
     }
     cloneRepo(data)

@@ -150,9 +150,9 @@ def serve(config):
     os.mkdir(workdir)
   if not os.path.exists(software_link):
     os.mkdir(software_link)
-  cloneDefaultGit(app.config) 
   slapos.runner.process.setHandler()
   config.logger.info('Running slapgrid...')
+  cloneDefaultGit(app.config) 
   runInstanceWithLock(app.config)
   config.logger.info('Done.')
   app.wsgi_app = ProxyFix(app.wsgi_app)
