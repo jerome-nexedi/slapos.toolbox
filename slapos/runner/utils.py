@@ -803,3 +803,19 @@ def readParameters(path):
       return str(e)
   else:
     return "No such file or directory: %s" % path
+
+
+def cloneDefaultGit():
+  """Test if the slapos git has been downloaded yet
+  If not, download it in read-only mode"""
+  slap = os.path.join(config.runner_workdir, 'project', 'slapos')
+  slap_ro = os.path.join(config.runner_workdir, 'project', 'slapos-readonly')
+  if not os.path.exists(slap_ro) or not os.path.exists(slap_ro):
+    from gittools import cloneRepo
+    user = open(os.path.join(config.etc_dir, '.users')).read().split(';') 
+    data = {'path': slap_ro,
+            'repo': 'http://git.erp5.org/repos/slapos.git',
+            'email': user[2],
+            'user': user[3],
+    }
+    cloneRepo(data)

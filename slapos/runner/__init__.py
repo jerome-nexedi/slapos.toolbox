@@ -11,6 +11,7 @@ import os
 import slapos.runner.process
 import sys
 from slapos.runner.utils import runInstanceWithLock
+from utils import cloneDefaultgit
 
 
 class Parser(OptionParser):
@@ -120,6 +121,8 @@ def run():
         # avoid mistakes (mainly in development mode)
         raise Exception('Do not run SlapRunner as root.')
 
+    cloneDefaultgit()
+    
     serve(config)
     return_code = 0
   except SystemExit as err:
