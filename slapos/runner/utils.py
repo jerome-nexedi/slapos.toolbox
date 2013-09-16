@@ -15,6 +15,8 @@ from xml.dom import minidom
 import xml_marshaller
 from flask import jsonify
 
+from gittools import cloneRepo
+
 from slapos.runner.process import Popen, isRunning, killRunningProcess
 from slapos.htpasswd import HtpasswdFile
 import slapos.slap
@@ -806,13 +808,12 @@ def readParameters(path):
 
 
 def cloneDefaultGit(config):
-  """Test if the slapos git has been downloaded yet
+  """Test if the default git has been downloaded yet
   If not, download it in read-only mode"""
-  slap = os.path.join(config['runner_workdir'], 'project', 'slapos')
-  if not os.path.exists(slap):
-    from gittools import cloneRepo
-    data = {'path': slap,
-            'repo': 'http://git.erp5.org/repos/slapos.git',
+  default_git = os.path.join(config['runner_workdir'], 'project', 'default_repo')
+  if not os.path.exists(default_git):
+    data = {'path': default_git,
+            'repo': config['default_repo'],
     }
     cloneRepo(data)
 
