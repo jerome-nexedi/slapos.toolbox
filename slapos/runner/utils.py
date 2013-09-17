@@ -5,6 +5,7 @@
 import logging
 import md5
 import multiprocessing
+import thread
 import re
 import shutil
 import os
@@ -817,6 +818,10 @@ def cloneDefaultGit(config):
     }
     cloneRepo(data)
 
+def buildAndRun(config):
+  runSoftwareWithLock(config)
+  runInstanceWithLock(config)
+
 def setupDefaultSR(config):
   """If a default_sr is in the parameters,
   and no SR is deployed yet, setup it
@@ -825,5 +830,4 @@ def setupDefaultSR(config):
   if not os.path.exists(project) and config['default_sr'] != '':
     configNewSR(config, config['default_sr'])
   if config['auto_deploy']:
-    runSoftwareWithLock(config)
-    runInstanceWithLock(config)
+    thread.start_new_thread(buildAndRun, (config,))
