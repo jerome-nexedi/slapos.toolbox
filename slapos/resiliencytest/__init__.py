@@ -147,7 +147,7 @@ class ScalabilityLauncher(object):
     Return a ScalabilityTest with current running test case informations,
     or None if no test_case ready
     """
-    data = self.test_result.getNextTestCase()
+    data = self.test_result.getRunningTestCase()
     if data == None:
       return None
     decoded_data = Utils.deunicodeData(json.loads(
