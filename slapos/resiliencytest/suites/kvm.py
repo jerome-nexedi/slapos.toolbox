@@ -42,6 +42,10 @@ import urllib
 
 logger = logging.getLogger('KVMResiliencyTest')
 
+# Wait for 2 hours before renaming, so that replication of data is done
+# (~1GB of data to backup)
+SLEEP_TIME = 2 * 60 * 60
+
 def fetchMainInstanceIP(current_partition, software_release, instance_name):
   return current_partition.request(
       software_release=software_release,
@@ -154,10 +158,8 @@ def runTestSuite(server_url, key_file, cert_file,
   # Test each clone
   while current_clone <= clone_count:
     logger.info('Testing kvm%s.' % current_clone)
-    # Wait for XX minutes so that replication is done
-    sleep_time = 60 * 15#2 * 60 * 60
-    logger.info('Sleeping for %s seconds.' % sleep_time)
-    time.sleep(sleep_time)
+    logger.info('Sleeping for %s seconds.' % SLEEP_TIME)
+    time.sleep(SLEEP_TIME)
 
     # Make the clone instance takeover the main instance
     logger.info('Replacing main instance by clone instance...')
