@@ -36,7 +36,8 @@ setup(name=name,
         'apache_libcloud>=0.4.0', # needed by cloudmgr
         'lxml', # needed for xml parsing
         'paramiko', # needed by cloudmgr
-        'psutil', # needed for playing with processes in portable way
+        # 'psutil', # needed for playing with processes in portable way
+        # psutil does not work in cygwin
         'setuptools', # namespaces
         'slapos.core', # as it provides library for slap
         'xml_marshaller', # needed to dump information
