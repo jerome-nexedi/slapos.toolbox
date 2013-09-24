@@ -163,16 +163,25 @@ def runTestSuite(server_url, key_file, cert_file,
 
     # Make the clone instance takeover the main instance
     logger.info('Replacing main instance by clone instance...')
-    takeover(
-        server_url=server_url,
-        key_file=key_file,
-        cert_file=cert_file,
-        computer_guid=computer_id,
-        partition_id=partition_id,
-        software_release=software,
-        namebase=namebase,
-        winner_instance_suffix=str(current_clone),
-    )
+    for i in range(0, 10):
+      try:
+        takeover(
+            server_url=server_url,
+            key_file=key_file,
+            cert_file=cert_file,
+            computer_guid=computer_id,
+            partition_id=partition_id,
+            software_release=software,
+            namebase=namebase,
+            winner_instance_suffix=str(current_clone),
+        )
+        break
+      except: # SSLError
+        traceback.print_exc()
+        if i is 9:
+          raise
+        logger.warning('takeover failed. Retrying...')
+        time.sleep(10)
     logger.info('Done.')
 
     # Wait for the new IP (of old-clone new-main instance) to appear.
