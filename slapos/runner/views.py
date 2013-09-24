@@ -433,7 +433,6 @@ def getProjectDiff(project):
                            diff=getDiff(path))
 @login_required()
 def commitProjectFiles():
-  #import pdb; pdb.set_trace()
   path = realpath(app.config, request.form['project'])
   if path:
     return gitCommit(path, request.form['msg'])
