@@ -16,7 +16,7 @@ from xml.dom import minidom
 import xml_marshaller
 from flask import jsonify
 
-from gittools import cloneRepo
+from slapos.runner.gittools import cloneRepo
 
 from slapos.runner.process import Popen, isRunning, killRunningProcess
 from slapos.htpasswd import HtpasswdFile
