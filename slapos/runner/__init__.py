@@ -10,8 +10,8 @@ from optparse import OptionParser, Option
 import os
 import slapos.runner.process
 import sys
-from slapos.runner.utils import runInstanceWithLock
-from utils import cloneDefaultGit, setupDefaultSR
+from slapos.runner.utils import (runInstanceWithLock,
+                                 cloneDefaultGit, setupDefaultSR)
 
 
 class Parser(OptionParser):
