@@ -126,7 +126,7 @@ $(document).ready(function () {
         checkout("0");
         return false;
     });
-    $("#commitb").click(function () {
+    $("#commitbutton").click(function () {
         if ($("input#commitmsg").val() === "" ||
                 $("textarea#commitmsg").val() === "Enter message...") {
             $("#error").Popup("Please Enter the commit message", {type: 'alert', duration: 3000});
@@ -139,7 +139,7 @@ $(document).ready(function () {
         var project = $("#project").val();
         $("#imgwaitting").fadeIn('normal');
         //$("#commit").empty();
-        $("#commitb").attr("value", "Wait...");
+        $("#commitbbutton").attr("value", "Wait...");
         $.ajax({
             type: "POST",
             url: $SCRIPT_ROOT + '/commitProjectFiles',
@@ -158,7 +158,7 @@ $(document).ready(function () {
                 }
                 $("#imgwaitting").hide();
                 $("#commitmsg").empty();
-                $("#commitb").attr("value", "Commit");
+                $("#commitbutton").attr("value", "Commit");
                 send = false;
             }
         });
