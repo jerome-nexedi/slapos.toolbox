@@ -32,8 +32,14 @@ $(document).ready(function () {
                 $("#error").Popup(data.result, {type: 'alert', duration: 3000});
             }
         })
-            .error(function () {
-                $("#error").Popup("Cannot send your account identifier please try again!!",
+            .error(function (response) {
+                if (response && response.status === 401) {
+                    $("#error").Popup('Login and/or password is incorrect.',
+                                      {type: 'alert', duration: 3000}
+                    );
+                    return
+                }
+                $("#error").Popup("Cannot send your account identifier",
                                   {type: 'alert', duration: 3000});
             })
             .complete(function () {
