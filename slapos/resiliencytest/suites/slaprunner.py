@@ -59,7 +59,8 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
         server_url, key_file, cert_file,
         computer_id, partition_id, software,
         namebase,
-        slaprunner_rootinstance_name
+        slaprunner_rootinstance_name,
+        300
     )
 
   def _connectToSlaprunner(self, resource, data=None):
