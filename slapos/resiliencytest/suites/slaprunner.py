@@ -214,6 +214,9 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
         old_parameter_value=old_slaprunner_backend_url
     )
     self._login()
+    # XXX: in theory, it should be done automatically by slaprunner.
+    #      In practice, it is still too dangerous for ERP5 instances.
+    self._deployInstance()
     new_data = self._retrieveInstanceLogFile()
 
     if new_data == self.data:
