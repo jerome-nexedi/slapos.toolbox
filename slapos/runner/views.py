@@ -701,6 +701,9 @@ def editFile():
     projectList=getProjectList(app.config['workspace']),
     filename=urllib.unquote(request.args.get('filename', '')))
 
+@login_required()
+def shell():
+  return render_template('shell.html')
 
 #Setup List of URLs
 app.add_url_rule('/', 'home', home)
@@ -783,3 +786,4 @@ app.add_url_rule("/updateAccount", 'updateAccount', updateAccount,
 app.add_url_rule("/fileBrowser", 'fileBrowser', fileBrowser,
                  methods=['GET', 'POST'])
 app.add_url_rule("/editFile", 'editFile', editFile, methods=['GET'])
+app.add_url_rule('/shell', 'shell', shell)
