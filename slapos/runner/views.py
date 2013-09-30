@@ -118,7 +118,7 @@ def doLogin():
     # Authenticate and log in!
     if g.users[username].authenticate(request.form['cpwd']):
       return jsonify(code=1, result="")
-  return jsonify(code=0, result="Login or password is incorrect, please check it!")
+  return jsonify(code=0, result="Login or password is incorrect, please check it!"), 401
 
 
 # software views
