@@ -111,6 +111,12 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
       )
     return data
 
+  def _waitForSoftwareBuild(self):
+    while self._connectToSlaprunner(resource='slapgridResult', data='position=0&log=').find('"software": true') is not -1:
+      self.logger.info('Software release is still building. Sleeping...')
+      time.sleep(15)
+    self.logger.info('Software Release has been built / is no longer building.')
+
   def _buildSoftwareRelease(self):
     self.logger.info('Building the Software Release...')
     try:
@@ -118,10 +124,7 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     except (NotHttpOkException, urllib2.HTTPError):
       # The nginx frontend might timeout before software release is finished.
       pass
-    while self._connectToSlaprunner(resource='slapgridResult', data='position=0&log=').find('"software": true') is not -1:
-      self.logger.info('Buildout is still running. Sleeping...')
-      time.sleep(15)
-    self.logger.info('Software Release has been built.')
+    self._waitForSoftwareBuild()
 
   def _deployInstance(self):
     self.logger.info('Deploying instance...')
@@ -215,6 +218,7 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
         old_parameter_value=old_slaprunner_backend_url
     )
     self._login()
+    self._waitForSoftwareBuild()
     # XXX: in theory, it should be done automatically by slaprunner.
     #      In practice, it is still too dangerous for ERP5 instances.
     self._deployInstance()
