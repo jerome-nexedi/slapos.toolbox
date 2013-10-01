@@ -58,7 +58,7 @@
         <div class="line"></div>
 		    <a href="{{ url_for('manageProject') }}" style="float:left" title="Manage Your repositories"><img alt="" src="{{ url_for('static', filename='images/manage_repo-little.png') }}" /></a>
         <div class="line"></div>
-		    <a href="{{ url_for('shell') }}" style="float:left" title="Use the shell"><img alt="" src="{{ url_for('static', filename='images/terminal.png') }}" /></a>
+		    <span id="linkshell" style="float:left" title="Use the shell"><img alt="" src="{{ url_for('static', filename='images/terminal.png') }}" /></span>
         <div class="line"></div>
   	    <a href="{{ url_for('dologout') }}" style="float:left" title="Close your session"><img alt="" src="{{ url_for('static', filename='images/logout.png') }}" /></a>
                     <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>

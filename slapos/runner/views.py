@@ -703,7 +703,7 @@ def editFile():
 
 @login_required()
 def shell():
-  return render_template('shell.html')
+  return "<iframe id=\"shellinabox\" src=\"/shellinabox\"></iframe>"
 
 #Setup List of URLs
 app.add_url_rule('/', 'home', home)
