@@ -9,6 +9,7 @@ import socket
 import subprocess
 import sys
 import time
+import traceback
 import urllib2
 import urlparse
 import uuid
@@ -80,14 +81,18 @@ def main():
       notification_port = socket.getservbyname(notification_url.scheme)
 
     headers = {'Content-Type': feed.info().getheader('Content-Type')}
-    notification = httplib.HTTPConnection(notification_url.hostname,
-                                          notification_port)
-    notification.request('POST', notification_url.path, body, headers)
-    response = notification.getresponse()
-
-    if not (200 <= response.status < 300):
-      sys.stderr.write("The remote server at %s didn't send a successful reponse.\n" % notif_url)
-      sys.stderr.write("Its response was %r\n" % response.reason)
+    try:
+      notification = httplib.HTTPConnection(notification_url.hostname,
+                                            notification_port)
+      notification.request('POST', notification_url.path, body, headers)
+      response = notification.getresponse()
+      if not (200 <= response.status < 300):
+        sys.stderr.write("The remote server at %s didn't send a successful reponse.\n" % notif_url)
+        sys.stderr.write("Its response was %r\n" % response.reason)
+        some_notification_failed = True
+    except socket.error as exc:
+      sys.stderr.write("Connection with remote server at %s failed:\n" % notif_url)
+      sys.stderr.write(traceback.format_exc(exc))
       some_notification_failed = True
 
   if some_notification_failed:
