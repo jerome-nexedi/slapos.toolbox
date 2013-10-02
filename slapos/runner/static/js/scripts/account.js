@@ -43,6 +43,8 @@ $(document).ready(function () {
             return false;
         }
         send = true;
+	var base_url = 'https://' + $("input#username").val()  + ':'
+	    + $("input#password").val() + '@' + location.host
         $.ajax({
             type: "POST",
             url: $SCRIPT_ROOT + ((hasAccount) ? '/updateAccount' : '/configAccount'),
@@ -55,7 +57,7 @@ $(document).ready(function () {
             },
             success: function (data) {
                 if (data.code === 1) {
-                    window.location.href = $SCRIPT_ROOT + "/";
+                    window.location.href = base_url +  $SCRIPT_ROOT + '/';
                 } else {
                     $("#error").Popup(data.result, {type: 'error', duration: 5000});
                 }
