@@ -1,3 +1,9 @@
+0.37.1 (2013-10-03)
+-------------------
+
+  * pubsub notifier: handle timeout and other connection errors. [ac4c75c]
+  * equeue: cast str(timestamp) to please gdbm. [8b067d6]
+
 0.37 (2013-09-30)
 =================
 
