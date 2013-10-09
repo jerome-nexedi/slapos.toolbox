@@ -174,9 +174,6 @@ def runTestSuite(server_url, key_file, cert_file,
   ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
   logger.info('KVM IP is %s.' % ip)
 
-  key = setRandomKey(ip)
-  logger.info('Key set for test in current KVM: %s.' % key)
-
   # In resilient stack, main instance (example with KVM) is named "kvm0",
   # clones are named "kvm1", "kvm2", ...
   clone_count = int(total_instance_count) - 1
@@ -186,6 +183,10 @@ def runTestSuite(server_url, key_file, cert_file,
   # Test each clone
   while current_clone <= clone_count:
     logger.info('Testing kvm%s.' % current_clone)
+
+    key = setRandomKey(ip)
+    logger.info('Key set for test in current KVM: %s.' % key)
+
     logger.info('Sleeping for %s seconds.' % SLEEP_TIME)
     time.sleep(SLEEP_TIME)
 
