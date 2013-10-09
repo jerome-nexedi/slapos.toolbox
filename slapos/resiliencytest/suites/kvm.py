@@ -109,7 +109,9 @@ def runTestSuite(server_url, key_file, cert_file,
   3/ Resilience is done, wait XX seconds
   4/ For each clone: do a takeover. Check that IPv6 of new main instance is different. Check, when doing a http request to the new VM that will fetch the stored random number, that the sent number is the same.
 
-  Note: disk image is a simple debian with the following python code running at boot:
+  Note: disk image is a simple debian with gunicorn and flask installed:
+    apt-get install python-setuptools; easy_install gunicorn flask
+  With the following python code running at boot in /root/number.py:
 
   import os
   
@@ -119,7 +121,7 @@ def runTestSuite(server_url, key_file, cert_file,
   storage = 'storage.txt'
   
   @app.route("/")
-  def greeting_list(): # 'cause they are several greetings, and plural is forbidden.
+  def greeting_list(): # 'cause there are several greetings, and plural is forbidden.
     return "Hello World"
   
   @app.route("/get")
@@ -128,13 +130,39 @@ def runTestSuite(server_url, key_file, cert_file,
   
   @app.route("/set")
   def set():
-    if os.path.exists(storage):
-      abort(503)
+    #if os.path.exists(storage):
+    #  abort(503)
     open(storage, 'w').write(request.args['key'])
     return "OK"
   
   if __name__ == "__main__":
     app.run(host='0.0.0.0', port=80)
+
+
+  Then create the boot script:
+  echo "cd /root; /usr/local/bin/gunicorn number:app -b 0.0.0.0:80 -D --error-logfile /root/error_log --access-logfile /root/access_log" > /etc/init.d/gunicorn-number
+  chmod +x /etc/init.d/gunicorn-number
+  update-rc.d gunicorn-number defaults
+
+
+  There also is a script that randomly generates I/O in /root/io.sh:
+
+  #!/bin/sh
+  # Randomly generates high I/O on disk. Goal is to write on disk so that
+  # it flushes at the same time that snapshot of disk image is done, to check if
+  # it doesn't corrupt image.
+  # Ayayo!
+  while [ 1 ]; do
+    dd if=/dev/urandom of=random count=2k
+    sync
+    sleep 0.2
+  done
+
+  Then create the boot script:
+  echo "/bin/sh /root/io.sh &" > /etc/init.d/io
+  chmod +x /etc/init.d/io
+  update-rc.d io defaults
+
   """
   slap = slapos.slap.slap()
   slap.initializeConnection(server_url, key_file, cert_file)
