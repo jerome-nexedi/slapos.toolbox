@@ -4,7 +4,6 @@
 import argparse
 import csv
 import httplib
-import os
 import socket
 import subprocess
 import sys
@@ -32,28 +31,23 @@ def main():
 
   args = parser.parse_args()
 
-  with open(os.devnull) as devnull:
-    command = subprocess.Popen(args.executable[0],
-                               stdin=subprocess.PIPE,
-                               stdout=devnull,
-                               stderr=subprocess.PIPE,
-                               close_fds=True)
-    command.stdin.flush()
-    command.stdin.close()
+  try:
+    content = subprocess.check_output(
+        args.executable[0],
+        stderr=subprocess.STDOUT
+    )
+    exit_code = 0
+  except subprocess.CalledProcessError as e:
+    content = e.output
+    exit_code = e.returncode
 
-    command_failed = (command.wait() != 0)
-    command_stderr = command.stderr.read()
+  print content
 
-    if command_failed:
-      content = ("<p>Failed with returncode <em>%d</em>.</p>"
-                 "<p>Standard error output is :</p><pre>%s</pre>") % (
-        command.poll(),
-        command_stderr.replace('&', '&amp;')\
-                      .replace('<', '&lt;')\
-                      .replace('>', '&gt;'),
-      )
-    else:
-      content = "<p>Everything went well.</p>"
+  content += ("\n<p>Failed with returncode <em>%d</em>.</p>"
+              "<p>Output is: </p><pre>%s</pre>" % (
+      exit_code,
+      content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+  ))
 
   with open(args.logfile[0], 'a') as file_:
     cvsfile = csv.writer(file_)
@@ -64,9 +58,8 @@ def main():
       'slapos:%s' % uuid.uuid4(),
     ])
 
-  if command_failed:
-    sys.stderr.write('%s\n' % command_stderr)
-    sys.exit(1)
+  if  exit_code != 0:
+    sys.exit(exit_code)
 
   print 'Fetching %s feed...' % args.feed_url[0]
 
