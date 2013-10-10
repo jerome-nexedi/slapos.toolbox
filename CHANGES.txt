@@ -1,3 +1,10 @@
+0.37.2 (2013-10-10)
+-------------------
+
+ * Add QEMU QMP wrapper. [9e819a8]
+ * KVM resiliency test: update docstring about how to setup disk image. [dbe347f]
+ * KVM resiliency test: change key for each clone. [7ef1db3]
+
 0.37.1 (2013-10-03)
 -------------------
 
