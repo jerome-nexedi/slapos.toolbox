@@ -31,23 +31,20 @@ import os
 import socket
 import time
 
-QMP_STOP_ACTION = 'suspend'
-QMP_RESUME_ACTION = 'resume'
-QMP_CAPABILITIES_ACTION = 'capabilities'
-
 def parseArgument():
   """
   Very basic argument parser. Might blow up for anything else than
   "./executable mysocket.sock stop/resume".
   """
   parser = argparse.ArgumentParser()
-  parser.add_argument('unix_socket_location')
-  parser.add_argument(
-      'action',
-      choices=[QMP_STOP_ACTION, QMP_RESUME_ACTION, QMP_CAPABILITIES_ACTION]
-  )
+  parser.add_argument('--suspend', action='store_const', dest='action', const='suspend')
+  parser.add_argument('--resume', action='store_const', dest='action', const='resume')
+  parser.add_argument('--drive-backup', action='store_const', dest='action', const='driveBackup') 
+  parser.add_argument('--socket', dest='unix_socket_location', required=True)
+  parser.add_argument('remainding_argument_list', nargs=argparse.REMAINDER)
   args = parser.parse_args()
-  return args.unix_socket_location, args.action
+  print args
+  return args.unix_socket_location, args.action, args.remainding_argument_list
 
 
 class QemuQMPWrapper(object):
@@ -127,17 +124,40 @@ class QemuQMPWrapper(object):
     self._send({'execute': 'cont'})
     self._waitForVMStatus('running')
 
+  def _queryBlockJobs(self, device):
+    return self._send({'execute': 'query-block-jobs'})
+
+  def _getRunningJobList(self, device):
+    result = self._queryBlockJobs(device)
+    if result.get('return'):
+      return result['return']
+    else:
+      return
+
+  def driveBackup(self, backup_target, source_device='virtio0', sync_type='full'):
+    print 'Asking Qemu to perform backup to %s' % backup_target
+    # XXX: check for error
+    self._send({
+        'execute': 'drive-backup',
+        'arguments': {
+            'device': source_device,
+            'sync': sync_type,
+            'target': backup_target,
+         }
+    })
+    while self._getRunningJobList(backup_target):
+      print 'Job is not finished yet.'
+      time.sleep(20)
 
 def main():
-  unix_socket_location, action = parseArgument()
+  unix_socket_location, action, remainding_argument_list = parseArgument()
   qemu_wrapper = QemuQMPWrapper(unix_socket_location)
 
-  if action == QMP_STOP_ACTION:
-    qemu_wrapper.suspend()
-  elif action == QMP_RESUME_ACTION:
-    qemu_wrapper.resume()
-  elif action == QMP_CAPABILITIES_ACTION:
-    qemu_wrapper.capabilities()
+  if remainding_argument_list:
+    getattr(qemu_wrapper, action)(*remainding_argument_list)
+  else:
+    getattr(qemu_wrapper, action)()
 
 if __name__ == '__main__':
   main()
+
