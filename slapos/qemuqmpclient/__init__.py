@@ -28,6 +28,7 @@
 import argparse
 import json
 import os
+import pprint
 import socket
 import time
 
@@ -39,11 +40,15 @@ def parseArgument():
   parser = argparse.ArgumentParser()
   parser.add_argument('--suspend', action='store_const', dest='action', const='suspend')
   parser.add_argument('--resume', action='store_const', dest='action', const='resume')
+  parser.add_argument('--create-snapshot', action='store_const', dest='action', const='createSnapshot')
+  parser.add_argument('--create-internal-snapshot', action='store_const', dest='action', const='createInternalSnapshot')
+  parser.add_argument('--delete-internal-snapshot', action='store_const', dest='action', const='deleteInternalSnapshot')
   parser.add_argument('--drive-backup', action='store_const', dest='action', const='driveBackup') 
+  parser.add_argument('--query-commands', action='store_const', dest='action', const='queryCommands')
+
   parser.add_argument('--socket', dest='unix_socket_location', required=True)
   parser.add_argument('remainding_argument_list', nargs=argparse.REMAINDER)
   args = parser.parse_args()
-  print args
   return args.unix_socket_location, args.action, args.remainding_argument_list
 
 
@@ -83,7 +88,7 @@ class QemuQMPWrapper(object):
 
   def _send(self, message):
     self.socket.send(json.dumps(message))
-    data = self.socket.recv(1024)
+    data = self.socket.recv(65535)
     try:
       return json.loads(data)
     except ValueError:
@@ -148,6 +153,38 @@ class QemuQMPWrapper(object):
     while self._getRunningJobList(backup_target):
       print 'Job is not finished yet.'
       time.sleep(20)
+
+  def createSnapshot(self, snapshot_file, device='virtio0'):
+    print self._send({
+        'execute': 'blockdev-snapshot-sync',
+        'arguments': {
+            'device': device,
+            'snapshot-file': snapshot_file,
+         }
+    })
+
+  def createInternalSnapshot(self, name=None, device='virtio0'):
+    if name is None:
+      name = int(time.time())
+    self._send({
+        'execute': 'blockdev-snapshot-internal-sync',
+        'arguments': {
+            'device': device,
+            'name': name,
+         }
+    })
+
+  def deleteInternalSnapshot(self, name, device='virtio0'):
+    self._send({
+        'execute': 'blockdev-snapshot-delete-internal-sync',
+        'arguments': {
+            'device': device,
+            'name': name,
+         }
+    })
+
+  def queryCommands(self):
+    pprint.pprint(self._send({'execute': 'query-commands'})['return'])
 
 def main():
   unix_socket_location, action, remainding_argument_list = parseArgument()
