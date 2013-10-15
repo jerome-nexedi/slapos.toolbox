@@ -24,7 +24,7 @@ from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getFolder,
                                  removeSoftwareByName, runInstanceWithLock,
                                  runSoftwareWithLock, saveSession,
                                  svcStartStopProcess, svcStopAll, tail,
-                                 updateInstanceParameter)
+                                 updateInstanceParameter, isSoftwareReleaseReady)
 
 from slapos.runner.fileBrowser import FileBrowser
 from slapos.runner.gittools import (cloneRepo, gitStatus, switchBranch,
@@ -643,6 +643,9 @@ def editFile():
 def shell():
   return render_template('shell.html')
 
+def isSRReady():
+  return isSoftwareReleaseReady(app.config)
+
 #Setup List of URLs
 app.add_url_rule('/', 'home', home)
 app.add_url_rule('/browseWorkspace', 'browseWorkspace', browseWorkspace)
@@ -725,3 +728,4 @@ app.add_url_rule("/fileBrowser", 'fileBrowser', fileBrowser,
                  methods=['GET', 'POST'])
 app.add_url_rule("/editFile", 'editFile', editFile, methods=['GET'])
 app.add_url_rule('/shell', 'shell', shell)
+app.add_url_rule('/isSRReady', 'isSRReady', isSRReady)

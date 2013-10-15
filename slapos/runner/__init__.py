@@ -152,9 +152,9 @@ def serve(config):
     os.mkdir(software_link)
   slapos.runner.process.setHandler()
   config.logger.info('Running slapgrid...')
-  runInstanceWithLock(app.config)
-  cloneDefaultGit(app.config) 
-  setupDefaultSR(app.config)
+  ##runInstanceWithLock(app.config)
+  ##cloneDefaultGit(app.config) 
+  ##setupDefaultSR(app.config)
   config.logger.info('Done.')
   app.wsgi_app = ProxyFix(app.wsgi_app)
   app.run(host=config.runner_host, port=int(config.runner_port),

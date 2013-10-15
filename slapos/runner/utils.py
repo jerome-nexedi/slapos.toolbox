@@ -807,6 +807,25 @@ def readParameters(path):
   else:
     return "No such file or directory: %s" % path
 
+def isSoftwareReleaseReady(config):
+  """Return 1 if the Software Release has
+  correctly been deployed, 0 if not,
+  and 2 if it is currently deploying"""
+  project = os.path.join(config['etc_dir'], '.project')
+  if not os.path.exists(project):
+    return "0";
+  software_name = open(project, 'r').readline().split('/')[-2]
+  if os.path.exists(os.path.join(config['runner_workdir'], 
+      'softwareLink', software_name, '.completed')):
+    return "1"
+  else:
+    if isSoftwareRunning(config):
+      return "2"
+    elif config['auto_deploy'] in (1, '1', True, 'true'):
+      runSoftwareWithLock(config)
+      return "2"
+    else:
+      return "0"
 
 def cloneDefaultGit(config):
   """Test if the default git has been downloaded yet
