@@ -637,60 +637,61 @@ def fileBrowser():
   else:
     opt = int(request.args.get('opt'))
 
-#  try:
-  if opt == 1:
-    #list files and directories
-    result = file_request.listDirs(dir)
-  elif opt == 2:
-    #Create file
-    result = file_request.makeFile(dir, filename)
-  elif opt == 3:
-    #Create directory
-    result = file_request.makeDirectory(dir, filename)
-  elif opt == 4:
-    #Delete a list of files or/and directories
-    result = file_request.deleteItem(dir, files)
-  elif opt == 5:
-    #copy a lis of files or/and directories
-    result = file_request.copyItem(dir, files)
-  elif opt == 6:
-    #rename file or directory
-    result = file_request.rename(dir, filename, newfilename)
-  elif opt == 7:
-    result = file_request.copyItem(dir, files, del_source=True)
-  elif opt == 8:
-    #donwload file
-    filename = request.args.get('filename').encode('utf-8')
-    result = file_request.downloadFile(request.args.get('dir').encode('utf-8'),
-              filename)
-    try:
-      return send_file(result, attachment_filename=filename, as_attachment=True)
-    except:
-      abort(404)
-  elif opt == 9:
-    result = file_request.readFile(dir, filename, False)
-  elif opt == 11:
-    #Upload file
-    result = file_request.uploadFile(dir, request.files)
-  elif opt == 14:
-    #Copy file or directory as ...
-    result = file_request.copyAsFile(dir, filename, newfilename)
-  elif opt == 16:
-    #zip file
-    result = file_request.zipFile(dir, filename, newfilename)
-  elif opt == 17:
-    #zip file
-    result = file_request.unzipFile(dir, filename, newfilename)
-  elif opt == 20:
-    #Fancy Load folder
-    key = int(request.args.get('key'))
-    dir = request.args.get('dir').encode('utf-8')
-    data = file_request.fancylistDirs(dir, key)
-    result = json.dumps(data)
-  else:
-    result = "ARGS PARSE ERROR: Bad option..."
-#  except Exception as e:
-#    return str(e)
+  try:
+    if opt == 1:
+      #list files and directories
+      result = file_request.listDirs(dir)
+    elif opt == 2:
+      #Create file
+      result = file_request.makeFile(dir, filename)
+    elif opt == 3:
+      #Create directory
+      result = file_request.makeDirectory(dir, filename)
+    elif opt == 4:
+      #Delete a list of files or/and directories
+      result = file_request.deleteItem(dir, files)
+    elif opt == 5:
+      #copy a lis of files or/and directories
+      result = file_request.copyItem(dir, files)
+    elif opt == 6:
+      #rename file or directory
+      result = file_request.rename(dir, filename, newfilename)
+    elif opt == 7:
+      result = file_request.copyItem(dir, files, del_source=True)
+    elif opt == 8:
+      #donwload file
+      filename = request.args.get('filename').encode('utf-8')
+      result = file_request.downloadFile(request.args.get('dir').encode('utf-8'),
+                filename)
+      try:
+        return send_file(result, attachment_filename=filename, as_attachment=True)
+      except:
+        abort(404)
+    elif opt == 9:
+      result = file_request.readFile(dir, filename, False)
+    elif opt == 11:
+      #Upload file
+      result = file_request.uploadFile(dir, request.files)
+    elif opt == 14:
+      #Copy file or directory as ...
+      result = file_request.copyAsFile(dir, filename, newfilename)
+    elif opt == 16:
+      #zip file
+      result = file_request.zipFile(dir, filename, newfilename)
+    elif opt == 17:
+      #zip file
+      result = file_request.unzipFile(dir, filename, newfilename)
+    elif opt == 20:
+      #Fancy Load folder
+      key = request.args.get('key')
+      dir = request.args.get('dir').encode('utf-8')
+      listfiles = request.args.get('listfiles', '')
+      data = file_request.fancylistDirs(dir, key, listfiles)
+      result = json.dumps(data)
+    else:
+      result = "ARGS PARSE ERROR: Bad option..."
+  except Exception as e:
+    return str(e)
   return result
 
 

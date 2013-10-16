@@ -11,7 +11,6 @@ $(document).ready(function () {
         CurrentMode,
         script = "/readFolder",
         softwareDisplay = true,
-        fileTree,
         Mode,
         modes,
         projectDir = $("input#project").val(),
@@ -86,7 +85,7 @@ $(document).ready(function () {
 
     function selectFile(file) {
         $("#info").empty();
-        $("#info").append("Selection: " + file);
+        $("#info").append("Current work tree: " + file);
         selection = file;
         return;
     }
@@ -117,7 +116,7 @@ $(document).ready(function () {
             $('#fileTreeFull').hide();
         }
         $("#info").empty();
-        $("#info").append("Selection: " + base_path());
+        $("#info").append("Current work tree: " + base_path());
         selection = "";
     }
 
@@ -296,7 +295,7 @@ $(document).ready(function () {
                 success: function (data) {
                   $("#inline_content").empty();
                   $("#inline_content").append('<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">Content of file: ' +
-            				node.title +'</h2>');
+                		node.title +'</h2>');
             			$("#inline_content").append('<br/><div class="main_content"><pre id="editorViewer"></pre></div>');
                   viewer = ace.edit("editorViewer");
                   viewer.setTheme("ace/theme/crimson_editor");
@@ -390,8 +389,11 @@ $(document).ready(function () {
     };
 
     // --- Init fancytree during startup ----------------------------------------
-    $(function(){
-      $("#fileTree").fancytree({
+    function initTree(tree, path, key){
+      if (!key){
+        key = '0';
+      }
+      $(tree).fancytree({
         activate: function(event, data) {
           var node = data.node;
         },
@@ -404,14 +406,14 @@ $(document).ready(function () {
         },
         source: {
           url: $SCRIPT_ROOT + "/fileBrowser",
-          data:{opt: 20, dir: currentProject, key: 0},
+          data:{opt: 20, dir: path, key: key, listfiles: 'yes'},
           cache: false
         },
         lazyload: function(event, data) {
           var node = data.node;
           data.result = {
             url: $SCRIPT_ROOT + "/fileBrowser",
-            data: {opt: 20, dir: node.data.path , key: node.key}
+            data: {opt: 20, dir: node.data.path , key: node.key, listfiles: 'yes'}
           }
         },
         keydown: function(event, data) {
@@ -461,7 +463,7 @@ $(document).ready(function () {
           bindContextMenu(data.node.span, !data.node.isFolder());
         }
       });
-    });
+    }
 
 
     editor.setTheme("ace/theme/crimson_editor");
@@ -494,7 +496,9 @@ $(document).ready(function () {
     /*$('#fileTreeFull').fileTree({ root: currentProject, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function (file) {
         selectFile(file);
     }, function (file) { openFile(file); });*/
-    $("#info").append("Selection: " + base_path());
+    initTree('#fileTree', projectDir, 'pfolder');
+    initTree('#fileTreeFull', currentProject);
+    $("#info").append("Current work tree: " + base_path());
     /*setDetailBox();*/
 
     editor.on("change", function (e) {
@@ -549,7 +553,7 @@ $(document).ready(function () {
     $("#clearselect").click(function () {
         edit = false;
         $("#info").empty();
-        $("#info").append("Selection: " + base_path());
+        $("#info").append("Current work tree: " + base_path());
         $("input#subfolder").val("");
         $("#edit_info").empty();
         $("#edit_info").append("No file in editor");

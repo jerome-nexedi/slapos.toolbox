@@ -58,7 +58,7 @@ class FileBrowser(object):
         html += 'gsdirs.push(new gsItem("2", "%s", "%s", "0", "%s", "dir", "%s"));' % (f, ff, md5sum, mdate)
     return html
 
-  def fancylistDirs(self, dir, key, all=False):
+  def fancylistDirs(self, dir, key, listfiles, all=False):
     dir = urllib.unquote(dir)
     realdir = realpath(self.config, dir)
     if not realdir:
@@ -73,18 +73,18 @@ class FileBrowser(object):
       ff = os.path.join(dir, f)
       realfile = os.path.join(realdir, f)
       identity = "%s%s" % (key, i)
-      if not os.path.isdir(realfile):
+      if os.path.isdir(realfile):        
+        dirList.append({"title": f, "key": identity,
+                        "folder":True, "lazy":True, "path": ff})
+      elif listfiles:
         regex = re.compile("(^.*)\.(.*)", re.VERBOSE)
         ext = regex.sub(r'\2', f)
         if ext == f:
           ext = ""
-        dirList.append({"title": f, "key": identity,
-                        "extraClasses": "ext_"+ext, "path": ff})
-      else:
         fileList.append({"title": f, "key": identity,
-                        "folder":True, "lazy":True, "path": ff})
+                        "extraClasses": "ext_"+ext, "path": ff})
       i+=1
-    return (fileList + dirList)
+    return (dirList + fileList)
 
   def makeDirectory(self, dir, filename):
     """Create a directory"""

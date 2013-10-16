@@ -65,6 +65,13 @@ ul.fancytree-no-connector > li
 	background-color: silver;
 }
 
+span.fancytree-node
+{
+  display: inline-block;
+	width: 100%;
+	border: 1px solid transparent;
+}
+
 
 /*******************************************************************************
  * Common icon definitions
@@ -207,6 +214,7 @@ span.fancytree-checkbox:hover { background-position: -16px -32px; }
 span.fancytree-icon /* Default icon */
 {
 	margin-left: 3px;
+  margin-top: 1px;
 	background-position: 0px 0px;
 }
 .fancytree-ico-cf span.fancytree-icon { background: url(images/directory.min.png) left top no-repeat; width: 22px;}/*background-position: 0px -16px; } /* Collapsed Folder */
@@ -294,19 +302,37 @@ span.ext_zip span.fancytree-icon { background: url(images/zip.png) left top no-r
 }
 span.fancytree-focused .fancytree-title {
 	/*outline: 1px dotted black;*/
-	color: white;
+	/*color: white;*/
 }
 span.fancytree-selected .fancytree-title,
 span.fancytree-active .fancytree-title {
-	background-color: #D4D4D4; /*gray*/
+	/*background-color: #D4D4D4; /*gray*/
 }
 span.fancytree-selected .fancytree-title {
 	font-style: italic;
 }
 .fancytree-focused span.fancytree-selected .fancytree-title,
 .fancytree-focused span.fancytree-active .fancytree-title {
-	color: white;
+	/*color: white;
 	background-color: #3875D7; /*blue*/
+}
+
+span.fancytree-node:hover
+{
+  background-color: #BDF;
+	border-color: #70C0E7;
+  cursor: pointer;
+}
+.fancytree-container.fancytree-focused span.fancytree-node.fancytree-focused
+{
+	border-color: #3399FF;
+/*	outline: 1px solid #3399FF; */
+}
+span.fancytree-node.fancytree-active,
+span.fancytree-node.fancytree-selected
+{ /* active/selcted nodes inside inactive tree */
+	background-color: #F7F7F7;
+	border-color: #DEDEDE;
 }
 
 /*******************************************************************************
