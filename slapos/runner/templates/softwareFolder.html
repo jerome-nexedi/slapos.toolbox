@@ -2,14 +2,18 @@
 {% block title %}Your current software folder{% endblock %}
 {% block head %}
   {{ super() }}
-  <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='js/jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('static', filename='js/scripts/softwareFolder.js') }}" type="text/javascript" charset="utf-8"></script>
+  <link href="{{ url_for('static', filename='css/ui.fancytree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <link href="{{ url_for('static', filename='css/jquery.contextMenu.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='js/jquery/jquery.contextMenu-custom.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/jquery/jquery.fancytree.min.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/ace/mode-buildout.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/ace/mode-python.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/ace/mode-php.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/ace/theme-crimson_editor.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/ace/mode-buildout.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/ace/mode-python.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/ace/mode-php.js') }}" type="text/javascript" charset="utf-8"></script>
+  <link href="{{ url_for('static', filename='css/colorbox.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='js/jquery/jquery.colorbox-min.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/scripts/softwareFolder.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
 
@@ -17,23 +21,34 @@
 <input type="hidden" name="project" id="project" value="{{project}}" />
 <input type="hidden" name="workdir" id="workdir" value="{{workDir}}" />
 <input type="hidden" name="subfolder" id="subfolder" value="" />
+
+<!-- Definition of context menu -->
+<ul id="myMenu" class="contextMenu">
+  <li class="edit"><a href="#edit">Edit</a></li>
+  <li class="edit"><a href="#editfull">Open in new editor</a></li>
+  <li class="view"><a href="#view">Open in viewer</a></li>
+  <li class="rename separator"><a href="#rename">Rename</a></li>
+  <li class="delete "><a href="#delete">Delete</a></li>
+  <li class="refresh separator"><a href="#refresh">Refresh</a></li>
+  <li class="md5sum"><a href="#md5sum">File md5 sum</a></li>
+  <li class="copy separator"><a href="#copy">Copy</a></li>
+  <li class="cut"><a href="#cut">Cut</a></li>
+  <li class="paste"><a href="#paste">Paste</a></li>
+  <li class="newfile separator"><a href="#nfile">New File</a></li>
+  <li class="newdir"><a href="#nfolder">New Folder</a></li>
+</ul>
+
 <div id="software_folder">
   <div class="software_details">
-    <a href="#" id="switch" class="lshare no-right-border" style="float:left">Switch to Project</a>
-    <a href="#"  id="clearselect" class="lshare no-right-border" style="float:left">Reset</a>
-    <a href="#"  id="save" class="lshare" style="float:left">Save</a>
-    <div class="clear"></div>
+    <div>
+      <a href="#" id="switch" class="lshare no-right-border" style="float:left">Switch to Project</a>
+      <a href="#"  id="clearselect" class="lshare no-right-border" style="float:left">Reset</a>
+      <a href="#"  id="save" class="lshare" style="float:left">Save</a>
+      <div class="clear"></div>
+    </div>
     <div id="details_box">
-  	  <div id="fileTree" class="file_tree_short" title="Double click to edit selected file..."></div>
+  	  <div id="fileTree" class="file_tree_short"></div>
       <div id="fileTreeFull" style='display:none' class="file_tree_short" title="Double click to edit selected file..."></div>
-    	<div class="box_software">
-    	    <input type="text" name="file" id="file" size='12' value="Name here..." />
-    	    &nbsp;<select name="type" id="type">
-    	    <option value="file">file</option>
-    	    <option value="folder">folder</option>
-    	    </select>
-    	    &nbsp;<input type="submit" name="add" id ="add" value="Add" class="button"/>
-    	</div>
     </div>
   </div>
   <div id="code">
@@ -66,5 +81,13 @@
     {% endfor %}
     </ul>
     <a href="#" id="adddevelop" class="lshare">Add to profile</a>
+</div>
+
+<!-- This contains the hidden content for inline calls -->
+<a id='inlineViewer' style='display:none' href="#inline_content">Inline HTML</a>
+<div style='display:none'>
+  <div id='inline_content' style='padding:10px; background:#fff;'>
+
+  </div>
 </div>
 {% endblock %}

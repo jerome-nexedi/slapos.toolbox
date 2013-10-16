@@ -58,6 +58,34 @@ class FileBrowser(object):
         html += 'gsdirs.push(new gsItem("2", "%s", "%s", "0", "%s", "dir", "%s"));' % (f, ff, md5sum, mdate)
     return html
 
+  def fancylistDirs(self, dir, key, all=False):
+    dir = urllib.unquote(dir)
+    realdir = realpath(self.config, dir)
+    if not realdir:
+      raise NameError('Could not load directory %s: Permission denied' % dir)
+    fileList = []
+    dirList = []
+    i = 0
+    ldir = sorted(os.listdir(realdir), key=str.lower)
+    for f in ldir:
+      if f.startswith('.') and not all:  # do not display this file/folder
+        continue
+      ff = os.path.join(dir, f)
+      realfile = os.path.join(realdir, f)
+      identity = "%s%s" % (key, i)
+      if not os.path.isdir(realfile):
+        regex = re.compile("(^.*)\.(.*)", re.VERBOSE)
+        ext = regex.sub(r'\2', f)
+        if ext == f:
+          ext = ""
+        dirList.append({"title": f, "key": identity,
+                        "extraClasses": "ext_"+ext, "path": ff})
+      else:
+        fileList.append({"title": f, "key": identity,
+                        "folder":True, "lazy":True, "path": ff})
+      i+=1
+    return (fileList + dirList)
+
   def makeDirectory(self, dir, filename):
     """Create a directory"""
     realdir = self._realdir(dir)
@@ -85,21 +113,21 @@ class FileBrowser(object):
     lfiles = urllib.unquote(files).split(',,,')
     try:
       # XXX-Marco do not shadow 'file'
-      for file in lfiles:
-        file = os.path.join(realdir, file)
-        if not os.path.exists(file):
+      for item in lfiles:
+        filepath = os.path.join(realdir, item)
+        if not item or not os.path.exists(filepath):
           continue  # silent skip file....
-        details = file.split('/')
+        details = filepath.split('/')
         last = details[-1]
         if last and last.startswith('.'):
           continue  # cannot delete this file/directory, to prevent security
-        if os.path.isdir(file):
-          shutil.rmtree(file)
+        if os.path.isdir(filepath):
+          shutil.rmtree(filepath)
         else:
-          os.unlink(file)
+          os.unlink(filepath)
     except Exception as e:
       return str(e)
-    return "{result: '1'}"
+    return "{result: '1', test: %s}" % '*'.join(lfiles)
 
   def copyItem(self, dir, files, del_source=False):
     """Copy a list of files or directory to dir"""
@@ -147,10 +175,10 @@ class FileBrowser(object):
     tofile = os.path.join(realdir, newfilename)
     if not os.path.exists(fromfile):
       raise NameError('NOT ALLOWED OPERATION : File or directory does not exist')
-    if not os.path.exists(tofile):
-      shutil.copy(fromfile, tofile)
-      return "{result: '1'}"
-    raise NameError('NOT ALLOWED OPERATION : File or directory already exists')
+    while os.path.exists(tofile):
+      tofile += "_1"
+    shutil.copy(fromfile, tofile)
+    return "{result: '1'}"
 
   def uploadFile(self, dir, files):
     """Upload a list of files in directory dir"""
