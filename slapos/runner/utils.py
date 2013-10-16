@@ -807,13 +807,14 @@ def readParameters(path):
   else:
     return "No such file or directory: %s" % path
 
+
 def isSoftwareReleaseReady(config):
   """Return 1 if the Software Release has
   correctly been deployed, 0 if not,
   and 2 if it is currently deploying"""
   project = os.path.join(config['etc_dir'], '.project')
   if not os.path.exists(project):
-    return "0";
+    return "0"
   path  = open(project, 'r').readline().strip()
   software_name = path
   if software_name[-1] == '/':
@@ -832,19 +833,23 @@ def isSoftwareReleaseReady(config):
     else:
       return "0"
 
+
 def cloneDefaultGit(config):
   """Test if the default git has been downloaded yet
   If not, download it in read-only mode"""
-  default_git = os.path.join(config['runner_workdir'], 'project', 'default_repo')
+  default_git = os.path.join(config['runner_workdir'], 
+    'project', 'default_repo')
   if not os.path.exists(default_git):
     data = {'path': default_git,
             'repo': config['default_repo'],
     }
     cloneRepo(data)
 
+
 def buildAndRun(config):
   runSoftwareWithLock(config)
   runInstanceWithLock(config)
+
 
 def setupDefaultSR(config):
   """If a default_sr is in the parameters,

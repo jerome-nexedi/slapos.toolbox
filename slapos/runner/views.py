@@ -48,6 +48,9 @@ def before_request():
   if request.path.startswith('/static'):
     return
 
+  if request.path == '/isSRReady':
+    return
+
   account = getSession(app.config)
   if account:
     session['title'] = getProjectTitle(app.config)
