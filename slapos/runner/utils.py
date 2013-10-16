@@ -814,7 +814,11 @@ def isSoftwareReleaseReady(config):
   project = os.path.join(config['etc_dir'], '.project')
   if not os.path.exists(project):
     return "0";
-  software_name = open(project, 'r').readline().split('/')[-2]
+  path  = open(project, 'r').readline().strip()
+  software_name = path
+  if software_name[-1] == '/':
+    software_name = software_name[:-1]
+  software_name = software_name.split('/')[-1]
   if os.path.exists(os.path.join(config['runner_workdir'], 
       'softwareLink', software_name, '.completed')):
     return "1"
@@ -822,6 +826,7 @@ def isSoftwareReleaseReady(config):
     if isSoftwareRunning(config):
       return "2"
     elif config['auto_deploy'] in (1, '1', True, 'true'):
+      configNewSR(config, path)
       runSoftwareWithLock(config)
       return "2"
     else:
