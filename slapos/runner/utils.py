@@ -340,7 +340,7 @@ def runInstanceWithLock(config):
   slapgrid = Popen([config['slapgrid_cp'], '-vc',
                     '--pidfile', slapgrid_pid,
                     config['configuration_file_path'], '--now'],
-                   stdout=logfile, name='slapgrid-cp')
+                    stdout=logfile, name='slapgrid-cp')
   slapgrid.wait()
   return True
 

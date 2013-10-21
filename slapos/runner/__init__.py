@@ -8,10 +8,11 @@ import logging
 import logging.handlers
 from optparse import OptionParser, Option
 import os
-import slapos.runner.process
+from slapos.runner.process import setHandler
 import sys
 from slapos.runner.utils import (runInstanceWithLock,
                                  cloneDefaultGit, setupDefaultSR)
+from slapos.runner.views import *
 
 
 class Parser(OptionParser):
@@ -62,19 +63,15 @@ class Config:
     self.logger = None
     self.verbose = None
 
-  def setConfig(self, option_dict, configuration_file_path):
+  def setConfig(self):
     """
     Set options given by parameters.
     """
-    self.configuration_file_path = os.path.abspath(configuration_file_path)
-    # Set options parameters
-    for option, value in option_dict.__dict__.items():
-      setattr(self, option, value)
+    self.configuration_file_path = os.path.abspath(os.getenv('RUNNER_CONFIG'))
 
     # Load configuration file
     configuration_parser = ConfigParser.SafeConfigParser()
-    configuration_parser.read(configuration_file_path)
-    # Merges the arguments and configuration
+    configuration_parser.read(self.configuration_file_path)
 
     for section in ("slaprunner", "slapos", "slapproxy", "slapformat",
                     "sshkeys_authority", "gitclient", "cloud9_IDE"):
@@ -89,17 +86,17 @@ class Config:
     if self.console:
       self.logger.addHandler(logging.StreamHandler())
 
-    if self.log_file:
-      if not os.path.isdir(os.path.dirname(self.log_file)):
-        # fallback to console only if directory for logs does not exists and
-        # continue to run
-        raise ValueError('Please create directory %r to store %r log file' % (
-          os.path.dirname(self.log_file), self.log_file))
-      else:
-        file_handler = logging.FileHandler(self.log_file)
-        file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
-        self.logger.addHandler(file_handler)
-        self.logger.info('Configured logging to file %r' % self.log_file)
+    self.log_file = self.log_dir + '/slaprunner.log'
+    if not os.path.isdir(os.path.dirname(self.log_file)):
+    # fallback to console only if directory for logs does not exists and
+    # continue to run
+      raise ValueError('Please create directory %r to store %r log file' % (
+      os.path.dirname(self.log_file), self.log_file))
+    else:
+      file_handler = logging.FileHandler(self.log_file)
+      file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+      self.logger.addHandler(file_handler)
+      self.logger.info('Configured logging to file %r' % self.log_file)
 
     self.logger.info("Started.")
     self.logger.info(os.environ['PATH'])
@@ -115,23 +112,19 @@ def run():
   try:
     # Parse arguments
     config = Config()
-    config.setConfig(*Parser(usage=usage).check_args())
+    config.setConfig()
 
     if os.getuid() == 0:
-        # avoid mistakes (mainly in development mode)
-        raise Exception('Do not run SlapRunner as root.')
+      # avoid mistakes (mainly in development mode)
+      raise Exception('Do not run SlapRunner as root.')
 
     serve(config)
     return_code = 0
-  except SystemExit as err:
-    # Catch exception raise by optparse
-    return_code = err
-
-  sys.exit(return_code)
-
+  except:
+    e = sys.exc_info()[0]
+    sys.exit(e)
 
 def serve(config):
-  from views import app
   from werkzeug.contrib.fixers import ProxyFix
   workdir = os.path.join(config.runner_workdir, 'project')
   software_link = os.path.join(config.runner_workdir, 'softwareLink')
@@ -150,12 +143,10 @@ def serve(config):
     os.mkdir(workdir)
   if not os.path.exists(software_link):
     os.mkdir(software_link)
-  slapos.runner.process.setHandler()
+  setHandler()
   config.logger.info('Running slapgrid...')
-  ##runInstanceWithLock(app.config)
-  ##cloneDefaultGit(app.config) 
-  ##setupDefaultSR(app.config)
+  runInstanceWithLock(app.config)
   config.logger.info('Done.')
   app.wsgi_app = ProxyFix(app.wsgi_app)
-  app.run(host=config.runner_host, port=int(config.runner_port),
-      debug=config.debug, threaded=True)
+
+run()
