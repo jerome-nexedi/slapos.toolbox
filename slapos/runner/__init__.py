@@ -15,46 +15,6 @@ from slapos.runner.utils import (runInstanceWithLock,
 from slapos.runner.views import *
 
 
-class Parser(OptionParser):
-  """
-  Parse all arguments.
-  """
-  def __init__(self, usage=None, version=None):
-    """
-    Initialize all possible options.
-    """
-    option_list = [
-      Option("-l", "--log_file",
-             help="The path to the log file used by the script.",
-             type=str),
-      Option("-v", "--verbose",
-             default=False,
-             action="store_true",
-             help="Verbose output."),
-      Option("-c", "--console",
-             default=False,
-             action="store_true",
-             help="Console output."),
-      Option("-d", "--debug",
-             default=False,
-             action="store_true",
-             help="Debug mode."),
-    ]
-
-    OptionParser.__init__(self, usage=usage, version=version,
-                          option_list=option_list)
-
-  def check_args(self):
-    """
-    Check arguments
-    """
-    (options, args) = self.parse_args()
-    if len(args) != 1:
-      self.error("Incorrect number of arguments")
-
-    return options, args[0]
-
-
 class Config:
   def __init__(self):
     self.configuration_file_path = None
