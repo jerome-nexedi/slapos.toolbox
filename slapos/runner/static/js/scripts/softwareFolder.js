@@ -106,12 +106,12 @@ $(document).ready(function () {
     function switchContent() {
         if (!softwareDisplay) {
             $("span.swith_btn").empty();
-            $("span.swith_btn").append("This project");
+            $("span.swith_btn").append("Workspace");
             $('#fileTreeFull').show();
             $('#fileTree').hide();
         } else {
             $("span.swith_btn").empty();
-            $("span.swith_btn").append("Workspace");
+            $("span.swith_btn").append("This project");
             $('#fileTree').show();
             $('#fileTreeFull').hide();
         }
