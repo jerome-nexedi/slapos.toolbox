@@ -2,8 +2,8 @@
 {% block title %}{% if method == "new" %}Adding new software{%else%}Open existing project{%endif%}{% endblock %}
 {% block head %}
   {{ super() }}
-  <link href="{{ url_for('static', filename='css/jqueryFileTree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='js/jquery/jqueryFileTree.js') }}" type="text/javascript" charset="utf-8"></script>
+  <link href="{{ url_for('static', filename='css/ui.fancytree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='js/jquery/jquery.fancytree.min.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/scripts/project.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}

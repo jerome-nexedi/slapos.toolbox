@@ -13,9 +13,8 @@ from flask import (Flask, request, redirect, url_for, render_template,
                    g, flash, jsonify, session, abort, send_file)
 
 from slapos.runner.process import killRunningProcess
-from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getFolder,
-                                 getFolderContent, getProfilePath,
-                                 getProjectList, getProjectTitle, getSession,
+from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getProfilePath,
+                                 listFolder, getProjectTitle, getSession,
                                  getSlapStatus, getSvcStatus,
                                  getSvcTailProcess, isInstanceRunning,
                                  isSoftwareRunning, isText,
@@ -104,10 +103,11 @@ def dologout():
 
 
 @login_required()
-def configRepo():
+def manageRepository():
   public_key = open(app.config['public_key']).read()
   account = getSession(app.config)
-  return render_template('cloneRepository.html', workDir='workspace',
+  return render_template('manageRepository.html', workDir='workspace',
+            project=listFolder(app.config, 'workspace'),
             public_key=public_key, name=account[3].decode('utf-8'),
             email=account[2])
 
@@ -286,13 +286,9 @@ def cloneRepository():
 
 
 @login_required()
-def readFolder():
-  return getFolderContent(app.config, request.form['dir'])
-
-
-@login_required()
-def openFolder():
-  return getFolder(app.config, request.form['dir'])
+def listDirectory():
+  folderList = listFolder(app.config, request.form['name'])
+  return jsonify(result=folderList)
 
 
 @login_required()
@@ -336,7 +332,7 @@ def editCurrentProject():
   if os.path.exists(project):
     return render_template('softwareFolder.html', workDir='workspace',
                            project=open(project).read(),
-                           projectList=getProjectList(app.config['workspace']))
+                           projectList=listFolder(app.config, 'workspace'))
   return redirect(url_for('configRepo'))
 
 
@@ -770,9 +766,8 @@ app.add_url_rule('/createSoftware', 'createSoftware', createSoftware,
                  methods=['POST'])
 app.add_url_rule('/cloneRepository', 'cloneRepository', cloneRepository,
                  methods=['POST'])
-app.add_url_rule('/openFolder', 'openFolder', openFolder, methods=['POST'])
-app.add_url_rule('/readFolder', 'readFolder', readFolder, methods=['POST'])
-app.add_url_rule('/configRepo', 'configRepo', configRepo)
+app.add_url_rule('/listDirectory', 'listDirectory', listDirectory, methods=['POST'])
+app.add_url_rule('/manageRepository', 'manageRepository', manageRepository)
 app.add_url_rule("/saveParameterXml", 'saveParameterXml', saveParameterXml,
                  methods=['POST'])
 app.add_url_rule("/getPath", 'getPath', getPath, methods=['POST'])

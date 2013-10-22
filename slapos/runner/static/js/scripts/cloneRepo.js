@@ -25,6 +25,29 @@ $(document).ready(function () {
         });
     }
 
+    function fetchRepo(){
+      $("#project").empty();
+      $.post($SCRIPT_ROOT + "/listDirectory", {name: 'workspace'}, function (data) {
+        var result = data.result, i;
+        if (result.length > 0){
+          $("#repoEmpty").hide();
+          $("#repoContent").show();
+          for (i = 0; i < result.length; i += 1) {
+              $("#project").append("<option value='"+result[i]+"'>"+result[i]+"</option>")
+          }
+          $("#project").change();
+        }
+        else{
+          $("#repoEmpty").show();
+          $("#repoContent").hide();
+        }
+      })
+      .error(function () {
+        $("#error").Popup("unable to fetch your project list, please check your project folder", {type: 'error', duration: 5000});
+      })
+      .complete(function () {});
+    }
+
     var send = false,
         cloneRequest;
 
@@ -38,6 +61,9 @@ $(document).ready(function () {
     });
     $("input#https").change(function () {
         configRadio();
+    });
+    $("a#switchtoclone").click(function(){
+      $("#cloneTab").click();
     });
     $("#clone").click(function () {
         if (send) {
@@ -130,9 +156,9 @@ $(document).ready(function () {
         });
         return false;
     });
-
-    function selectFile(file) {
-        //nothing
-        return;
-    }
+    $("#gitTab").click(function(){
+      if (! $(this).hasClass('active')){
+        fetchRepo();
+      }
+    });
 });

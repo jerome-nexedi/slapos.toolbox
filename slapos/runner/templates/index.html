@@ -4,7 +4,7 @@
 <div id="home_box">
 <div class="inner_box">
 <div class="lmenu">
-    <h2><a href="{{ url_for('configRepo')}}">Clone a Repository into your local Workspace</a></h2>
+    <h2><a href="{{ url_for('manageRepository')}}#tab1">Clone a Repository into your local Workspace</a></h2>
     <p>Your repository will be cloned into your project folder, you will need the url of the repository.
     This allows you to open and edit your local project copy and synchronize content with online repository.
     </p>
@@ -18,7 +18,7 @@
     <div class="clear"></div>
 </div>
 <div class="sright_menu">
-    <h2><a href="{{ url_for('manageProject')}}">Manage Repositories</a></h2>
+    <h2><a href="{{ url_for('manageRepository')}}#tab2">Manage Repositories</a></h2>
     <p>You can view details of all repositories and commit your Software Release here.</p>
     <img src="{{ url_for('static', filename='images/manage_repo.png') }}" />
 </div>

@@ -62,7 +62,7 @@
       {% if request.path != '/login' %}
             <div id="header">
                 <div class="block_header">
-                    <a href="{{ url_for('home') }}" style="float:left;" id="home" {% if request.path != '/' %}rel="tooltip"{% endif %} title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
+                    <a href="{{ url_for('home') }}" style="float:left;" id="home" title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
 		    <div class="line"></div>
   	    <a href="{{ url_for('dologout') }}" style="float:left" title="Close your session"><img alt="" src="{{ url_for('static', filename='images/logout.png') }}" /></a>
 		    <div class="line"></div>
@@ -78,16 +78,16 @@
                 <div id="wmenu">
                     <ul class="sf-menu">
                         <li><a href="{{ url_for('editCurrentProject') }}">Editor</a></li>
-                        <li><a href="{{ url_for('browseWorkspace') }}">Services</a></li>
-                        <li><a href="{{ url_for('runSoftwareProfile') }}" id="softrun">Logs</a></li>
+                        <li><a href="{{ url_for('inspectInstance') }}">Services</a></li>
+                        <li><a href="{{ url_for('viewInstanceLog') }}">Logs</a></li>
                         <li><a href="{{ url_for('viewSoftwareLog') }}">Terminal</a></li>
-                        <li><a href="{{ url_for('inspectSoftware') }}">Git</a></li>
-                        <li class='right_menu'><a class="main_menu" href="{{ url_for('viewInstanceLog') }}"></a>
+                        <li><a href="{{ url_for('manageRepository')}}#tab2">Git</a></li>
+                        <li class='right_menu main_menu'><a href="#"></a>
                           <ul>
                             <li><a href="{{ url_for('myAccount')}}">Parameters</a></li>
                             <li class='sep'></li>
-                            <li><a href="#">Open Software Release</a></li>
-                            <li><a href="#">Create Software Release</a></li>
+                            <li><a href="{{ url_for('openProject', method='open')}}">Open Software Release</a></li>
+                            <li><a href="{{ url_for('openProject', method='new')}}">Create Software Release</a></li>
                             <li class='sep'></li>
                             <li><a href="{{ url_for('browseWorkspace') }}">Browse Workspace</a></li>
                             <li><a href="{{ url_for('inspectSoftware') }}">My Softwares Releases</a></li>
@@ -95,7 +95,8 @@
                             <li><a href="{{ url_for('dologout') }}">Log out</a></li>
                          </ul>
                         </li>
-                        <li class='right_menu'><a class="slapos_run" href="{{ url_for('runInstanceProfile') }}" id="instrun"></a>
+                        <li class='right_menu slapos_run'><a href="{{ url_for('runInstanceProfile') }}" id="instrun"></a>
+                        <!--<li><a href="{{ url_for('viewInstanceLog') }}" id="softrun">Logs</a></li>-->
                         </li>
                     </ul>
                 </div>
@@ -139,17 +140,6 @@
           <td id="bottomright" class="corner"></td>
         </tr>
         </tbody></table>
-      </div>
-      <div id="tooltip-home" style="display:none">
-        <span style="font-weight:bold">QUICK ACCESS TO MENU</span><br/><br/>
-          <div style="margin-top:3px;border-bottom: 1px dashed #666666; heigth:1px"></div>
-          <ul class="menu">
-            <li><a href="{{ url_for('manageProject')}}">Manage Repositories</a></li>
-            <li><a href="{{ url_for('configRepo')}}" >Clone your repository</a></li>
-            <li><a href="{{ url_for('openProject', method='open')}}">Open Software Release</a></li>
-            <li><a href="{{ url_for('openProject', method='new')}}">Create Software Release</a></li>
-            <li style="heigth:1px"></li>
-          </ul>
       </div>
     </body>
 </html>

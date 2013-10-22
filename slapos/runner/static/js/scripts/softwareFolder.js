@@ -23,7 +23,7 @@ $(document).ready(function () {
         selection = "",
         edit_status = "",
         base_path = function () {
-            return softwareDisplay ? projectDir : currentProject;
+            return softwareDisplay ? currentProject : 'workspace/';
         };
 
 
@@ -55,9 +55,9 @@ $(document).ready(function () {
                     if (data.code === 1) {
                         $("#edit_info").empty();
                         name = file.split('/');
-                        if (file.length > 60) {
+                        if (file.length > 80) {
                             //substring title.
-                            start = file.length - 60;
+                            start = file.length - 80;
                             path = "..." + file.substring(file.indexOf("/", (start + 1)));
                         }
                         $("#edit_info").append(" " + path);
@@ -105,19 +105,21 @@ $(document).ready(function () {
 
     function switchContent() {
         if (!softwareDisplay) {
-            $("#switch").empty();
-            $("#switch").append("Switch to Profile&nbsp;");
+            $("span.swith_btn").empty();
+            $("span.swith_btn").append("This project");
             $('#fileTreeFull').show();
             $('#fileTree').hide();
         } else {
-            $("#switch").empty();
-            $("#switch").append("Switch to Project");
+            $("span.swith_btn").empty();
+            $("span.swith_btn").append("Workspace");
             $('#fileTree').show();
             $('#fileTreeFull').hide();
         }
         $("#info").empty();
         $("#info").append("Current work tree: " + base_path());
         selection = "";
+        clipboardNode = null;
+        pasteMode = null;
     }
 
     function getmd5sum(path) {
@@ -256,7 +258,7 @@ $(document).ready(function () {
           if (data.indexOf('1') === -1) {
             $("#error").Popup("Error: " + data, {type: 'error', duration: 5000});
           } else {
-            $("#error").Popup("Operation complete!", {type: 'info', duration: 5000});
+            $("#error").Popup("Operation complete!", {type: 'confirm', duration: 5000});
           }
         },
         error: function(jqXHR, exception) {
@@ -488,16 +490,9 @@ $(document).ready(function () {
         new Mode("python", "Python", require("ace/mode/python").Mode, ["py"]),
         new Mode("buildout", "Python Buildout config", require("ace/mode/buildout").Mode, ["cfg"])
     ];
-    /*
-    $('#fileTree').fileTree({ root: projectDir, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function (file) {
-        selectFile(file);
-    }, function (file) { openFile(file); });*/
-    /*$("#fileTree").fancytree();*/
-    /*$('#fileTreeFull').fileTree({ root: currentProject, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function (file) {
-        selectFile(file);
-    }, function (file) { openFile(file); });*/
-    initTree('#fileTree', projectDir, 'pfolder');
-    initTree('#fileTreeFull', currentProject);
+
+    initTree('#fileTree', currentProject, 'pfolder');
+    initTree('#fileTreeFull', 'workspace');
     $("#info").append("Current work tree: " + base_path());
     /*setDetailBox();*/
 
@@ -505,6 +500,14 @@ $(document).ready(function () {
         if (edit_status === "" && edit) {
             $("span#edit_status").html("*");
         }
+    });
+    editor.commands.addCommand({
+      name: 'myCommand',
+      bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
+      exec: function(editor) {
+        $("#save").click();
+      },
+      readOnly: false // false if this command should not apply in readOnly mode
     });
 
     $("#save").click(function () {

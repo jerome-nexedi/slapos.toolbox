@@ -42,10 +42,34 @@ $(document).ready(function () {
         return;
     }
 
+    function initTree(tree, path, key){
+      if (!key){
+        key = '0';
+      }
+      $(tree).fancytree({
+        activate: function(event, data) {
+          var node = data.node;
+        },
+        click: function(event, data) {
+          selectFile(data.node.data.path +"/");
+        },
+        source: {
+          url: $SCRIPT_ROOT + "/fileBrowser",
+          data:{opt: 20, dir: path, key: key, listfiles: ''},
+          cache: false
+        },
+        lazyload: function(event, data) {
+          var node = data.node;
+          data.result = {
+            url: $SCRIPT_ROOT + "/fileBrowser",
+            data: {opt: 20, dir: node.data.path , key: node.key, listfiles: ''}
+          }
+        },
+      });
+    }
+
     if (method !== "file") {
-        $('#fileTree').fileTree({root: workdir, script: $SCRIPT_ROOT + '/openFolder', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function (file) {
-            selectFile(file);
-        });
+        initTree('#fileTree', workdir);
     }
     $("input#subfolder").val("");
     $("#create").click(function () {

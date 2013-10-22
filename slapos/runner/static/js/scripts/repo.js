@@ -21,7 +21,6 @@ $(document).ready(function () {
     function gitStatus() {
         var project = $("#project").val(),
             urldata = $("input#workdir").val() + "/" + project;
-
         $("#status").empty();
         $("#push").hide();
         $("#flash").empty();
@@ -29,6 +28,9 @@ $(document).ready(function () {
             $("#status").append("<h2>Please select one project...</h2><br/><br/>");
             $("#branchlist").hide();
             return;
+        }
+        else if (project === undefined || project === null){
+          return;
         }
         send = true;
         getStatus = $.ajax({
