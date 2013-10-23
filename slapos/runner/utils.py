@@ -26,6 +26,7 @@ import slapos.slap
 
 logger = logging.getLogger('werkzeug')
 
+TRUE_VALUES = (1, '1', True, 'true', 'True')
 
 html_escape_table = {
   "&": "&amp;",
@@ -826,7 +827,7 @@ def isSoftwareReleaseReady(config):
   else:
     if isSoftwareRunning(config):
       return "2"
-    elif config['auto_deploy'] in (1, '1', True, 'true'):
+    elif config['auto_deploy'] in TRUE_VALUES:
       configNewSR(config, path)
       runSoftwareWithLock(config)
       return "2"
