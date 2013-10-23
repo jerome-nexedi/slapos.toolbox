@@ -45,10 +45,8 @@ def login_redirect(*args, **kwargs):
 
 @app.before_request
 def before_request():
-  if request.path.startswith('/static'):
-    return
-
-  if request.path == '/isSRReady':
+  if request.path.startswith('/static') \
+    or request.path == '/isSRReady':
     return
 
   account = getSession(app.config)
