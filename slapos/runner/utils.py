@@ -5,10 +5,10 @@
 import logging
 import md5
 import multiprocessing
-import thread
+import os
 import re
 import shutil
-import os
+import thread
 import time
 import urllib
 from xml.dom import minidom

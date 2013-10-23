@@ -17,14 +17,14 @@ from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getFolder,
                                  getProjectList, getProjectTitle, getSession,
                                  getSlapStatus, getSvcStatus,
                                  getSvcTailProcess, isInstanceRunning,
-                                 isSoftwareRunning, isText,
+                                 isSoftwareRunning, isSoftwareReleaseReady, isText,
                                  loadSoftwareRList, md5sum, newSoftware,
                                  readFileFrom, readParameters, realpath,
                                  removeInstanceRoot, removeProxyDb,
                                  removeSoftwareByName, runInstanceWithLock,
                                  runSoftwareWithLock, saveSession,
                                  svcStartStopProcess, svcStopAll, tail,
-                                 updateInstanceParameter, isSoftwareReleaseReady)
+                                 updateInstanceParameter)
 
 from slapos.runner.fileBrowser import FileBrowser
 from slapos.runner.gittools import (cloneRepo, gitStatus, switchBranch,
