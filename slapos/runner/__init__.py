@@ -69,20 +69,15 @@ def run():
   "Run default configuration."
   usage = "usage: %s [options] CONFIGURATION_FILE" % sys.argv[0]
 
-  try:
-    # Parse arguments
-    config = Config()
-    config.setConfig()
+  # Parse arguments
+  config = Config()
+  config.setConfig()
 
-    if os.getuid() == 0:
-      # avoid mistakes (mainly in development mode)
-      raise Exception('Do not run SlapRunner as root.')
+  if os.getuid() == 0:
+    # avoid mistakes (mainly in development mode)
+    raise Exception('Do not run SlapRunner as root.')
 
-    serve(config)
-    return_code = 0
-  except:
-    e = sys.exc_info()[0]
-    sys.exit(e)
+  serve(config)
 
 def serve(config):
   from werkzeug.contrib.fixers import ProxyFix
