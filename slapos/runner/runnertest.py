@@ -17,6 +17,7 @@ from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning,
 from slapos.runner.process import killRunningProcess, isRunning
 from slapos.runner import views
 import slapos.slap
+from slapos.htpasswd import  HtpasswdFile
 
 
 #Helpers
@@ -210,15 +211,15 @@ class SlaprunnerTestCase(unittest.TestCase):
   def test_updateAccount(self):
     """test Update accound, this needs the user to log in"""
     self.setAccount()
+    htpasswd = os.path.join(self.app.config['etc_dir'], '.htpasswd')
+    import pdb;pdb.set_trace()
+    assert self.users[0] in open(htpasswd).read()
     response = loadJson(self.updateAccount(self.updateUser, self.rcode))
     self.assertEqual(response['code'], 1)
-    #result = self.logout()
-    #assert "<h2>Login to Slapos Web Runner</h2>" in result.data
-    #retry login with new values
-    #response = loadJson(self.login(self.updateUser[0], self.updateUser[1]))
-    #self.assertEqual(response['result'], "")
-    #log out now!
-    #self.logout()
+    import pdb;pdb.set_trace()
+    encode = HtpasswdFile(htpasswd, False)
+    encode.update(self.updateUser[0], self.updateUser[1])
+    assert self.updateUser[0] in open(htpasswd).read()
 
   def test_startProxy(self):
     """Test slapproxy"""
