@@ -63,7 +63,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.project = 'slapos'  # Default project name
     self.template = 'template.cfg'
     self.partitionPrefix = 'slappart'
-    self.slaposBuildout = "1.6.0-dev-SlapOS-010"
     #create slaprunner configuration
     config = Config()
     config.setConfig()
@@ -110,7 +109,6 @@ class SlaprunnerTestCase(unittest.TestCase):
       shutil.rmtree(self.app.config['instance_root'])
     if os.path.exists(self.app.config['software_link']):
       shutil.rmtree(self.app.config['software_link'])
-    self.logout()
     #Stop process
     killRunningProcess('slapproxy', recursive=True)
     killRunningProcess('slapgrid-cp', recursive=True)
@@ -128,26 +126,11 @@ class SlaprunnerTestCase(unittest.TestCase):
                          ),
                          follow_redirects=True)
 
-  def login(self, username, password):
-    """Helper for Login method"""
-    return self.app.post('/doLogin',
-                         data=dict(
-                           clogin=username,
-                           cpwd=password
-                         ),
-                         follow_redirects=True)
-
   def setAccount(self):
     """Initialize user account and log user in"""
     response = loadJson(self.configAccount(self.users[0], self.users[1],
                   self.users[2], self.users[3], self.rcode))
-    response2 = loadJson(self.login(self.users[0], self.users[1]))
     self.assertEqual(response['result'], "")
-    self.assertEqual(response2['result'], "")
-
-  def logout(self):
-    """Helper for Logout current user"""
-    return self.app.get('/dologout', follow_redirects=True)
 
   def updateAccount(self, newaccount, rcode):
     """Helper for update user account data"""
@@ -186,8 +169,7 @@ class SlaprunnerTestCase(unittest.TestCase):
       sr += "find-links += http://www.nexedi.org/static/packages/source/slapos.buildout/\n\n"
       sr += "[networkcache]\ndownload-cache-url = http://www.shacache.org/shacache"
       sr += "\ndownload-dir-url = http://www.shacache.org/shadir\n\n"
-      sr += "[command]\nrecipe = zc.recipe.egg\neggs = plone.recipe.command\n\n"
-      sr += "[versions]\nzc.buildout = %s\n" % self.slaposBuildout
+      sr += "[command]\nrecipe = zc.recipe.egg\neggs = plone.recipe.command\n  zc.buildout\n\n"
       os.mkdir(testSoftware)
       open(os.path.join(testSoftware, self.app.config['software_profile']),
                           'w').write(sr)
@@ -216,13 +198,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     """Kill slapproxy process"""
     killRunningProcess('slapproxy', recursive=True)
 
-  #Begin test case here
-  def test_wrong_login(self):
-    """Test Login user before create session. This should return an error value"""
-    response = self.login(self.users[0], self.users[1])
-    #redirect to config account page
-    assert "<h2 class='title'>Your personal information</h2><br/>" in response.data
-
   def test_configAccount(self):
     """For the first lauch of slaprunner user need do create first account"""
     result = self.configAccount(self.users[0], self.users[1], self.users[2],
@@ -232,34 +207,18 @@ class SlaprunnerTestCase(unittest.TestCase):
     account = getSession(self.app.config)
     self.assertEqual(account, self.users)
 
-  def test_login_logout(self):
-    """test login with good and wrong values, test logout"""
-    response = loadJson(self.configAccount(self.users[0], self.users[1],
-                  self.users[2], self.users[3], self.rcode))
-    self.assertEqual(response['result'], "")
-    result = loadJson(self.login(self.users[0], "wrongpwd"))
-    self.assertEqual(result['result'], "Login or password is incorrect, please check it!")
-    resultwr = loadJson(self.login("wronglogin", "wrongpwd"))
-    self.assertEqual(resultwr['result'], "Login or password is incorrect, please check it!")
-    #try now with true values
-    resultlg = loadJson(self.login(self.users[0], self.users[1]))
-    self.assertEqual(resultlg['result'], "")
-    #after login test logout
-    result = self.logout()
-    assert "<h2>Login to Slapos Web Runner</h2>" in result.data
-
   def test_updateAccount(self):
     """test Update accound, this needs the user to log in"""
     self.setAccount()
     response = loadJson(self.updateAccount(self.updateUser, self.rcode))
     self.assertEqual(response['code'], 1)
-    result = self.logout()
-    assert "<h2>Login to Slapos Web Runner</h2>" in result.data
+    #result = self.logout()
+    #assert "<h2>Login to Slapos Web Runner</h2>" in result.data
     #retry login with new values
-    response = loadJson(self.login(self.updateUser[0], self.updateUser[1]))
-    self.assertEqual(response['result'], "")
+    #response = loadJson(self.login(self.updateUser[0], self.updateUser[1]))
+    #self.assertEqual(response['result'], "")
     #log out now!
-    self.logout()
+    #self.logout()
 
   def test_startProxy(self):
     """Test slapproxy"""
@@ -301,7 +260,6 @@ class SlaprunnerTestCase(unittest.TestCase):
                                       ),
                                       follow_redirects=True))
     self.assertEqual(response['result'], "")
-    self.logout()
 
   def test_createSR(self):
     """Scenario 2: Create a new software release"""
@@ -315,13 +273,10 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertEqual(response['result'], "")
     currentSR = self.getCurrentSR()
     assert newSoftware in currentSR
-    self.logout()
 
   def test_openSR(self):
     """Scenario 3: Open software release"""
     self.test_cloneProject()
-    #Login
-    self.login(self.users[0], self.users[1])
     software = os.path.join(self.software, 'drupal')  # Drupal SR must exist in SR folder
     response = loadJson(self.app.post('/setCurrentProject',
                                       data=dict(path=software),
@@ -336,7 +291,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     # newSoftware = os.path.join(self.software, 'slaprunner-test')
     self.proxyStatus(True)
     self.stopSlapproxy()
-    self.logout()
 
   def test_runSoftware(self):
     """Scenario 4: CReate empty SR and save software.cfg file
@@ -345,8 +299,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     #Call config account
     #call create software Release
     self.test_createSR()
-    #Login
-    self.login(self.users[0], self.users[1])
     newSoftware = self.getCurrentSR()
     softwareRelease = "[buildout]\n\nparts =\n  test-application\n"
     softwareRelease += "#Test download git web repos éè@: utf-8 caracters\n"
@@ -376,7 +328,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertTrue(os.path.exists(createdFile))
     self.proxyStatus(True)
     self.stopSlapproxy()
-    self.logout()
 
   def test_updateInstanceParameter(self):
     """Scenarion 5: Update parameters of current sofware profile"""
@@ -419,13 +370,10 @@ class SlaprunnerTestCase(unittest.TestCase):
     response = loadJson(self.app.get('/getParameterXml/dict'))
     self.assertEqual(parameterDict, response['result']['instance'])
     self.stopSlapproxy()
-    self.logout()
 
   def test_requestInstance(self):
     """Scenarion 6: request software instance"""
     self.test_updateInstanceParameter()
-    #Login
-    self.login(self.users[0], self.users[1])
     self.proxyStatus(False, sleep_time=1)
     #run Software profile
     response = loadJson(self.app.post('/runSoftwareProfile',
@@ -453,7 +401,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     assert 'simple file' in open(createdFile).read()
     self.proxyStatus(True)
     self.stopSlapproxy()
-    self.logout()
 
 
 def main():
