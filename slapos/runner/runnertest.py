@@ -2,6 +2,14 @@
 # vim: set et sts=2:
 # pylint: disable-msg=W0311,C0301,C0103,C0111,R0904
 
+#############################################
+# !!! Attention !!!
+# You now have to comment the last line
+# in __init__py, wich starts the functiun
+# run() in order to start the tests,
+# or it will NOT work
+#############################################
+
 import argparse
 import ConfigParser
 import datetime
