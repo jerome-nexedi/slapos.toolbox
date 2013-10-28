@@ -21,7 +21,8 @@ import time
 import unittest
 
 from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning,
-                                 isSoftwareRunning, startProxy)
+                                 isSoftwareRunning, startProxy,
+                                 isSoftwareReleaseReady)
 from slapos.runner.process import killRunningProcess, isRunning
 from slapos.runner import views
 import slapos.slap
@@ -220,11 +221,9 @@ class SlaprunnerTestCase(unittest.TestCase):
     """test Update accound, this needs the user to log in"""
     self.setAccount()
     htpasswd = os.path.join(self.app.config['etc_dir'], '.htpasswd')
-    import pdb;pdb.set_trace()
     assert self.users[0] in open(htpasswd).read()
     response = loadJson(self.updateAccount(self.updateUser, self.rcode))
     self.assertEqual(response['code'], 1)
-    import pdb;pdb.set_trace()
     encode = HtpasswdFile(htpasswd, False)
     encode.update(self.updateUser[0], self.updateUser[1])
     assert self.updateUser[0] in open(htpasswd).read()
@@ -411,6 +410,33 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.proxyStatus(True)
     self.stopSlapproxy()
 
+  def test_safeAutoDeploy(self):
+    """Scenario 7: isSRReady won't overwrite the existing
+    Sofware Instance if it has been deployed yet"""
+    # Test that SR won't be deployed with auto_deploy=False
+    self.app.config['auto_deploy'] = False
+    project = open(os.path.join(self.app.config['etc_dir'],
+                  '.project'), "w")
+    project.write(self.software + 'slaprunner-test' + '/')
+    project.close()
+    response = isSoftwareReleaseReady(self.app.config)
+    self.assertEqual(response, "0")
+    # Test if auto_deploy parameter starts the deployment of SR
+    self.app.config['auto_deploy'] = True
+    self.setupSoftwareFolder()
+    response = isSoftwareReleaseReady(self.app.config)
+    self.assertEqual(response, "2")
+    # Test that the new call to isSoftwareReleaseReady
+    # doesn't overwrite the previous installed one
+    completed_path = os.path.join(self.app.config['runner_workdir'],
+        'softwareLink', 'slaprunner-test', '.completed') 
+    completed_text = ".completed file: test"
+    completed = open(completed_path, "w")
+    completed.write(completed_text)
+    completed.close()
+    response = isSoftwareReleaseReady(self.app.config)
+    self.assertEqual(response, "1")
+    assert completed_text in open(completed_path).read()
 
 def main():
   # Empty parser for now - so that erp5testnode is happy when doing --help
