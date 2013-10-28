@@ -55,9 +55,9 @@ $(document).ready(function () {
                     if (data.code === 1) {
                         $("#edit_info").empty();
                         name = file.split('/');
-                        if (file.length > 80) {
+                        if (file.length > 75) {
                             //substring title.
-                            start = file.length - 80;
+                            start = file.length - 75;
                             path = "..." + file.substring(file.indexOf("/", (start + 1)));
                         }
                         $("#edit_info").append(" " + path);

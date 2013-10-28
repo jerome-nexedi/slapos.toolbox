@@ -683,22 +683,25 @@ a.lshare img{
 #error{
     padding: 0px;
     position: absolute;
-    top: -2px;
+    top: 0px;
     left:0;
-    right: 0;
+    right: 70px;
 }
 
-#error > div{
-    background: none repeat scroll 0 0 #afcee4;
-    border: 1px solid #FFF;
-    width:500px;
-    margin: 0 auto;
-    border-top:none;
-    border-radius: 0 0 4px 4px;
+#error div{
+    background: none repeat scroll 0 0 #FFC8F4;
+    border: 1px solid #A70073;
+    padding: 5px;
+    margin: 5px 0;
+    min-width: 300px;
+    max-width: 500px;
+    float: right;
+    border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    text-align: center;
+    text-align: left;
     position: relative;
     z-index: 170;
+    clear: both;
 }
 
 #error table{
@@ -723,7 +726,7 @@ a.lshare img{
     width: 30px;
     height:22px;
 }
-#error p{white-space: pre-wrap; word-wrap: break-word; width: 430px; padding-bottom: 5px;}
+#error p{white-space: pre-wrap; word-wrap: break-word; width: 95%; padding-bottom: 5px;}
 .noscroll {
     overflow: hidden;
 }
@@ -735,13 +738,15 @@ a.lshare img{
 .list{display: block;padding: 5px;background: #E7E7E7; margin-bottom:7px;}
 div.sep{display:block; height:7px;}
 .slidebox{padding:10px; }
+
 .alert_message{ background: url(../images/alert.png) center no-repeat; height: 26px;}
 .error_message{ background: url(../images/exit.png) center no-repeat; height: 26px;}
 .confirm_message{ background: url(../images/confirm.png) center no-repeat; height: 26px;}
 .info_message{ background: url(../images/info.png) center no-repeat; height: 26px;}
 #error p{ font-size: 13px; color: #4A131F;}
-#pClose, .close{background:url(../images/close.png) no-repeat 0px 0px; display:block; width:22px; height:22px; cursor:pointer}
-#pClose:hover, .close:hover{background:url(../images/close_hover.png) no-repeat 0px 0px;}
+.pClose, .close{background:url(../images/close.png) no-repeat 0px 0px; display:block; width:22px; height:22px; cursor:pointer}
+.pClose:hover, .close:hover{background:url(../images/close_hover.png) no-repeat 0px 0px;}
+
 .md5sum {margin:10px; font-size:15px;}
 .title{background: #e4e4e4; width: 100%; height: 26px; padding-top:2px; text-indent: 5px; color: #737373; text-shadow: 0px 1px #FFF;}
 .menu-box-left{float:left; width: 135px; font-size:14px; background: #e4e4e4; padding:5px 0 5px 5px; margin-top:10px;
