@@ -43,9 +43,10 @@
     <ul class='box_header'>
       <li id="switch"><span class="swith_btn" title="Switch between differents file source">This project</span></li>
       <li id="save"><span class="save_btn" title="Save current file. Hint: Use Ctrl+S">Save</span></li>
+      <li id="flist"><span class="flist_btn" id="filelist" title="Recently opened files and favourites" rel='tooltip'>&nbsp;</span></li>
       <li>
         <h2>
-          <a style="display:none" id='option' href='#' rel='tooltip' title='Show more option'>[Current file]</a><span id="edit_info">No file in editor</span>
+          <a style="display:none" id='option' href='#' rel='tooltip' title='Show more option'>[Menu]</a><span id="edit_info">No file in editor</span>
           <span id="edit_status"></span>
         </h2>
       </li>
@@ -66,7 +67,7 @@
 <pre id="editor">
 
 </pre>
-            </div>
+      </div>
 	    <!--<input type=submit value="Save" id="save" class="button">-->
 	</div>
 
@@ -74,18 +75,30 @@
 <div class="clear"></div>
 <div id="file_info" class="file_info"><span id="info"></span></div>
 </form>
+
+
 <div id="tooltip-option" style="display:none">
-  <span class="list first-list">MD5 SUM for the current file</span>
-    <a id='getmd5' href="#">Get or Update md5sum</a>
-    <div class="sep"></div>
-    <span class="list">Add project development</span>
-    <ul id="plist">
-    {% for name in projectList%}
-      <li><input type="checkbox" name="develop" value="{{name}}" id="{{name}}">
-      <label>{{name}}</label></li>
-    {% endfor %}
+  <span class="list first-list">Current file Menu</span>
+  <a id='getmd5' href="#">Get or Update md5sum</a>
+  <a id='addflist' href="#">Add to favourites</a>
+  <div class="sep"></div>
+  <span class="list">Add project development</span>
+  <ul id="plist">
+  {% for name in projectList%}
+    <li><input type="checkbox" name="develop" value="{{name}}" id="{{name}}">
+    <label>{{name}}</label></li>
+  {% endfor %}
+  </ul>
+  <a href="#" id="adddevelop" class="lshare">Add to profile</a>
+</div>
+
+<div id="tooltip-filelist" style="display:none">
+  <div style="min-width: 190px; padding-bottom:10px;">
+    <span class="list first-list">All your favourite files</span>
+    <ul class="inline">
+      <li>Your favourites files list is <br/>empty for the moment!</li>
     </ul>
-    <a href="#" id="adddevelop" class="lshare">Add to profile</a>
+  </div>
 </div>
 
 <!-- This contains the hidden content for inline calls -->

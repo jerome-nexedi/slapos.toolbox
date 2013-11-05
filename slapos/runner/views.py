@@ -116,7 +116,7 @@ def editSoftwareProfile():
   if profile == "":
     flash('Error: can not open profile, please select your project first')
   return render_template('updateSoftwareProfile.html', workDir='workspace',
-      profile=profile, projectList=getProjectList(app.config['workspace']))
+      profile=profile, projectList=listFolder(app.config, 'workspace'))
 
 
 def inspectSoftware():
@@ -159,7 +159,7 @@ def editInstanceProfile():
   if profile == "":
     flash('Error: can not open instance profile for this Software Release')
   return render_template('updateInstanceProfile.html', workDir='workspace',
-      profile=profile, projectList=getProjectList(app.config['workspace']))
+      profile=profile, projectList=listFolder(app.config, 'workspace'))
 
 
 # get status of all computer partitions and process state
@@ -640,7 +640,7 @@ def fileBrowser():
 def editFile():
   return render_template('editFile.html', workDir='workspace',
     profile=urllib.unquote(request.args.get('profile', '')),
-    projectList=getProjectList(app.config['workspace']),
+    projectList=listFolder(app.config, 'workspace'),
     filename=urllib.unquote(request.args.get('filename', '')))
 
 def shell():
