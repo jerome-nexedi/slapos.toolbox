@@ -22,6 +22,8 @@ $(document).ready(function () {
         pasteMode = null,
         selection = "",
         edit_status = "",
+        current_file = null,
+        favourite_list = new Array(),
         base_path = function () {
             return softwareDisplay ? currentProject : 'workspace/';
         };
@@ -45,63 +47,46 @@ $(document).ready(function () {
         }
         send = true;
         edit = false;
+        $("a#option").hide();
         if (file.substr(-1) !== "/") {
-            $.ajax({
-                type: "POST",
-                url: $SCRIPT_ROOT + '/getFileContent',
-                data: {file: file},
-                success: function (data) {
-                    var name, start, path = file;
-                    if (data.code === 1) {
-                        $("#edit_info").empty();
-                        name = file.split('/');
-                        if (file.length > 75) {
-                            //substring title.
-                            start = file.length - 75;
-                            path = "..." + file.substring(file.indexOf("/", (start + 1)));
-                        }
-                        $("#edit_info").append(" " + path);
-                        $("a#option").show();
-                        editor.getSession().setValue(data.result);
-                        setEditMode(name[name.length - 1]);
-                        edit = true;
-                        $("input#subfolder").val(file);
-                        $("span#edit_status").html("");
-                        edit_status = "";
-                    } else {
-                        $("#error").Popup(data.result, {type: 'error', duration: 5000});
+          $("#edit_info").empty();
+          $("#edit_info").append("LOADING FILE... <img src='"+$SCRIPT_ROOT+"/static/images/loading.gif' />");
+          $.ajax({
+            type: "POST",
+            url: $SCRIPT_ROOT + '/getFileContent',
+            data: {file: file},
+            success: function (data) {
+                var name, start, path = file;
+                if (data.code === 1) {
+                    $("#edit_info").empty();
+                    name = file.split('/');
+                    if (file.length > 75) {
+                        //substring title.
+                        start = file.length - 75;
+                        path = "..." + file.substring(file.indexOf("/", (start + 1)));
                     }
-                    send = false;
+                    $("#edit_info").append(" " + path);
+                    $("a#option").show();
+                    editor.getSession().setValue(data.result);
+                    setEditMode(name[name.length - 1]);
+                    edit = true;
+                    current_file = file;
+                    $("span#edit_status").html("");
+                    edit_status = "";
+                    setCookie("EDIT_CURRENT_FILE", file);
+                } else {
+                    $("#error").Popup(data.result, {type: 'error', duration: 5000});
                 }
-            });
+                send = false;
+            }
+          });
         } else {
             $("#edit_info").empty();
             $("#edit_info").append("No file in editor");
-            $("a#option").hide();
             editor.getSession().setValue("");
         }
         return;
     }
-
-    function selectFile(file) {
-        $("#info").empty();
-        $("#info").append("Current work tree: " + file);
-        selection = file;
-        return;
-    }
-    /*
-    function setDetailBox() {
-        var state = $("#details_box").css("display");
-        if (state === "none") {
-            $("#details_box").fadeIn("normal");
-            $("#details_head").removeClass("hide");
-            $("#details_head").addClass("show");
-        } else {
-            $("#details_box").fadeOut("normal");
-            $("#details_head").removeClass("show");
-            $("#details_head").addClass("hide");
-        }
-    } */
 
     function switchContent() {
         if (!softwareDisplay) {
@@ -127,16 +112,15 @@ $(document).ready(function () {
             return;
         }
         send = true;
-        var filepath = (path) ? path : $("input#subfolder").val(),
-            filename;
+        var filename;
 
         $.ajax({
             type: "POST",
             url: $SCRIPT_ROOT + '/getmd5sum',
-            data: {file: filepath},
+            data: {file: path},
             success: function (data) {
                 if (data.code === 1) {
-                    filename = filepath.replace(/^.*(\\|\/|\:)/, '')
+                    filename = path.replace(/^.*(\\|\/|\:)/, '');
                     $("#info").empty();
                     $("#info").html("Md5sum for file [" + filename + "]: " + data.result);
                 } else {
@@ -297,7 +281,7 @@ $(document).ready(function () {
                 success: function (data) {
                   $("#inline_content").empty();
                   $("#inline_content").append('<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">Content of file: ' +
-                		node.title +'</h2>');
+                  	node.title +'</h2>');
             			$("#inline_content").append('<br/><div class="main_content"><pre id="editorViewer"></pre></div>');
                   viewer = ace.edit("editorViewer");
                   viewer.setTheme("ace/theme/crimson_editor");
@@ -406,6 +390,11 @@ $(document).ready(function () {
   //          return false;
           }
         },
+        dblclick: function(event, data) {
+          if (!data.node.isFolder()){
+            openFile(data.node.data.path);
+          }
+        },
         source: {
           url: $SCRIPT_ROOT + "/fileBrowser",
           data:{opt: 20, dir: path, key: key, listfiles: 'yes'},
@@ -467,6 +456,56 @@ $(document).ready(function () {
       });
     }
 
+    function openOnFavourite($elt){
+      var index = parseInt($elt.attr('rel')),
+          file = favourite_list[index];
+      openFile(file);
+      $('a[rel=tooltip], span[rel=tooltip], .popup').mouseout();
+    }
+
+    function removeFavourite($elt){
+      var index = parseInt($elt.attr('rel'));
+      favourite_list.splice(index, 1);
+      $elt.parent().remove();
+      $('#tooltip-filelist ul li[rel="'+index+'"]').remove();
+      if (favourite_list.length === 0){
+        $("#tooltip-filelist ul").append("<li>Your favourites files list is <br/>empty for the moment!</li>");
+      }
+      deleteCookie("FAV_FILE_LIST");
+      setCookie("FAV_FILE_LIST", favourite_list.join('#'));
+    }
+
+    function initEditor(){
+      var tmp, filename;
+      current_file = getCookie("EDIT_CURRENT_FILE");
+      if (current_file) {
+          openFile(current_file);
+      }
+      tmp = getCookie("FAV_FILE_LIST");
+      if(tmp){
+        favourite_list = tmp.split('#');
+        if (favourite_list.length !== 0){
+          $("#tooltip-filelist ul").empty();
+        }
+        for (var i=0; i<favourite_list.length; i++){
+          filename = favourite_list[i].replace(/^.*(\\|\/|\:)/, '');
+          $("#tooltip-filelist ul").append('<li rel="'+i+
+                    '"><span class="bt_close" title="Remove this element!" rel="'+i+
+                    '">×</span><a href="#" rel="'+i+'">'+ filename +'</a></li>');
+        }
+      }
+      //Click on favorite file in list to open it!
+      $("#tooltip-filelist ul li a").click(function(){
+        openOnFavourite($(this));
+        return false;
+      });
+      //Remove favorite file in list
+      $("#tooltip-filelist ul li span").click(function(){
+        removeFavourite($(this));
+        return false;
+      });
+    }
+
 
     editor.setTheme("ace/theme/crimson_editor");
 
@@ -494,7 +533,7 @@ $(document).ready(function () {
     initTree('#fileTree', currentProject, 'pfolder');
     initTree('#fileTreeFull', 'workspace');
     $("#info").append("Current work tree: " + base_path());
-    /*setDetailBox();*/
+    initEditor();
 
     editor.on("change", function (e) {
         if (edit_status === "" && edit) {
@@ -523,7 +562,7 @@ $(document).ready(function () {
             type: "POST",
             url: $SCRIPT_ROOT + '/saveFileContent',
             data: {
-                file: $("input#subfolder").val(),
+                file: current_file,
                 content: editor.getSession().getValue()
             },
             success: function (data) {
@@ -549,7 +588,7 @@ $(document).ready(function () {
         return false;
     });
     $("#getmd5").click(function () {
-        getmd5sum();
+        getmd5sum(current_file);
         return false;
     });
 
@@ -557,7 +596,6 @@ $(document).ready(function () {
         edit = false;
         $("#info").empty();
         $("#info").append("Current work tree: " + base_path());
-        $("input#subfolder").val("");
         $("#edit_info").empty();
         $("#edit_info").append("No file in editor");
         editor.getSession().setValue("");
@@ -580,6 +618,34 @@ $(document).ready(function () {
             setDevelop(developList);
         }
         return false;
+    });
+    $("a#addflist").click(function(){
+      var i = favourite_list.length,
+          filename = current_file.replace(/^.*(\\|\/|\:)/, '');;
+      if (i === 0){
+        $("#tooltip-filelist ul").empty();
+      }
+      if (favourite_list.indexOf(current_file) !== -1){
+        $("#error").Popup("<b>Duplicate item!</b><br/>This files already exist in your favourite list", {type: 'alert', duration: 5000});
+      }
+      else{
+        favourite_list.push(current_file);
+        $("#tooltip-filelist ul").append('<li rel="'+i+
+                    '"><span class="bt_close" title="Remove this element!" rel="'+i+
+                    '">×</span><a href="#" rel="'+i+'">'+ filename +'</a></li>');
+        deleteCookie("FAV_FILE_LIST");
+        setCookie("FAV_FILE_LIST", favourite_list.join('#'));
+        $("#tooltip-filelist ul li a[rel='"+i+"']").bind('click', function() {
+          openOnFavourite($(this));
+          return false;
+        });
+        $("#tooltip-filelist ul li span[rel='"+i+"']").click(function(){
+          removeFavourite($(this));
+          return false;
+        });
+        $("#error").Popup("<b>Item added!</b><br/>"+filename+" has been added to your favourite list.", {type: 'confirm', duration: 3000});
+      }
+      return false;
     });
 
 
