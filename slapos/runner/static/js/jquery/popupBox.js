@@ -31,10 +31,9 @@
         }
         $box.show();
         $box.css('top', + ($(window).scrollTop()) +'px');
-        $box.append('<div id="' + currentBox + '" style="display:none"><table><tr>' +
-        '<td valign="middle" class="logo ' + option.type + '_message"></td>' +
+        $box.append('<div id="' + currentBox + '" style="display:none" class="'+option.type+'"><table><tr>' +
         '<td valign="middle"><p>' + msg + '</p></td>' +
-        '<td valign="middle" class="b_close"><span id="pClose'+boxCount+'" class="pClose"></span></td></tr></table></div>');
+        '<td valign="top" class="b_close"><span id="pClose'+boxCount+'" class="pClose"></span></td></tr></table></div>');
 
         $("#pClose"+boxCount).bind("click", function() {
           close($("#"+currentBox));
@@ -58,8 +57,9 @@
       }
       function close($elt){
         $elt.unbind('click');
-        $elt.fadeOut();
-        $elt.remove();
+        $elt.fadeOut("slow", function() {
+          $elt.remove();
+        });
       }
     }
   });
