@@ -90,13 +90,4 @@ function bindRemove() {
         }
     });
 }(jQuery, document, this));
-/********************************/
-$(document).ready(function () {
-    $("#linkshell").click(function () {
-        "use strict";
-        $("#main").empty();
-	//XXX It is not finished
-        $("#main").append("<iframe id=\"shellinabox\" src=\"https://login:password@[2001:67c:1254:3b:fc93:4aff:feca:66ac]:50005/shellinabox\"></iframe>");
-    });
-});
 
