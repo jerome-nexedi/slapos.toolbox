@@ -42,6 +42,10 @@ import urllib
 
 logger = logging.getLogger('KVMResiliencyTest')
 
+# Wait for 2 hours before renaming, so that replication of data is done
+# (~1GB of data to backup)
+SLEEP_TIME = 2 * 60 * 60
+
 def fetchMainInstanceIP(current_partition, software_release, instance_name):
   return current_partition.request(
       software_release=software_release,
@@ -105,7 +109,9 @@ def runTestSuite(server_url, key_file, cert_file,
   3/ Resilience is done, wait XX seconds
   4/ For each clone: do a takeover. Check that IPv6 of new main instance is different. Check, when doing a http request to the new VM that will fetch the stored random number, that the sent number is the same.
 
-  Note: disk image is a simple debian with the following python code running at boot:
+  Note: disk image is a simple debian with gunicorn and flask installed:
+    apt-get install python-setuptools; easy_install gunicorn flask
+  With the following python code running at boot in /root/number.py:
 
   import os
   
@@ -115,7 +121,7 @@ def runTestSuite(server_url, key_file, cert_file,
   storage = 'storage.txt'
   
   @app.route("/")
-  def greeting_list(): # 'cause they are several greetings, and plural is forbidden.
+  def greeting_list(): # 'cause there are several greetings, and plural is forbidden.
     return "Hello World"
   
   @app.route("/get")
@@ -124,13 +130,39 @@ def runTestSuite(server_url, key_file, cert_file,
   
   @app.route("/set")
   def set():
-    if os.path.exists(storage):
-      abort(503)
+    #if os.path.exists(storage):
+    #  abort(503)
     open(storage, 'w').write(request.args['key'])
     return "OK"
   
   if __name__ == "__main__":
     app.run(host='0.0.0.0', port=80)
+
+
+  Then create the boot script:
+  echo "cd /root; /usr/local/bin/gunicorn number:app -b 0.0.0.0:80 -D --error-logfile /root/error_log --access-logfile /root/access_log" > /etc/init.d/gunicorn-number
+  chmod +x /etc/init.d/gunicorn-number
+  update-rc.d gunicorn-number defaults
+
+
+  There also is a script that randomly generates I/O in /root/io.sh:
+
+  #!/bin/sh
+  # Randomly generates high I/O on disk. Goal is to write on disk so that
+  # it flushes at the same time that snapshot of disk image is done, to check if
+  # it doesn't corrupt image.
+  # Ayayo!
+  while [ 1 ]; do
+    dd if=/dev/urandom of=random count=2k
+    sync
+    sleep 0.2
+  done
+
+  Then create the boot script:
+  echo "/bin/sh /root/io.sh &" > /etc/init.d/io
+  chmod +x /etc/init.d/io
+  update-rc.d io defaults
+
   """
   slap = slapos.slap.slap()
   slap.initializeConnection(server_url, key_file, cert_file)
@@ -142,9 +174,6 @@ def runTestSuite(server_url, key_file, cert_file,
   ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
   logger.info('KVM IP is %s.' % ip)
 
-  key = setRandomKey(ip)
-  logger.info('Key set for test in current KVM: %s.' % key)
-
   # In resilient stack, main instance (example with KVM) is named "kvm0",
   # clones are named "kvm1", "kvm2", ...
   clone_count = int(total_instance_count) - 1
@@ -154,23 +183,34 @@ def runTestSuite(server_url, key_file, cert_file,
   # Test each clone
   while current_clone <= clone_count:
     logger.info('Testing kvm%s.' % current_clone)
-    # Wait for XX minutes so that replication is done
-    sleep_time = 60 * 15#2 * 60 * 60
-    logger.info('Sleeping for %s seconds.' % sleep_time)
-    time.sleep(sleep_time)
+
+    key = setRandomKey(ip)
+    logger.info('Key set for test in current KVM: %s.' % key)
+
+    logger.info('Sleeping for %s seconds.' % SLEEP_TIME)
+    time.sleep(SLEEP_TIME)
 
     # Make the clone instance takeover the main instance
     logger.info('Replacing main instance by clone instance...')
-    takeover(
-        server_url=server_url,
-        key_file=key_file,
-        cert_file=cert_file,
-        computer_guid=computer_id,
-        partition_id=partition_id,
-        software_release=software,
-        namebase=namebase,
-        winner_instance_suffix=str(current_clone),
-    )
+    for i in range(0, 10):
+      try:
+        takeover(
+            server_url=server_url,
+            key_file=key_file,
+            cert_file=cert_file,
+            computer_guid=computer_id,
+            partition_id=partition_id,
+            software_release=software,
+            namebase=namebase,
+            winner_instance_suffix=str(current_clone),
+        )
+        break
+      except: # SSLError
+        traceback.print_exc()
+        if i is 9:
+          raise
+        logger.warning('takeover failed. Retrying...')
+        time.sleep(10)
     logger.info('Done.')
 
     # Wait for the new IP (of old-clone new-main instance) to appear.

@@ -44,24 +44,24 @@ function clearAll(setStop) {
     running = setStop;
 }
 
-function removeFirstLog(){
-  "use strict";
-  currentLogSize -= parseInt($("#salpgridLog p:first-child").attr('rel'), 10);
-  $("#salpgridLog p:first-child").remove();
+function removeFirstLog() {
+    "use strict";
+    currentLogSize -= parseInt($("#salpgridLog p:first-child").attr('rel'), 10);
+    $("#salpgridLog p:first-child").remove();
 }
 
 function getRunningState() {
     "use strict";
-    var size = 0;
-    var log_info = "";
-    var param = {
-        position: logReadingPosition,
-        log: (processState !== "Checking" && openedlogpage === processType.toLowerCase()) ? openedlogpage : ""
-    },
+    var size = 0,
+        log_info = "",
+        param = {
+            position: logReadingPosition,
+            log: (processState !== "Checking" && openedlogpage === processType.toLowerCase()) ? openedlogpage : ""
+        },
         jqxhr = $.post(url, param, function (data) {
             setRunningState(data);
             size = data.content.position - logReadingPosition;
-            if (logReadingPosition !== 0 && data.content.truncated){
+            if (logReadingPosition !== 0 && data.content.truncated) {
                 log_info = "<p  class='info' rel='0'>SLAPRUNNER INFO: SLAPGRID-LOG HAS BEEN TRUNCATED HERE. To see full log reload your log page</p>";
             }
             logReadingPosition = data.content.position;
@@ -78,18 +78,16 @@ function getRunningState() {
             }
             processState = running ? "Running" : "Stopped";
             currentLogSize += parseInt(size, 10);
-            if (currentLogSize > maxLogSize){
+            if (currentLogSize > maxLogSize) {
                 //Remove the first element into log div
                 removeFirstLog();
-                if (currentLogSize > maxLogSize){
+                if (currentLogSize > maxLogSize) {
                     removeFirstLog(); //in cas of previous <p/> size is 0
                 }
             }
-        })
-        .error(function () {
+        }).error(function () {
             clearAll(false);
-        })
-        .complete(function () {
+        }).complete(function () {
             if (running) {
                 setTimeout(function () {
                     getRunningState();

@@ -42,6 +42,7 @@ class ResiliencyTestSuite(object):
                computer_id, partition_id, software,
                namebase,
                root_instance_name,
+               sleep_time_between_test=600,
                total_instance_count="3"):
     self.server_url = server_url
     self.key_file = key_file
@@ -52,6 +53,7 @@ class ResiliencyTestSuite(object):
     self.namebase = namebase
     self.total_instance_count = total_instance_count
     self.root_instance_name = root_instance_name
+    self.sleep_time_between_test = sleep_time_between_test
 
     slap = slapos.slap.slap()
     slap.initializeConnection(server_url, key_file, cert_file)
@@ -151,12 +153,12 @@ class ResiliencyTestSuite(object):
     # Test each clone
     while current_clone <= clone_count:
       # Wait for XX minutes so that replication is done
-      sleep_time = 60 * 15#2 * 60 * 60
       self.logger.info('Sleeping for %s seconds before testing clone %s.' % (
-          sleep_time,
+          self.sleep_time_between_test,
           current_clone
       ))
-      time.sleep(sleep_time)
+      time.sleep(self.sleep_time_between_test)
+
       self._doTakeover(current_clone)
       self.logger.info('Testing %s%s instance.' % (self.namebase, current_clone))
       success = self.checkDataOnCloneInstance()

@@ -37,10 +37,6 @@ import traceback
 from erp5.util import taskdistribution
 from erp5.util.testnode import Utils
 
-MAX_INSTALLATION_TIME = 60 * 50
-MAX_TESTING_TIME = 60
-MAX_GETTING_CONNECTION_TIME = 60 * 5
-
 def importFrom(name):
   """
   Import a test suite module (in the suites module) and return it.
@@ -147,7 +143,7 @@ class ScalabilityLauncher(object):
     Return a ScalabilityTest with current running test case informations,
     or None if no test_case ready
     """
-    data = self.test_result.getNextTestCase()
+    data = self.test_result.getRunningTestCase()
     if data == None:
       return None
     decoded_data = Utils.deunicodeData(json.loads(

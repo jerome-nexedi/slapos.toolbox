@@ -1,3 +1,33 @@
+0.37.4 (2013-10-15)
+-------------------
+
+ * Improve QEMU QMP wrapper by adding drive-backup method and other helpers. [0afb7d6, 95d0c8b]
+
+0.37.3 (2013-10-10)
+-------------------
+
+* pubsub: don't swallow output of subprocess to allow debug. [c503484]
+
+0.37.2 (2013-10-10)
+-------------------
+
+ * Add QEMU QMP wrapper. [9e819a8]
+ * KVM resiliency test: update docstring about how to setup disk image. [dbe347f]
+ * KVM resiliency test: change key for each clone. [7ef1db3]
+
+0.37.1 (2013-10-03)
+-------------------
+
+  * pubsub notifier: handle timeout and other connection errors. [ac4c75c]
+  * equeue: cast str(timestamp) to please gdbm. [8b067d6]
+
+0.37 (2013-09-30)
+=================
+
+ * equeue: log output of subprocess. [1694937]
+ * slaprunner: don't send 200 when login is bad. [4a8e10bf]
+ * Improve reliability of resiliency tests.
+
 0.36 (2013-09-05)
 =================
 

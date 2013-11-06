@@ -50,21 +50,18 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
 
     # Setup urllib2 with cookie support
     cookie_jar = cookielib.CookieJar()
-    self._opener_director = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookie_jar))
+    self._opener_director = urllib2.build_opener(
+        urllib2.HTTPCookieProcessor(cookie_jar)
+    )
 
     ResiliencyTestSuite.__init__(
         self,
         server_url, key_file, cert_file,
         computer_id, partition_id, software,
         namebase,
-        slaprunner_rootinstance_name
+        slaprunner_rootinstance_name,
+        300
     )
-
-  def generateData(self):
-    self.slaprunner_password = ''.join(random.SystemRandom().sample(string.ascii_lowercase, 8))
-    self.slaprunner_user = 'slapos'
-    self.logger.info('Generated slaprunner user is: %s' % self.slaprunner_user)
-    self.logger.info('Generated slaprunner password is: %s' % self.slaprunner_password)
 
   def _connectToSlaprunner(self, resource, data=None):
     """
@@ -84,22 +81,91 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
 
   def _login(self):
     self.logger.debug('Logging in...')
-    self._connectToSlaprunner('doLogin', data='clogin=%s&cpwd=%s' % (self.slaprunner_user, self.slaprunner_password))
+    self._connectToSlaprunner('doLogin', data='clogin=%s&cpwd=%s' % (
+        self.slaprunner_user,
+        self.slaprunner_password)
+    )
 
   def _retrieveInstanceLogFile(self):
     """
-    Store the logfile (=data) of the instance, check it is not empty nor it is html.
+    Store the logfile (=data) of the instance, check it is not empty nor it is
+    html.
     """
-    data = self._connectToSlaprunner(resource='fileBrowser', data='opt=9&filename=log.log&dir=instance_root%252Fslappart0%252Fvar%252Flog%252F')
+    data = self._connectToSlaprunner(
+        resource='fileBrowser',
+        data='opt=9&filename=log.log&dir=instance_root%252Fslappart0%252Fvar%252Flog%252F'
+    )
     self.logger.info('Retrieved data are:\n%s' % data)
 
     if data.find('<') is not -1:
-      raise IOError('Could not retrieve logfile content: retrieved content is html.')
+      raise IOError(
+          'Could not retrieve logfile content: retrieved content is html.'
+      )
     if data.find('Could not load') is not -1:
-      raise IOError('Could not retrieve logfile content: server could not load the file.')
+      raise IOError(
+          'Could not retrieve logfile content: server could not load the file.'
+      )
     if data.find('Hello') is -1:
-      raise IOError('Could not retrieve logfile content: retrieve content does not match "Hello".')
+      raise IOError(
+          'Could not retrieve logfile content: retrieve content does not match "Hello".'
+      )
     return data
+
+  def _waitForSoftwareBuild(self):
+    while self._connectToSlaprunner(resource='slapgridResult', data='position=0&log=').find('"software": true') is not -1:
+      self.logger.info('Software release is still building. Sleeping...')
+      time.sleep(15)
+    self.logger.info('Software Release has been built / is no longer building.')
+
+  def _buildSoftwareRelease(self):
+    self.logger.info('Building the Software Release...')
+    try:
+      self._connectToSlaprunner(resource='runSoftwareProfile')
+    except (NotHttpOkException, urllib2.HTTPError):
+      # The nginx frontend might timeout before software release is finished.
+      pass
+    self._waitForSoftwareBuild()
+
+  def _deployInstance(self):
+    self.logger.info('Deploying instance...')
+    try:
+      self._connectToSlaprunner(resource='runInstanceProfile')
+    except (NotHttpOkException, urllib2.HTTPError):
+      # The nginx frontend might timeout before someftware release is finished.
+      pass
+    while self._connectToSlaprunner(resource='slapgridResult', data='position=0&log=').find('"instance": true') is not -1:
+      self.logger.info('Buildout is still running. Sleeping...')
+      time.sleep(15)
+    self.logger.info('Instance has been deployed.')
+
+  def _gitClone(self):
+    self.logger.debug('Doing git clone of git.erp5.org/repos/slapos.git...')
+    try:
+      self._connectToSlaprunner(
+          resource='cloneRepository',
+          data='repo=http://git.erp5.org/repos/slapos.git&name=workspace/slapos&email=slapos@slapos.org&user=slapos'
+      )
+    except (NotHttpOkException, urllib2.HTTPError):
+      # cloning can be very long.
+      # XXX: quite dirty way to check.
+      while self._connectToSlaprunner('getProjectStatus', data='project=workspace/slapos').find('On branch master') is -1:
+        self.logger.info('git-cloning ongoing, sleeping...')
+
+  def _openSoftwareRelease(self, software_name):
+    self.logger.debug('Opening %s software release...' % software_name)
+    self._connectToSlaprunner(
+        resource='setCurrentProject',
+        data='path=workspace/slapos/software/%s/' % software_name
+    )
+
+
+  def generateData(self):
+    self.slaprunner_password = ''.join(
+        random.SystemRandom().sample(string.ascii_lowercase, 8)
+    )
+    self.slaprunner_user = 'slapos'
+    self.logger.info('Generated slaprunner user is: %s' % self.slaprunner_user)
+    self.logger.info('Generated slaprunner password is: %s' % self.slaprunner_password)
 
   def pushDataOnMainInstance(self):
     """
@@ -117,46 +183,25 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     slaprunner_recovery_code = parameter_dict['password_recovery_code']
 
     self.logger.debug('Creating the slaprunner account...')
-    self._connectToSlaprunner(resource='configAccount', data='name=slapos&username=%s&email=slapos@slapos.org&password=%s&rcode=%s' % (self.slaprunner_user, self.slaprunner_password, slaprunner_recovery_code))
+    self._connectToSlaprunner(
+        resource='configAccount',
+        data='name=slapos&username=%s&email=slapos@slapos.org&password=%s&rcode=%s' % (
+            self.slaprunner_user,
+            self.slaprunner_password,
+            slaprunner_recovery_code
+        )
+    )
 
     self._login()
 
-    self.logger.debug('Opening hello-world software release from git...')
-    try:
-      self._connectToSlaprunner(resource='cloneRepository', data='repo=http://git.erp5.org/repos/slapos.git&name=workspace/slapos&email=slapos@slapos.org&user=slapos')
-    except (NotHttpOkException, urllib2.HTTPError):
-      # cloning can be very long.
-      # XXX: quite dirty way to check.
-      while self._connectToSlaprunner('getProjectStatus', data='project=workspace/slapos').find('On branch master') is -1:
-        self.logger.info('git-cloning ongoing, sleeping...')
-
+    self._gitClone()
     # XXX should be taken from parameter.
-    self._connectToSlaprunner(resource='setCurrentProject', data='path=workspace/slapos/software/helloworld/')
+    self._openSoftwareRelease('helloworld')
 
-    self.logger.info('Building the Software Release...')
-    try:
-      self._connectToSlaprunner(resource='runSoftwareProfile')
-    except (NotHttpOkException, urllib2.HTTPError):
-      # The nginx frontend might timeout before software release is finished.
-      pass
-    while self._connectToSlaprunner(resource='slapgridResult', data='position=0&log=').find('"software": true') is not -1:
-      self.logger.info('Buildout is still running. Sleeping...')
-      time.sleep(15)
-    self.logger.info('Software Release has been built.')
-
-    self.logger.info('Deploying instance...')
-    try:
-      self._connectToSlaprunner(resource='runInstanceProfile')
-    except (NotHttpOkException, urllib2.HTTPError):
-      # The nginx frontend might timeout before someftware release is finished.
-      pass
-    while self._connectToSlaprunner(resource='slapgridResult', data='position=0&log=').find('"instance": true') is not -1:
-      self.logger.info('Buildout is still running. Sleeping...')
-      time.sleep(15)
-    self.logger.info('Instance has been deployed.')
+    self._buildSoftwareRelease()
+    self._deployInstance()
 
     self.data = self._retrieveInstanceLogFile()
-
 
   def checkDataOnCloneInstance(self):
     """
@@ -173,6 +218,10 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
         old_parameter_value=old_slaprunner_backend_url
     )
     self._login()
+    self._waitForSoftwareBuild()
+    # XXX: in theory, it should be done automatically by slaprunner.
+    #      In practice, it is still too dangerous for ERP5 instances.
+    self._deployInstance()
     new_data = self._retrieveInstanceLogFile()
 
     if new_data == self.data:

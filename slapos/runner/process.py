@@ -9,7 +9,7 @@ SLAPRUNNER_PROCESS_LIST = []
 
 class Popen(subprocess.Popen):
   """
-  Extension of Popen to launch and kill process in a clean way
+  Extension of Popen to launch and kill processes in a clean way
   """
   def __init__(self, *args, **kwargs):
     """
@@ -28,7 +28,7 @@ class Popen(subprocess.Popen):
 
   def kill(self, sig=signal.SIGTERM, recursive=False):
     """
-    Kill process and all its descendant if recursive
+    Kill process and all its descendants if recursive
     """
     if self.poll() is None:
       if recursive:
@@ -83,7 +83,7 @@ def isRunning(name):
 
 def killRunningProcess(name, recursive=False):
   """
-  Kill all process with name
+  Kill all processes with a given name
   """
   for process in SLAPRUNNER_PROCESS_LIST:
     if process.name == name:
@@ -92,7 +92,7 @@ def killRunningProcess(name, recursive=False):
 
 def handler(sig, frame):
   """
-  Signal handler to kill all process
+  Signal handler to kill all processes
   """
   pid = os.getpid()
   os.kill(-pid, sig)

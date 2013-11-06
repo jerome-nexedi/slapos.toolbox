@@ -12,12 +12,12 @@ from flask import jsonify
 
 
 def cloneRepo(data):
-  """Clonne a repository
+  """Clone a repository
   Args:
-    data: a dictionnary of parameters to use:
+    data: a dictionary of parameters to use:
       data['path'] is the path of the new project
       data['repo'] is the url of the repository to be cloned
-      data['email'] is the user email
+      data['email'] is the user's email
       data['user'] is the name of the user
   Returns:
     a jsonify data"""
@@ -29,7 +29,7 @@ def cloneRepo(data):
   json = ""
   try:
     if os.path.exists(workDir) and len(os.listdir(workDir)) < 2:
-      shutil.rmtree(workDir) #delete useless files
+      shutil.rmtree(workDir)  # delete useless files
     repo = Repo.clone_from(data["repo"], workDir)
     config_writer = repo.config_writer()
     config_writer.add_section("user")
@@ -42,10 +42,11 @@ def cloneRepo(data):
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
 
+
 def gitStatus(project):
   """Run git status and return status of specified project folder
   Args:
-    project: path of the projet ti get status
+    project: path of the projet to get status
   Returns:
     a parsed string that contains the result of git status"""
   code = 0
@@ -60,6 +61,7 @@ def gitStatus(project):
   except Exception as e:
     json = safeResult(str(e))
   return jsonify(code=code, result=json, branch=branch, dirty=isdirty)
+
 
 def switchBranch(project, name):
   """Switch a git branch
@@ -76,12 +78,13 @@ def switchBranch(project, name):
     if name == current_branch:
       json = "This is already your active branch for this project"
     else:
-      git  = repo.git
+      git = repo.git
       git.checkout(name)
       code = 1
   except Exception as e:
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
+
 
 def addBranch(project, name, onlyCheckout=False):
   """Add new git branch to the repository
@@ -95,7 +98,7 @@ def addBranch(project, name, onlyCheckout=False):
   json = ""
   try:
     repo = Repo(project)
-    git  = repo.git
+    git = repo.git
     if not onlyCheckout:
       git.checkout('-b', name)
     else:
@@ -104,6 +107,7 @@ def addBranch(project, name, onlyCheckout=False):
   except Exception as e:
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
+
 
 def getDiff(project):
   """Get git diff for the specified project directory"""
@@ -117,43 +121,39 @@ def getDiff(project):
     result = safeResult(str(e))
   return result
 
-def gitCommit(project, msg):
-  """Commit changes for the specified repository
-  Args:
-    project: directory of the local repository
-    msg: commit message"""
-  code = 1
-  json = ""
-  repo = Repo(project)
-  if repo.is_dirty:
-    git = repo.git
-    #add file to be commited
-    files = repo.untracked_files
-    for f in files:
-      git.add(f)
-    #Commit all modified and untracked files
-    git.commit('-a', '-m', msg)
-  else:
-    json = "Nothing to be commited"
-  return jsonify(code=code, result=json)
 
-def gitPush(project):
-  """Push changes for the specified repository
+def gitPush(project, msg):
+  """Commit and Push changes for the specified repository
   Args:
     project: directory of the local repository
     msg: commit message"""
   code = 0
   json = ""
-  repo = Repo(project)
+  undo_commit = False
   try:
-    git = repo.git
-    #push changes to repo
-    current_branch = repo.active_branch.name
-    git.push('origin', current_branch)
-    code = 1
+    repo = Repo(project)
+    if repo.is_dirty:
+      git = repo.git
+      current_branch = repo.active_branch.name
+      #add file to be commited
+      files = repo.untracked_files
+      for f in files:
+        git.add(f)
+      #Commit all modified and untracked files
+      git.commit('-a', '-m', msg)
+      undo_commit = True
+      #push changes to repo
+      git.push('origin', current_branch)
+      code = 1
+    else:
+      json = "Nothing to commit"
+      code = 1
   except Exception as e:
+    if undo_commit:
+      git.reset("HEAD~")  # undo previous commit
     json = safeResult(str(e))
   return jsonify(code=code, result=json)
+
 
 def gitPull(project):
   result = ""
@@ -166,6 +166,7 @@ def gitPull(project):
   except Exception as e:
     result = safeResult(str(e))
   return jsonify(code=code, result=result)
+
 
 def safeResult(result):
   """Parse string and remove credential of the user"""

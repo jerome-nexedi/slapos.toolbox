@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import glob
 import os
 
-version = '0.36.1-dev'
+version = '0.37.4'
 name = 'slapos.toolbox'
 long_description = open("README.txt").read() + "\n" + \
     open("CHANGES.txt").read() + "\n"
@@ -70,6 +70,7 @@ setup(name=name,
           'onetimeupload = slapos.onetimeupload:main',
           'pubsubnotifier = slapos.pubsub.notifier:main',
           'pubsubserver = slapos.pubsub:main',
+          'qemu-qmp-client = slapos.qemuqmpclient:main',
           'shacache = slapos.shacache:main',
           'slapbuilder = slapos.builder:main',
           'slapcontainer = slapos.container:main',

@@ -72,6 +72,26 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
   def setDB(self, database):
     self.db = gdbm.open(database, 'cs', 0700)
 
+  def _runCommandIfNeeded(self, command, timestamp):
+    with self.lock:
+      if command in self.db and timestamp <= int(self.db[command]):
+        self.logger.info("%s already run.", command)
+        return
+
+      self.logger.info("Running %s, %s with output:", command, timestamp)
+      try:
+        self.logger.info(
+            subprocess.check_output([command], stderr=subprocess.STDOUT)
+        )
+        self.logger.info("%s finished successfully.", command)
+      except subprocess.CalledProcessError as e:
+        self.logger.warning("%s exited with status %s. output is: \n %s" % (
+            command,
+            e.returncode,
+            e.output,
+        ))
+      self.db[command] = str(timestamp)
+
   def process_request_thread(self, request, client_address):
     # Handle request
     self.logger.debug("Connection with file descriptor %d", request.fileno())
@@ -102,23 +122,7 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
     except:
       self.logger.warning("Couldn't respond to %r", request.fileno())
     self.close_request(request)
-    # Run command if needed
-    with self.lock:
-      if command not in self.db or timestamp > int(self.db[command]):
-        self.logger.info("Running %s, %s", command, timestamp)
-        # XXX stdout and stderr redirected to null as they are not read
-        with open(os.devnull, 'r+') as f:
-          status = subprocess.call([command], close_fds=True,
-                                   stdin=f, stdout=f, stderr=f)
-        if status:
-          self.logger.warning("%s finished with non zero status.",
-                              command)
-        else:
-          self.logger.info("%s finished successfully.", command)
-        self.db[command] = timestamp
-      else:
-        self.logger.info("%s already runned.", command)
-
+    self._runCommandIfNeeded(command, timestamp)
 # Well the following function is made for schrodinger's files,
 # It will work if the file exists or not
 def remove_existing_file(path):
