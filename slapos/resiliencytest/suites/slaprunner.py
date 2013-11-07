@@ -28,6 +28,7 @@
 
 from .resiliencytestsuite import ResiliencyTestSuite
 
+import base64
 import cookielib
 import random
 import string
@@ -62,6 +63,7 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
         slaprunner_rootinstance_name,
         300
     )
+
 
   def _connectToSlaprunner(self, resource, data=None):
     """
@@ -191,6 +193,9 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
             slaprunner_recovery_code
         )
     )
+
+    b64string = base64.encodestring('%s:%s' % (self.slaprunner_user, self.slaprunner_password))[:-1]
+    self._opener_director.addheaders = [('Authorization', 'Basic %s'%b64string)]
 
     self._login()
 
