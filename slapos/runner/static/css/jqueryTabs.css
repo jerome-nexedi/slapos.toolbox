@@ -28,14 +28,13 @@
 #tabContainer > ul > li a{
     background:#D5D5D5;
     border-left:1px solid #fcfcfc;
-    color:#666;
     cursor:pointer;
     display:block;
     height:34px;
     line-height:34px;
     padding:0 30px;
     text-decoration:none;
-    color: #737373;
+    color: #526063;
     text-shadow: 0px 1px #ECECEC;
     font-size: 17px;
 }
@@ -43,7 +42,7 @@
     background:#E2E2E2;
 }
 #tabContainer > ul > li a.active{
-    background:#fbfbfb;
+    background:#fff;
     border:1px solid #fff;
   border-top:0;
     border-right:0;
@@ -51,7 +50,7 @@
 }
 #tabContainer > ul > li:first-child a{border-left:0}
 .tabDetails{
-    background:#fbfbfb;
+    background:#fff;
     border-top: none;
     margin:34px 0 0;
 }

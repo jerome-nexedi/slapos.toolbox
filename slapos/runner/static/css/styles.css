@@ -158,7 +158,7 @@ body {
     /*width: 99.6%;*/
     height: 430px;
     margin-top:2px;
-    border:1px solid #4c6172;
+    border:1px solid #678DAD;
     overflow:auto;
 }
 
@@ -178,9 +178,9 @@ body {
 }
 
 .content h2{
-    color: #4c6172;
+    color: #526063;
     font-weight: normal;
-    font-size: 1.4em;
+    font-size: 1.25em;
     line-height: 25px;
 }
 .content h2 a{
@@ -434,10 +434,6 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 }
 
 .gradient{background-color:#f4f4f4;background:-moz-linear-gradient(#f4f4f4,#ececec);background:-webkit-linear-gradient(#f4f4f4,#ececec);-ms-filter:"progid:DXImageTransform.Microsoft.gradient(startColorstr='#f4f4f4',endColorstr='#ececec')";background:linear-gradient(#f4f4f4,#ececec);}
-
-h2.hight:hover{
-    cursor: pointer;
-}
 
 .log_content{
     border: solid 1px #519ADA;
@@ -725,11 +721,11 @@ div.sep{display:block; height:7px;}
 
 .md5sum {margin:10px; font-size:15px;}
 
-#contentInfo h2, .hight, .title{background: #D5D5D5; width: 100%; height: 26px; padding-top:2px; text-indent: 5px; color: #737373;
+#contentInfo h2, .hight, .title{background: #D5D5D5; width: 100%; height: 26px; padding-top:2px; text-indent: 5px; color: #526063;
     text-shadow: 0px 1px #ECECEC;}
-.hight, .title{border-bottom: 3px solid #6DB9DD;}
-.show{background: #e4e4e4 url(../images/arrow_up.png) 97% 50% no-repeat;}
-.hide{background: #e4e4e4 url(../images/arrow_down.png) 97% 50% no-repeat;}
+.hight{border-bottom: 3px solid #6DB9DD;}
+.show{background:#D5D5D5 url(../images/arrow_up.png) 97% 50% no-repeat; cursor: pointer;}
+.hide{background:#D5D5D5 url(../images/arrow_down.png) 97% 50% no-repeat; cursor: pointer;}
 
 .menu-box-left{float:left; width: 135px; font-size:14px; background: #e4e4e4; padding:5px 0 5px 5px; margin-top:10px;
     font-size:14px; border-radius: 4px 0 0 4px;}
@@ -755,7 +751,7 @@ div.sep{display:block; height:7px;}
 .popup td.top img { display: block; }
 .popup td#bottomright { background-image: url(../images/bubble-1.png); }
 .popup-contents {background: #fff; color: #666666;}
-.popup a{display: block; font-weight:bold;  color: #4DA0C6; padding-left: 5px; padding-bottom: 5px;}
+.popup a{display: block; color: #4DA0C6; padding-left: 5px; padding-bottom: 5px;}
 .popup a:hover{color: #666666;}
 .popup ul{margin:0; margin-bottom:10px; padding:0; list-style:none;}
 .popup li{border-bottom: 1px solid #E4E4E4; padding:3px 0; margin: 0 5px;}

@@ -93,18 +93,18 @@ define('ace/mode/buildout', function(require, exports, module) {
                 var intern_match = line.match(/^.+=\s*$/);
                 if (intern_match) {
                     indent += tab;
-                }                
+                }
             }
 
             return indent;
         };
 
         this.checkOutdent = function(state, line, input) {
-            
+
         };
 
         this.autoOutdent = function(state, doc, row) {
-            
+
         };
 
     }).call(Mode.prototype);
@@ -123,7 +123,7 @@ define('ace/mode/buildout_highlight_rules', function(require, exports, module) {
 
         var buildinConstants = lang.arrayToMap(
             ("null|true|false|None").split("|")
-            );        
+            );
         var strPre = "(?:r|u|ur|R|U|UR|Ur|uR)?";
         var decimalInteger = "(?:(?:[1-9]\\d*)|(?:0))";
         var octInteger = "(?:0[oO]?[0-7]+)";
@@ -138,12 +138,12 @@ define('ace/mode/buildout_highlight_rules', function(require, exports, module) {
         var exponentFloat = "(?:(?:" + pointFloat + "|" +  intPart + ")" + exponent + ")";
         var floatNumber = "(?:" + exponentFloat + "|" + pointFloat + ")";
         var pythonVariable = "%\\([\\w-_:][\\w\\d-_:\\.]*\\)s";
-    
+
         // regexp must not have capturing parentheses. Use (?:) instead.
         // regexps are ordered -> the first match is used
 
         this.$rules = {
-            "start" : [                
+            "start" : [
             {
                 token : "keyword", // begin buildout part
                 regex : "^\\[[\\w\\d_][\\w\\d-_\\.]*\\]"
@@ -213,7 +213,7 @@ define('ace/mode/buildout_highlight_rules', function(require, exports, module) {
                 token : "constant.language",
                 regex : "^<=\\s*[\\w\\d-_]+"
             }
-            
+
             ],
             // regular expressions are only allowed after certain tokens. This
             // makes sure we don't mix up regexps with the divison operator
@@ -229,7 +229,7 @@ define('ace/mode/buildout_highlight_rules', function(require, exports, module) {
             }, {
                 token: "string.regexp",
                 regex: "\\/(?:(?:\\[(?:\\\\]|[^\\]])+\\])"
-                + "|(?:\\\\/|[^\\]/]))*" 
+                + "|(?:\\\\/|[^\\]/]))*"
                 + "[/]\\w*",
                 next: "start"
             }, {
@@ -238,7 +238,7 @@ define('ace/mode/buildout_highlight_rules', function(require, exports, module) {
             }, {
                 // immediately return to the start mode without matching
                 // anything
-                token: "empty", 
+                token: "empty",
                 regex: "",
                 next: "start"
             }
@@ -287,7 +287,7 @@ define('ace/mode/buildout_highlight_rules', function(require, exports, module) {
                 token : "string",
                 merge : true,
                 regex : '.+'
-            }            
+            }
             ]
         };
     };
