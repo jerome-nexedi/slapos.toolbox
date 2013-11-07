@@ -3,10 +3,13 @@ service (usually deployed using "test" software type).
 
 One entry point, if the service has been deployed
 from a "scalability" test node, so with special parameters, will automatically
-communicate to an ERP5 TestNode Master, and start the test.
+communicate when the instance is started to an ERP5 TestNode Master, and start the test.
 
-The other entry point is supposed to be run manually from a simple "test"
-instance without special parameter, and will manually run the test.
+The other entry point, "bin/runStandaloneTest", is supposed to be run manually from a simple "test"
+instance without special parameter (just request an instance of your software
+release using the dedicated test software-type made for the occasion).
+This is quite useful if you simply want to run the resiliency tests without having the whole
+dedicated test infrastructure.
 
 
 
