@@ -418,10 +418,13 @@ def newBranch():
 
 
 @login_required(login_redirect)
-def getProjectDiff(project):
-  path = os.path.join(app.config['workspace'], project)
-  return render_template('projectDiff.html', project=project,
-                           diff=getDiff(path))
+def getProjectDiff():
+  path = realpath(app.config, request.form['project'])
+  if path:
+    return jsonify(code=1, result=getDiff(path))
+  else:
+    return jsonify(code=0,
+                  result="Error: No such file or directory. PERMISSION DENIED!")
 
 
 @login_required()
@@ -735,8 +738,8 @@ app.add_url_rule("/pullProjectFiles", 'pullProjectFiles', pullProjectFiles,
                  methods=['POST'])
 app.add_url_rule("/pushProjectFiles", 'pushProjectFiles', pushProjectFiles,
                  methods=['POST'])
-app.add_url_rule("/getProjectDiff/<project>", 'getProjectDiff', getProjectDiff,
-                 methods=['GET'])
+app.add_url_rule("/getProjectDiff", 'getProjectDiff', getProjectDiff,
+                 methods=['POST'])
 app.add_url_rule("/newBranch", 'newBranch', newBranch, methods=['POST'])
 app.add_url_rule("/changeBranch", 'changeBranch', changeBranch, methods=['POST'])
 app.add_url_rule("/saveFileContent", 'saveFileContent', saveFileContent,
