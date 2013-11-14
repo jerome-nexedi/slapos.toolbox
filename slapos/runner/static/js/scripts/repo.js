@@ -6,7 +6,8 @@ $(document).ready(function () {
     "use strict";
 
     var send = false,
-        getStatus;
+        getStatus,
+        viewer;
 
     function loadBranch(branch) {
         var i, selected;
@@ -50,9 +51,13 @@ $(document).ready(function () {
                         $("#push").show();
                         $("#status").append("<br/><h2>Display Diff for current Project</h2>");
                         $("#status").append("<p style='font-size:15px;'>You have changes in your project." +
-                            " <a href='" + $SCRIPT_ROOT + "/getProjectDiff/"
-                            + encodeURI(project) + "'>Watch the diff</a></p>");
+                            " <a href='#' id='viewdiff'"
+                            + ">Watch the diff file</a></p>");
                     }
+                    $("#viewdiff").click(function () {
+                      viewDiff();
+                      return false;
+                    });
                     loadBranch(data.branch);
                 } else {
                     $("#error").Popup(data.result, {type: 'error', duration: 5000});
@@ -60,6 +65,42 @@ $(document).ready(function () {
                 send = false;
             }
         });
+    }
+
+    function viewDiff(){
+      var project = $("#project").val(),
+            urldata = $("input#workdir").val() + "/" + $("#project").val();
+      if (send){
+        return;
+      }
+      send = true;
+      $.colorbox.remove();
+      $.ajax({
+        type: "POST",
+        url: $SCRIPT_ROOT + '/getProjectDiff',
+        data: {project: urldata},
+        success: function (data) {
+          if (data.code === 1) {
+            $("#inline_content").empty();
+        		$("#inline_content").append('<div class="main_content"><pre id="editorViewer"></pre></div>');
+            viewer = ace.edit("editorViewer");
+            viewer.setTheme("ace/theme/crimson_editor");
+
+            viewer.getSession().setMode("ace/mode/diff");
+            viewer.getSession().setTabSize(2);
+            viewer.getSession().setUseSoftTabs(true);
+            viewer.renderer.setHScrollBarAlwaysVisible(false);
+            viewer.setReadOnly(true);
+      			$("#inlineViewer").colorbox({inline:true, width: "847px", onComplete:function(){
+      				viewer.getSession().setValue(data.result);
+      			}, title: 'Git diff for project ' + project});
+  		      $("#inlineViewer").click();
+            send = false;
+          } else {
+            $("#error").Popup(data.result, {type: 'error'});
+          }
+        }
+      });
     }
 
     function checkout(mode) {

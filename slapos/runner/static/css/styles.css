@@ -8,7 +8,7 @@ img{border:0}
 /*YAHOO RESET FONT*/
 html{color:#000;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,button,textarea,select,p,blockquote,th,td{margin:0;padding:0}table{border-collapse:collapse;border-spacing:0}fieldset,img{border:0}address,button,caption,cite,code,dfn,em,input,optgroup,option,select,strong,textarea,th,var{font:inherit}del,ins{text-decoration:none}li{list-style:none}caption,th{text-align:left}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal}q:before,q:after{content:''}abbr,acronym{border:0;font-variant:normal}sup{vertical-align:baseline}sub{vertical-align:baseline}legend{color:#000}body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small}select,input,textarea,button{font:99% arial,helvetica,clean,sans-serif}table{font-size:inherit;font:100%}pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%}
 body{
-  background: #1E73BD;
+  background: #A2BDC5;
   height:100%;
 }
 
@@ -44,6 +44,7 @@ th{
     color: #fff;
     font-weight: normal;
     font-size: 18px;
+    border-right: 1px solid #2281C1;
 }
 table.small th{padding: 4px;font-size: 16px;}
 textarea {
@@ -158,7 +159,7 @@ body {
     /*width: 99.6%;*/
     height: 430px;
     margin-top:2px;
-    border:1px solid #678DAD;
+    border:1px solid #519ADA;
     overflow:auto;
 }
 
@@ -384,7 +385,6 @@ padding: 10px;height: 80px;padding-bottom:15px;}
     height: 250px;
     border: solid 1px #678dad;
     background: #fff;
-    overflow: auto;
     padding: 5px;
 }
 
@@ -393,7 +393,6 @@ padding: 10px;height: 80px;padding-bottom:15px;}
     height: 250px;
     border: solid 1px #678dad;
     background: #fff;
-    overflow: auto;
     padding: 5px;
 }
 
@@ -402,7 +401,6 @@ padding: 10px;height: 80px;padding-bottom:15px;}
     height: 429px;
     border: solid 1px #678dad;
     background: #fff;
-    overflow: auto;
     padding: 0px;
 }
 .box_software{
@@ -539,6 +537,7 @@ padding: 10px;height: 80px;padding-bottom:15px;}
   border-bottom: 3px solid #D6D6D6;
   width: 100%
 }
+.space{height: 5px;width: 100%;}
 
 .waitting{
     margin-left: 10px;
@@ -798,4 +797,10 @@ padding:10px; font-size:14px; color:#03406A}
 .bt_close:hover {
     background: #D6D6D6;
     color: #333;
+}
+
+/*-------------------------ACE UPDATE------------------------*/
+.ace_search{
+  width: 350px;
+  max-width: 350px;
 }

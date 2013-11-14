@@ -755,16 +755,14 @@ if (jQuery) (function(jQuery){
             };
             sendAndRefresh(o, dataForSend, false, function(data) {
                 $("#sfile_content").empty();
-              	$("#sfile_content").append('<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">Content of file: ' +
-          				gsitem.name +'</h2>');
-          			$("#sfile_content").append('<br/><div class="main_content"><pre id="editor"></pre></div>');
+          			$("#sfile_content").append('<div class="main_content"><pre id="editor"></pre></div>');
                 setupEditor();
                 var mode = modelist.getModeForPath(gsitem.name);
                 editor.getSession().modeName = mode.name;
                 editor.getSession().setMode(mode.mode);
           			$("#showfile").colorbox({inline:true, width: "847px", onComplete:function(){
           				editor.getSession().setValue(data);
-          			}});
+          			}, title: "Content of file: " + gsitem.name});
     			      $("#showfile").click();
             });
         }

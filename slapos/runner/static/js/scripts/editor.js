@@ -6,7 +6,9 @@
 $(document).ready(function () {
     "use strict";
 
-    var editor, CurrentMode, file, workdir, edit, send;
+    var editor, CurrentMode, file, workdir, edit, send,
+        modelist,
+        config;
 
     function selectFile(file) {
         edit = false;
@@ -83,20 +85,22 @@ $(document).ready(function () {
         editor.insert("\n");
     }
 
-
-    editor = ace.edit("editor");
-    CurrentMode = require("ace/mode/buildout").Mode;
     file = $("input#profile").val();
     workdir = $("input#workdir").val();
     edit = false;
     send = false;
 
-    editor.setTheme("ace/theme/crimson_editor");
+    editor = ace.edit("editor");
+    modelist = require("ace/ext/modelist");
+    config = require("ace/config");
 
-    editor.getSession().setMode(new CurrentMode());
+    editor.getSession().setMode("ace/mode/text");
     editor.getSession().setTabSize(2);
     editor.getSession().setUseSoftTabs(true);
     editor.renderer.setHScrollBarAlwaysVisible(false);
+    var mode = modelist.getModeForPath(file);
+    editor.getSession().modeName = mode.name;
+    editor.getSession().setMode(mode.mode);
 
     selectFile(file);
 
@@ -125,6 +129,8 @@ $(document).ready(function () {
         });
         return false;
     });
+
+    $("#editOption").Tooltip();
 
     $("#getmd5").click(function () {
         getmd5sum();

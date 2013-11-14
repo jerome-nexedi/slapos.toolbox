@@ -14,10 +14,11 @@
 <input type="hidden" name="method" id="method" value="{{method}}" />
 {% if method == "new" %}
 <div id="addsoftware">
-<h2 class="title">Create your software release</h2><br/>
-<label for='software'>Name: </label>
+<h2 class="hight">Create your software release</h2>
+<div class='space'></div><div class='space'></div>
+<label for='software'></label>
 <input type="text" name="software" id="software" size='30' value="Enter software name..." />
-<br/><br/>
+<br/>
 <div id="file_navigation">
 	<h2>Select the parent directory</h2>
 	<div id="fileTree" class="file_tree"></div>
@@ -27,7 +28,8 @@
 </div>
 {% elif method == "open" %}
 <div id="openSoftware">
-	<h2 class="title">Select the folder of your software release into the box</h2><br/>
+	<h2 class="hight">Select the folder of your software release into the box</h2>
+  <div class='space'></div>
 	<div id="fileTree" class="file_tree"></div>
 	<div id="file_info" class="file_info">
 	<img src="{{ url_for('static', filename='images/check.png') }}" class="check" id="check" alt=""/>

@@ -5,6 +5,8 @@
 $(document).ready(function () {
     "use strict";
     var send = false;
+    $("#information").Tooltip();
+
     $("#update").click(function () {
         var haspwd = false,
             hasAccount = ($("input#hasAccount").val() !== "");

@@ -215,9 +215,7 @@ $(document).ready(function () {
         return false;
     });
     $('#xmlview').click(function () {
-        var content = '<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">' +
-            'INSTANCE PARAMETERS: Load XML file</h2><p id="xmllog" class="message"><br/></p>';
-        content += '<div class="main_content" style="height:230px"><pre id="editor"></pre></div>' +
+        var content = '<div class="main_content" style="height:230px"><pre id="editor"></pre></div>' +
             '<input type=submit value="Load" id="loadxml" class="button">';
         $.ajax({
             type: 'GET',
@@ -233,10 +231,10 @@ $(document).ready(function () {
                         {
                             inline: true,
                             width: "600px",
-                            height: "410px",
                             onComplete: function () {
                                 editor.getSession().setValue(data.result);
-                            }
+                            },
+                            title: 'INSTANCE PARAMETERS: Load XML file'
                         }
                     );
 
