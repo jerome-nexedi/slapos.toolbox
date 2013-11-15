@@ -83,10 +83,8 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
 
   def _login(self):
     self.logger.debug('Logging in...')
-    self._connectToSlaprunner('doLogin', data='clogin=%s&cpwd=%s' % (
-        self.slaprunner_user,
-        self.slaprunner_password)
-    )
+    b64string = base64.encodestring('%s:%s' % (self.slaprunner_user, self.slaprunner_password))[:-1]
+    self._opener_director.addheaders = [('Authorization', 'Basic %s'%b64string)]
 
   def _retrieveInstanceLogFile(self):
     """
@@ -181,8 +179,6 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     self.logger.debug('Getting the backend URL and recovery code...')
     parameter_dict = self._getPartitionParameterDict()
     self.slaprunner_backend_url = parameter_dict['backend_url']
-    #XXX dirty but is used to delete /login from published backend_url
-    self.slaprunner_backend_url = self.slaprunner_backend_url[:-5]
     self.logger.info('backend_url is %s.' % self.slaprunner_backend_url)
     slaprunner_recovery_code = parameter_dict['password_recovery_code']
 
@@ -195,9 +191,6 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
             slaprunner_recovery_code
         )
     )
-
-    b64string = base64.encodestring('%s:%s' % (self.slaprunner_user, self.slaprunner_password))[:-1]
-    self._opener_director.addheaders = [('Authorization', 'Basic %s'%b64string)]
 
     self._login()
 
