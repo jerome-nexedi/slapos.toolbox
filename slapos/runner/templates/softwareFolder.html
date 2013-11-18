@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Your current software folder{% endblock %}
+{% block title %}View and edit source code{% endblock %}
 {% block head %}
   {{ super() }}
   <link href="{{ url_for('static', filename='css/ui.fancytree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
@@ -26,7 +26,7 @@
 <input type="hidden" name="subfolder" id="subfolder" value="" />
 
 <!-- Definition of context menu -->
-<ul id="myMenu" class="contextMenu">
+<ul id="fileTreeMenu" class="contextMenu">
   <li class="edit"><a href="#edit">Edit</a></li>
   <li class="edit"><a href="#editfull">Open in new editor</a></li>
   <li class="view"><a href="#view">Open in viewer</a></li>
@@ -34,6 +34,7 @@
   <li class="delete "><a href="#delete">Delete</a></li>
   <li class="refresh separator"><a href="#refresh">Refresh</a></li>
   <li class="md5sum"><a href="#md5sum">File md5 sum</a></li>
+  <li class="favorite"><a href="#favorite">Add file to favorites</a></li>
   <li class="copy separator"><a href="#copy">Copy</a></li>
   <li class="cut"><a href="#cut">Cut</a></li>
   <li class="paste"><a href="#paste">Paste</a></li>
@@ -46,10 +47,11 @@
     <ul class='box_header'>
       <li id="switch"><span class="swith_btn" title="Switch between differents file source">This project</span></li>
       <li id="save"><span class="save_btn" title="Save current file. Hint: Use Ctrl+S">Save</span></li>
-      <li id="flist"><span class="flist_btn" id="filelist" title="Recently opened files and favourites" rel='tooltip'>&nbsp;</span></li>
+      <li id="filelist"><span class="flist_btn" title="Recently opened files and favourites" rel='tooltip'>&nbsp;</span></li>
+      <li id="option"><span class="fmenu_btn" title='Show more option' rel='tooltip'>Menu</span></li>
       <li>
         <h2>
-          <a style="display:none" id='option' href='#' rel='tooltip' title='Show more option'>[Menu]</a><span id="edit_info">No file in editor</span>
+          <span id="edit_info">No file in editor</span>
           <span id="edit_status"></span>
         </h2>
       </li>
@@ -85,8 +87,8 @@
   <ul class="inline">
     <li><a id='getmd5' href="#">Get or Update md5sum</a></li>
     <li><a id='addflist' href="#">Add to favourites</a></li>
-    <li><a id='find' href="#">Find in file &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Ctl+F]</a></li>
-    <li><a id='replace' href="#">Replace in file &nbsp;&nbsp;[Ctl+H]</a></li></li>
+    <li><a id='find' href="#">Find in file &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Ctrl+F]</a></li>
+    <li><a id='replace' href="#">Replace in file &nbsp;&nbsp;[Ctrl+H]</a></li>
   </ul>
   <div class="sep"></div>
   <span class="list">Add project development</span>
