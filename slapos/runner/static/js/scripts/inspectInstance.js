@@ -111,11 +111,10 @@ $(document).ready(function () {
     }
 
     function setupEditor(editable) {
-        editor = ace.edit('editor');
+        editor = ace.edit('editorViewer');
         editor.setTheme('ace/theme/crimson_editor');
 
-        var CurentMode = require('ace/mode/text').Mode;
-        editor.getSession().setMode(new CurentMode());
+        editor.getSession().setMode("ace/mode/xml");
         editor.getSession().setTabSize(2);
         editor.getSession().setUseSoftTabs(true);
         editor.renderer.setHScrollBarAlwaysVisible(false);
@@ -215,7 +214,8 @@ $(document).ready(function () {
         return false;
     });
     $('#xmlview').click(function () {
-        var content = '<div class="main_content" style="height:230px"><pre id="editor"></pre></div>' +
+        var content = '<p id="xmllog" class="message"><br/></p>' +
+            '<div class="main_content" style="height:230px"><pre id="editorViewer"></pre></div>' +
             '<input type=submit value="Load" id="loadxml" class="button">';
         $.ajax({
             type: 'GET',

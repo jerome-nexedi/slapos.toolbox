@@ -73,7 +73,7 @@ class FileBrowser(object):
       ff = os.path.join(dir, f)
       realfile = os.path.join(realdir, f)
       identity = "%s%s" % (key, i)
-      if os.path.isdir(realfile):        
+      if os.path.isdir(realfile):
         dirList.append({"title": f, "key": identity,
                         "folder":True, "lazy":True, "path": ff})
       elif listfiles:
@@ -127,7 +127,7 @@ class FileBrowser(object):
           os.unlink(filepath)
     except Exception as e:
       return str(e)
-    return "{result: '1', test: %s}" % '*'.join(lfiles)
+    return "{result: '1'}"
 
   def copyItem(self, dir, files, del_source=False):
     """Copy a list of files or directory to dir"""

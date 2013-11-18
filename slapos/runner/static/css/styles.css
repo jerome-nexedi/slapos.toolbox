@@ -248,6 +248,7 @@ body {
     outline:none;
     font: 13px 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
+.fancytree-edit-input{background:#fff; border: solid 1px #678dad; outline:none; padding:2px;}
 
 input[type="radio"], input[type="checkbox"]{
     margin: 4px;
@@ -653,6 +654,7 @@ a.lshare img{
 .save_btn{background: url(../images/icon_save.png) center right no-repeat;width: 60px;}
 .swith_btn{background: url(../images/gnome-session-switch.png) center right no-repeat;width: 105px;}
 .flist_btn{background: url(../images/list2_down.png) center right no-repeat;width: 26px;}
+.fmenu_btn{background: url(../images/ui_menu_blue.png) center right no-repeat;width: 58px;}
 
 #error{
     padding: 0px;

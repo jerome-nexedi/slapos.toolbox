@@ -16,6 +16,7 @@ $(document).ready(function () {
         currentProject = workdir + "/" + projectDir.replace(workdir, "").split('/')[1],
         send = false,
         edit = false,
+        ajaxResult = false,
         clipboardNode = null,
         pasteMode = null,
         selection = "",
@@ -32,7 +33,6 @@ $(document).ready(function () {
         }
         send = true;
         edit = false;
-        $("a#option").hide();
         if (file.substr(-1) !== "/") {
           var info = $("#edit_info").html();
           $("#edit_info").empty();
@@ -52,7 +52,6 @@ $(document).ready(function () {
                         path = "..." + file.substring(file.indexOf("/", (start + 1)));
                     }
                     $("#edit_info").append(" " + path);
-                    $("a#option").show();
                     editor.getSession().setValue(data.result);
                     var mode = modelist.getModeForPath(file);
                     editor.getSession().modeName = mode.name;
@@ -65,7 +64,6 @@ $(document).ready(function () {
                 } else {
                     $("#error").Popup(data.result, {type: 'error', duration: 5000});
                     $("#edit_info").html(info);
-                    $("a#option").show();
                 }
                 send = false;
             }
@@ -174,17 +172,24 @@ $(document).ready(function () {
           if( pasteMode == "cut" ) {
             // Cut mode: check for recursion and remove source
             dataForSend.opt = 7;
-            fileBrowserOp(dataForSend);
             var cb = clipboardNode.toDict(true);
-            if( node.isDescendantOf(cb) ) {
-              $("#error").Popup("Cannot move a node to it's sub node.", {type: 'error', duration: 5000});
+            if( node.isDescendantOf(clipboardNode) ) {
+              $("#error").Popup("ERROR: Cannot move a node to it's sub node.", {type: 'error', duration: 5000});
               return;
             }
-            if (node.isExpanded()){
-              node.addChildren(cb);
-              node.render();
-            }
-            clipboardNode.remove();
+            request = fileBrowserOp(dataForSend);
+            request.always(function() {
+              if (ajaxResult){
+                if (node.isExpanded()){
+                  node.addChildren(cb);
+                  node.render();
+                }
+                else{
+                  node.lazyLoad()
+                }
+                clipboardNode.remove();
+              }
+            });
           } else {
             if (node.key === clipboardNode.getParent().key){
               dataForSend = {opt: 14, filename: clipboardNode.title,
@@ -192,19 +197,23 @@ $(document).ready(function () {
                               newfilename: clipboardNode.title
                             };
             }
-            fileBrowserOp(dataForSend);
-            // Copy mode: prevent duplicate keys:
-            var cb = clipboardNode.toDict(true, function(dict){
-              delete dict.key; // Remove key, so a new one will be created
+            request = fileBrowserOp(dataForSend);
+            request.always(function() {
+              if (ajaxResult){
+                // Copy mode: prevent duplicate keys:
+                var cb = clipboardNode.toDict(true, function(dict){
+                  delete dict.key; // Remove key, so a new one will be created
+                });
+                if (dataForSend.opt === 14){
+                  node.lazyLoad(true);
+                  node.toggleExpanded();
+                }
+                else if (node.isExpanded()){
+                  node.addChildren(cb);
+                  node.render();
+                }
+              }
             });
-            if (dataForSend.opt === 14){
-              node.lazyLoad(true);
-              node.toggleExpanded();
-            }
-            else if (node.isExpanded()){
-              node.addChildren(cb);
-              node.render();
-            }
           }
           clipboardNode = pasteMode = null;
           break;
@@ -212,6 +221,13 @@ $(document).ready(function () {
     };
 
     function manageMenu (srcElement, menu){
+      /*if (!srcElement.hasClass('fancytree-node')){
+        menu.disableContextMenuItems("#edit,#editfull,#view,#md5sum,#refresh,#paste");
+        return;
+      }*/
+      var node = $.ui.fancytree.getNode(srcElement);
+      node.setFocus();
+      node.setActive();
       if (srcElement.hasClass('fancytree-folder')){
         menu.disableContextMenuItems("#edit,#editfull,#view,#md5sum");
       }
@@ -222,18 +238,22 @@ $(document).ready(function () {
     }
 
     function fileBrowserOp(data){
-      $.ajax({
-        type: "POST",
-        url: $SCRIPT_ROOT + '/fileBrowser',
-        data: data,
-        success: function (data) {
-          if (data.indexOf('1') === -1) {
-            $("#error").Popup("Error: " + data, {type: 'error', duration: 5000});
+
+      ajaxResult = false;
+      var jqxhr = $.ajax({
+          type: "POST",
+          url: $SCRIPT_ROOT + '/fileBrowser',
+          data: data})
+        .done(function(data) {
+          if (data.indexOf("{result: '1'}") === -1) {
+            var msg = (data === "{result: '0'}") ? "ERROR: Please check your file or folder location!" : data;
+            $("#error").Popup("Error: " + msg, {type: 'error', duration: 5000});
           } else {
             $("#error").Popup("Operation complete!", {type: 'confirm', duration: 5000});
+            ajaxResult = true;
           }
-        },
-        error: function(jqXHR, exception) {
+        })
+        .fail(function(jqXHR, exception) {
           if (jqXHR.status == 404) {
               $("#error").Popup("Requested page not found. [404]", {type: 'error'});
           } else if (jqXHR.status == 500) {
@@ -241,18 +261,22 @@ $(document).ready(function () {
           } else {
               $("#error").Popup("An Error occured: \n" + jqXHR.responseText, {type: 'error'});
           }
-        }
-      });
+        })
+        .always(function() {
+          //return result;
+        });
+        return jqxhr;
     }
 
     // --- Contextmenu helper --------------------------------------------------
-    function bindContextMenu(span, editable) {
+    function bindContextMenu(span) {
       // Add context menu to this node:
-      var item = $(span).contextMenu({menu: "myMenu"}, function(action, el, pos) {
+      var item = $(span).contextMenu({menu: "fileTreeMenu"}, function(action, el, pos) {
         // The event was bound to the <span> tag, but the node object
         // is stored in the parent <li> tag
         var node = $.ui.fancytree.getNode(el);
         var directory = encodeURIComponent(node.data.path.substring(0, node.data.path.lastIndexOf('/')) +"/");
+        var request;
         switch( action ) {
         case "cut":
         case "copy":
@@ -263,28 +287,28 @@ $(document).ready(function () {
         case "view":
           $.colorbox.remove();
           $.ajax({
-                type: "POST",
-                url: $SCRIPT_ROOT + '/fileBrowser',
-                data: {opt: 9, filename: node.title, dir: directory},
-                success: function (data) {
-                  $("#inline_content").empty();
-            			$("#inline_content").append('<div class="main_content"><pre id="editorViewer"></pre></div>');
-                  viewer = ace.edit("editorViewer");
-                  viewer.setTheme("ace/theme/crimson_editor");
+            type: "POST",
+            url: $SCRIPT_ROOT + '/fileBrowser',
+            data: {opt: 9, filename: node.title, dir: directory},
+            success: function (data) {
+              $("#inline_content").empty();
+        			$("#inline_content").append('<div class="main_content"><pre id="editorViewer"></pre></div>');
+              viewer = ace.edit("editorViewer");
+              viewer.setTheme("ace/theme/crimson_editor");
 
-                  var mode = modelist.getModeForPath(node.data.path);
-                  viewer.getSession().modeName = mode.name;
-                  viewer.getSession().setMode(mode.mode);
-                  viewer.getSession().setTabSize(2);
-                  viewer.getSession().setUseSoftTabs(true);
-                  viewer.renderer.setHScrollBarAlwaysVisible(false);
-                  viewer.setReadOnly(true);
-            			$("#inlineViewer").colorbox({inline:true, width: "847px", onComplete:function(){
-            				viewer.getSession().setValue(data);
-            			}, title: "Content of file: " + node.title});
-      			      $("#inlineViewer").click();
-                }
-            });
+              var mode = modelist.getModeForPath(node.data.path);
+              viewer.getSession().modeName = mode.name;
+              viewer.getSession().setMode(mode.mode);
+              viewer.getSession().setTabSize(2);
+              viewer.getSession().setUseSoftTabs(true);
+              viewer.renderer.setHScrollBarAlwaysVisible(false);
+              viewer.setReadOnly(true);
+        			$("#inlineViewer").colorbox({inline:true, width: "847px", onComplete:function(){
+        				viewer.getSession().setValue(data);
+        			}, title: "Content of file: " + node.title});
+  			      $("#inlineViewer").click();
+            }
+          });
           break;
         case "editfull":
           var url = $SCRIPT_ROOT+"/editFile?profile="+encodeURIComponent(node.data.path)+"&filename="+encodeURIComponent(node.title);
@@ -308,9 +332,13 @@ $(document).ready(function () {
               filename: newName,
               dir: node.data.path
           };
-          fileBrowserOp(dataForSend);
-          node.lazyLoad(true);
-          node.toggleExpanded();
+          request = fileBrowserOp(dataForSend)
+          request.always(function() {
+            if (ajaxResult){
+              node.lazyLoad(true);
+              node.toggleExpanded();
+            }
+          });
           break;
         case "nfile":
           var newName = window.prompt('Please Enter the file name: ');
@@ -322,9 +350,13 @@ $(document).ready(function () {
               filename: newName,
               dir: node.data.path
           };
-          fileBrowserOp(dataForSend);
-          node.lazyLoad(true);
-          node.toggleExpanded();
+          request = fileBrowserOp(dataForSend)
+          request.always(function() {
+            if (ajaxResult){
+              node.lazyLoad(true);
+              node.toggleExpanded();
+            }
+          });
           break;
         case "delete":
           if(!window.confirm("Are you sure that you want to delete this item?")){
@@ -335,8 +367,12 @@ $(document).ready(function () {
               files: encodeURIComponent(node.title),
               dir: directory
           };
-          fileBrowserOp(dataForSend);
-          node.remove();
+          request = fileBrowserOp(dataForSend)
+          request.always(function() {
+            if (ajaxResult){
+              node.remove();
+            }
+          });
           break;
         case "rename":
           var newName = window.prompt('Please enter the new name: ', node.title);
@@ -349,11 +385,19 @@ $(document).ready(function () {
               dir: directory,
               newfilename: newName
           };
-          fileBrowserOp(dataForSend);
-          var copy = node.toDict(true, function(dict){
-            dict.title = newName;
+          request = fileBrowserOp(dataForSend);
+          request.always(function() {
+            if (ajaxResult){
+              var copy = node.toDict(true, function(dict){
+                dict.title = newName;
+              });
+              node.applyPatch(copy);
+            }
           });
-          node.applyPatch(copy);
+
+          break;
+        case "favorite":
+          addToFavourite(node.data.path);
           break;
         default:
           return;
@@ -438,7 +482,7 @@ $(document).ready(function () {
           }
         },
         createNode: function(event, data){
-          bindContextMenu(data.node.span, !data.node.isFolder());
+          bindContextMenu(data.node.span);
         }
       });
     }
@@ -489,7 +533,8 @@ $(document).ready(function () {
           filename = favourite_list[i].replace(/^.*(\\|\/|\:)/, '');
           $("#tooltip-filelist ul").append('<li rel="'+i+
                     '"><span class="bt_close" title="Remove this element!" rel="'+i+
-                    '">×</span><a href="#" rel="'+i+'">'+ filename +'</a></li>');
+                    '">×</span><a href="#" rel="'+i+'" title="' + favourite_list[i]
+                    + '">'+ filename +'</a></li>');
         }
       }
       //Click on favorite file in list to open it!
@@ -502,6 +547,35 @@ $(document).ready(function () {
         removeFavourite($(this));
         return false;
       });
+    }
+
+    function addToFavourite(filepath){
+      var i = favourite_list.length,
+          filename = filepath.replace(/^.*(\\|\/|\:)/, '');;
+      if (i === 0){
+        $("#tooltip-filelist ul").empty();
+      }
+      if (favourite_list.indexOf(filepath) !== -1){
+        $("#error").Popup("<b>Duplicate item!</b><br/>This files already exist in your favourite list", {type: 'alert', duration: 5000});
+      }
+      else{
+        favourite_list.push(filepath);
+        $("#tooltip-filelist ul").append('<li rel="'+i+
+                    '"><span class="bt_close" title="Remove this element!" rel="'+i+
+                    '">×</span><a href="#" rel="'+i+'" title="' + filepath
+                    + '">'+ filename +'</a></li>');
+        deleteCookie("FAV_FILE_LIST");
+        setCookie("FAV_FILE_LIST", favourite_list.join('#'));
+        $("#tooltip-filelist ul li a[rel='"+i+"']").bind('click', function() {
+          openOnFavourite($(this));
+          return false;
+        });
+        $("#tooltip-filelist ul li span[rel='"+i+"']").click(function(){
+          removeFavourite($(this));
+          return false;
+        });
+        $("#error").Popup("<b>Item added!</b><br/>"+filename+" has been added to your favourite list.", {type: 'confirm', duration: 3000});
+      }
     }
 
 
@@ -518,6 +592,7 @@ $(document).ready(function () {
 
     initTree('#fileTree', currentProject, 'pfolder');
     initTree('#fileTreeFull', 'workspace');
+    //bindContextMenu('#fileTree');
     $("#info").append("Current work tree: " + base_path());
 
     initEditor();
@@ -611,32 +686,8 @@ $(document).ready(function () {
         return false;
     });
     $("a#addflist").click(function(){
-      var i = favourite_list.length,
-          filename = current_file.replace(/^.*(\\|\/|\:)/, '');;
-      if (i === 0){
-        $("#tooltip-filelist ul").empty();
-      }
-      if (favourite_list.indexOf(current_file) !== -1){
-        $("#error").Popup("<b>Duplicate item!</b><br/>This files already exist in your favourite list", {type: 'alert', duration: 5000});
-      }
-      else{
-        favourite_list.push(current_file);
-        $("#tooltip-filelist ul").append('<li rel="'+i+
-                    '"><span class="bt_close" title="Remove this element!" rel="'+i+
-                    '">×</span><a href="#" rel="'+i+'">'+ filename +'</a></li>');
-        deleteCookie("FAV_FILE_LIST");
-        setCookie("FAV_FILE_LIST", favourite_list.join('#'));
-        $("#tooltip-filelist ul li a[rel='"+i+"']").bind('click', function() {
-          openOnFavourite($(this));
-          return false;
-        });
-        $("#tooltip-filelist ul li span[rel='"+i+"']").click(function(){
-          removeFavourite($(this));
-          return false;
-        });
-        $("#option").click();
-        $("#error").Popup("<b>Item added!</b><br/>"+filename+" has been added to your favourite list.", {type: 'confirm', duration: 3000});
-      }
+      addToFavourite(current_file);
+      $("#option").click();
       return false;
     });
 

@@ -1,7 +1,7 @@
 /* Generic context menu styles */
 .contextMenu {
   position: absolute;
-	width: 180px;
+	width: 200px;
 	z-index: 99999;
 	border: solid 1px #CCC;
 	background: #ffffff;
@@ -68,3 +68,4 @@
 .contextMenu LI.rename A { background-image: url(images/mfile.png); }
 .contextMenu LI.md5sum A { background-image: url(images/selection-select.png); }
 .contextMenu LI.refresh A { background-image: url(images/refresh.png); }
+.contextMenu LI.favorite A { background-image: url(images/knewstuff.png); }
