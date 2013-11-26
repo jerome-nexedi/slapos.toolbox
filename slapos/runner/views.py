@@ -508,7 +508,7 @@ def getPath():
   list = []
   for p in files:
     path = realpath(app.config, p)
-    if not p:
+    if not path:
       list = []
       break
     else:
