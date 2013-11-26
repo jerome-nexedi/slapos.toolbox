@@ -168,27 +168,39 @@ $(document).ready(function () {
       if (!key){
         key = '0';
       }
-      $(tree).fancytree({
-        activate: function(event, data) {
-          var node = data.node;
-        },
-        click: function(event, data) {
-          if (!data.node.isFolder()){
-            selectedFile = data.node.data.path;
-          }
-        },
-        source: {
-          url: $SCRIPT_ROOT + "/fileBrowser",
-          data:{opt: 20, dir: path, key: key, listfiles: 'yes'},
-          cache: false
-        },
-        lazyload: function(event, data) {
-          var node = data.node;
-          data.result = {
-            url: $SCRIPT_ROOT + "/fileBrowser",
-            data: {opt: 20, dir: node.data.path , key: node.key, listfiles: 'yes'}
-          }
-        },
+      $.ajax({
+        type: "POST",
+        url: $SCRIPT_ROOT + '/getPath',
+        data: {file: "instance_root"}
+        })
+      .done(function(data) {
+        if (data.code === 1) {
+          $(tree).fancytree({
+            activate: function(event, data) {
+              var node = data.node;
+            },
+            click: function(event, data) {
+              if (!data.node.isFolder()){
+                selectedFile = data.node.data.path;
+              }
+            },
+            source: {
+              url: $SCRIPT_ROOT + "/fileBrowser",
+              data:{opt: 20, dir: path, key: key, listfiles: 'yes'},
+              cache: false
+            },
+            lazyload: function(event, data) {
+              var node = data.node;
+              data.result = {
+                url: $SCRIPT_ROOT + "/fileBrowser",
+                data: {opt: 20, dir: node.data.path , key: node.key, listfiles: 'yes'}
+              }
+            },
+          });
+        }
+        else {
+          $("#noServices").show();
+        }
       });
     }
 
