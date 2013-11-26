@@ -551,7 +551,7 @@ $(document).ready(function () {
 
     function addToFavourite(filepath){
       var i = favourite_list.length,
-          filename = filepath.replace(/^.*(\\|\/|\:)/, '');;
+          filename = filepath.replace(/^.*(\\|\/|\:)/, '');
       if (i === 0){
         $("#tooltip-filelist ul").empty();
       }

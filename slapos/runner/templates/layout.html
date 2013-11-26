@@ -70,9 +70,7 @@
 	        <div class="line"></div>
           <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
     	    <div class="run">
-            <div id="running">
-              <p id="running_info" class='software'>Building software...</p>
-              <!--<p id="running_info" class='instance'>Running instance...</p>-->
+            <div id="running" style="display:none">
               <img alt="" src="{{ url_for('static', filename='images/ajax_roller.gif') }}" height='26' title="slapgrid is currently running"/>
               <div class="clear"></div>
             </div>
@@ -82,8 +80,8 @@
           <ul class="sf-menu">
             <li><a href="{{ url_for('editCurrentProject') }}">Editor</a></li>
             <li><a href="{{ url_for('inspectInstance') }}">Services</a></li>
-            <li><a href="{{ url_for('viewInstanceLog') }}">Logs</a></li>
-            <li><a href="{{ url_for('viewSoftwareLog') }}">Terminal</a></li>
+            <li><a href="{{ url_for('viewLog') }}">Logs</a></li>
+            <li><a href="{{ url_for('viewLog') }}">Terminal</a></li>
             <li><a href="{{ url_for('manageRepository')}}#tab2">Git</a></li>
             <li class='right_menu main_menu'><a href="#"></a>
               <ul>
@@ -93,7 +91,7 @@
                 <li><a href="{{ url_for('openProject', method='new')}}">Create Software Release</a></li>
                 <li class='sep'></li>
                 <li><a href="{{ url_for('removeInstance') }}" id="removeIst">Destroy All Services</a></li>
-                <li><a href="{{ url_for('runInstanceProfile') }}">Redeploy Services</a></li>
+                <li><a href="{{ url_for('runInstanceProfile') }}" id="instrun">Redeploy Services</a></li>
                 <li class='sep'></li>
                 <li><a href="{{ url_for('browseWorkspace') }}">Browse Workspace</a></li>
                 <li><a href="{{ url_for('inspectSoftware') }}">My Softwares Releases</a></li>
@@ -101,7 +99,7 @@
                 <li><a href="{{ url_for('dologout') }}">Log out</a></li>
              </ul>
             </li>
-            <li class='right_menu slapos_run'><a href="{{ url_for('runSoftwareProfile') }}" id="instrun"></a>
+            <li class='right_menu slapos_run' id="softrun"><a href="{{ url_for('runSoftwareProfile') }}"></a>
             <!--<li class='right_menu slapos_top'><a href="{{ url_for('runInstanceProfile') }}" id="instrun"></a>-->
             </li>
           </ul>
