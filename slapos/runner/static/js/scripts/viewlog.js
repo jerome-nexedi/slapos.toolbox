@@ -199,7 +199,7 @@ $(document).ready(function () {
           });
         }
         else {
-          $("#noServices").show();
+          logfilelist = "";
         }
       });
     }
@@ -273,9 +273,15 @@ $(document).ready(function () {
       else{
         $("#error").Popup("No log file selected!", {type: 'alert', duration: 3000});
       }
+      return false;
     });
 
     $("#logEdit").click(function () {
+      if ( logfilelist === "" ) {
+        $("#error").Popup("You don't have any services yet! Please run your services to choose custom log files",
+                    {type: 'alert', duration: 5000});
+        return false;
+      }
       if ( $(this).text() === "Save list") {
         $(this).text("Edit list");
         $("#addbox").hide();
@@ -323,6 +329,7 @@ $(document).ready(function () {
           });
         });
       }
+      return false;
     });
 
     $("#slapswitch").click( function () {
@@ -332,6 +339,7 @@ $(document).ready(function () {
       else {
         $("#softrun").click();
       }
+      return false;
     });
 
 });
