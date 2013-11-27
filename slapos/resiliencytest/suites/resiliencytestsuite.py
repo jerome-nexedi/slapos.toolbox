@@ -126,8 +126,8 @@ class ResiliencyTestSuite(object):
     new_parameter_value = None
     while not new_parameter_value or new_parameter_value == 'None' or  new_parameter_value == old_parameter_value:
       self.logger.info('Not ready yet. SlapOS says new parameter value is %s' % new_parameter_value)
-      time.sleep(60)
       new_parameter_value = self._getPartitionParameterDict().get(parameter_key, None)
+      time.sleep(120)
     self.logger.info('New parameter value of instance is %s' % new_parameter_value)
 
     return new_parameter_value
