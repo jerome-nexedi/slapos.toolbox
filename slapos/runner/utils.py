@@ -821,6 +821,7 @@ def isSoftwareReleaseReady(config):
   if software_name[-1] == '/':
     software_name = software_name[:-1]
   software_name = software_name.split('/')[-1]
+  config_SR_folder(config)
   if os.path.exists(os.path.join(config['runner_workdir'], 
       'softwareLink', software_name, '.completed')):
     return "1"
