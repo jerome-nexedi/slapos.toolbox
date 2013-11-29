@@ -206,6 +206,7 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     self._openSoftwareRelease('helloworld')
 
     self._buildSoftwareRelease()
+    time.sleep(15)
     self._deployInstance()
 
     self.data = self._retrieveInstanceLogFile()
@@ -226,6 +227,7 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     )
     self._login()
     self._waitForSoftwareBuild()
+    time.sleep(15)
     new_data = self._retrieveInstanceLogFile()
 
     if new_data == self.data:
