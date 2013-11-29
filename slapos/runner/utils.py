@@ -287,8 +287,9 @@ def config_SR_folder(config):
   if not folder_list:
     return
   current_project = open(os.path.join(config['etc_dir'], ".project")).read()
-  projects = current_project.split('/')
-  name = projects[-2]
+  if current_project[-1] == '/':
+     current_project = current_project[:-1]
+  name = current_project.split('/')[-1]
   for folder in folder_list:
     if folder in list:
       continue  # this folder is already registered
