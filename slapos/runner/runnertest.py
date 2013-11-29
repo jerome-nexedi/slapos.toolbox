@@ -417,7 +417,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.app.config['auto_deploy'] = False
     project = open(os.path.join(self.app.config['etc_dir'],
                   '.project'), "w")
-    project.write(self.software + 'slaprunner-test' + '/')
+    project.write(self.software + 'slaprunner-test')
     project.close()
     response = isSoftwareReleaseReady(self.app.config)
     self.assertEqual(response, "0")
