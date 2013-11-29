@@ -280,7 +280,10 @@ def config_SR_folder(config):
       if len(cfg) != 2:
         continue  # there is a broken config file
       list.append(cfg[1])
-  folder_list = os.listdir(config['software_root'])
+  if os.path.exists(config['software_root']):
+    folder_list = os.listdir(config['software_root'])
+  else:
+    return
   if not folder_list:
     return
   current_project = open(os.path.join(config['etc_dir'], ".project")).read()
