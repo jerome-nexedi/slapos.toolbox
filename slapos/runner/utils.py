@@ -819,7 +819,11 @@ def cloneDefaultGit(config):
 
 def setupDefaultSR(config):
   """If a default_sr is in the parameters,
-  and no SR is deployed yet, setup it"""
+  and no SR is deployed yet, setup it
+  also run SR and Instance if required"""
   project = os.path.join(config['etc_dir'], '.project')
   if not os.path.exists(project) and config['default_sr'] != '':
     configNewSR(config, config['default_sr'])
+  if config['auto_deploy']:
+    runSoftwareWithLock(config)
+    runInstanceWithLock(config)
