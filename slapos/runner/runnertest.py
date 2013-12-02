@@ -429,7 +429,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     # Test that the new call to isSoftwareReleaseReady
     # doesn't overwrite the previous installed one
     completed_path = os.path.join(self.app.config['runner_workdir'],
-        'softwareLink', 'slaprunner-test', '.completed') 
+        'softwareLink', 'slaprunner-test', '.completed')
     completed_text = ".completed file: test"
     completed = open(completed_path, "w")
     completed.write(completed_text)

@@ -43,6 +43,7 @@ logger = logging.getLogger('werkzeug')
 def login_redirect(*args, **kwargs):
   return redirect(url_for('login'))
 
+
 @app.before_request
 def before_request():
   if request.path.startswith('/static') \
@@ -56,6 +57,7 @@ def before_request():
     session['title'] = "No account is defined"
     if request.path != "/setAccount" and request.path != "/configAccount":
       return redirect(url_for('setAccount'))
+
 
 # general views
 def home():
@@ -644,8 +646,10 @@ def editFile():
 def shell():
   return render_template('shell.html')
 
+
 def isSRReady():
   return isSoftwareReleaseReady(app.config)
+
 
 #Setup List of URLs
 app.add_url_rule('/', 'home', home)

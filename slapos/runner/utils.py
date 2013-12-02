@@ -820,13 +820,13 @@ def isSoftwareReleaseReady(config):
   project = os.path.join(config['etc_dir'], '.project')
   if not os.path.exists(project):
     return "0"
-  path  = open(project, 'r').readline().strip()
+  path = open(project, 'r').readline().strip()
   software_name = path
   if software_name[-1] == '/':
     software_name = software_name[:-1]
   software_name = software_name.split('/')[-1]
   config_SR_folder(config)
-  if os.path.exists(os.path.join(config['runner_workdir'], 
+  if os.path.exists(os.path.join(config['runner_workdir'],
       'softwareLink', software_name, '.completed')):
     return "1"
   else:
@@ -843,7 +843,7 @@ def isSoftwareReleaseReady(config):
 def cloneDefaultGit(config):
   """Test if the default git has been downloaded yet
   If not, download it in read-only mode"""
-  default_git = os.path.join(config['runner_workdir'], 
+  default_git = os.path.join(config['runner_workdir'],
     'project', 'default_repo')
   if not os.path.exists(default_git):
     data = {'path': default_git,
