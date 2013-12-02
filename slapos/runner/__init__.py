@@ -8,6 +8,7 @@ import logging
 import logging.handlers
 from optparse import OptionParser, Option
 import os
+from slapos.htpasswd import HtpasswdFile
 from slapos.runner.process import setHandler
 import sys
 from slapos.runner.utils import (runInstanceWithLock,
@@ -65,6 +66,20 @@ class Config:
       self.logger.debug("Verbose mode enabled.")
 
 
+def checkHtpasswd(config):
+  """XXX:set for backward compatiblity
+  create a htpassword if etc/.users exist"""
+  user = os.path.join(config['etc_dir'], '.users')
+  htpasswdfile = os.path.join(config['etc_dir'], '.htpasswd')
+  if os.path.exists(user) and not os.path.exists(htpasswdfile):
+    data = open(user).read().strip().split(';')
+    htpasswd = HtpasswdFile(htpasswdfile, create=True)
+    htpasswd.update(data[0], data[1])
+    htpasswd.save()
+  else:
+    return
+
+
 def run():
   "Run default configuration."
   usage = "usage: %s [options] CONFIGURATION_FILE" % sys.argv[0]
@@ -94,6 +109,7 @@ def serve(config):
     SECRET_KEY=os.urandom(24),
     PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=31),
   )
+  checkHtpasswd(app.config)
   if not os.path.exists(workdir):
     os.mkdir(workdir)
   if not os.path.exists(software_link):
