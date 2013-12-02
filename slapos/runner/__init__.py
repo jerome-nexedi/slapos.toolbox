@@ -6,13 +6,11 @@ import ConfigParser
 import datetime
 import logging
 import logging.handlers
-from optparse import OptionParser, Option
 import os
 from slapos.htpasswd import HtpasswdFile
 from slapos.runner.process import setHandler
 import sys
-from slapos.runner.utils import (runInstanceWithLock,
-                                 cloneDefaultGit, setupDefaultSR)
+from slapos.runner.utils import runInstanceWithLock
 from slapos.runner.views import *
 
 
@@ -82,8 +80,6 @@ def checkHtpasswd(config):
 
 def run():
   "Run default configuration."
-  usage = "usage: %s [options] CONFIGURATION_FILE" % sys.argv[0]
-
   # Parse arguments
   config = Config()
   config.setConfig()

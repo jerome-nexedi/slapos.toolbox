@@ -7,7 +7,7 @@ import os
 import shutil
 import urllib
 
-from flaskext.auth import Auth, AuthUser, login_required, logout
+from flaskext.auth import logout
 from flask import (Flask, request, redirect, url_for, render_template,
                    g, flash, jsonify, session, abort, send_file)
 
