@@ -11,7 +11,7 @@ import os
 import slapos.runner.process
 import sys
 from slapos.runner.utils import runInstanceWithLock
-from utils import cloneDefaultGit
+from utils import cloneDefaultGit, setupDefaultSR
 
 
 class Parser(OptionParser):
@@ -152,8 +152,9 @@ def serve(config):
     os.mkdir(software_link)
   slapos.runner.process.setHandler()
   config.logger.info('Running slapgrid...')
-  cloneDefaultGit(app.config) 
   runInstanceWithLock(app.config)
+  cloneDefaultGit(app.config) 
+  setupDefaultSR(app.config)
   config.logger.info('Done.')
   app.wsgi_app = ProxyFix(app.wsgi_app)
   app.run(host=config.runner_host, port=int(config.runner_port),

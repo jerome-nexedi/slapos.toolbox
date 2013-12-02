@@ -815,3 +815,10 @@ def cloneDefaultGit(config):
             'repo': 'http://git.erp5.org/repos/slapos.git',
     }
     cloneRepo(data)
+
+def setupDefaultSR(config):
+  """If a default_sr is in the parameters,
+  and no SR is deployed yet, setup it"""
+  project = os.path.join(config['etc_dir'], '.project')
+  if not os.path.exists(project) and config['default_sr'] != '':
+    configNewSR(config, config['default_sr'])
