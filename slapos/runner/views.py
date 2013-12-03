@@ -330,11 +330,13 @@ def getProjectStatus():
 @login_required()
 def editCurrentProject():
   project = os.path.join(app.config['etc_dir'], ".project")
-  if os.path.exists(project):
+  projectList = listFolder(app.config, 'workspace')
+  if os.path.exists(project) and projectList:
     return render_template('softwareFolder.html', workDir='workspace',
                            project=open(project).read(),
-                           projectList=listFolder(app.config, 'workspace'))
-  return redirect(url_for('configRepo'))
+                           projectList=projectList)
+  flash('Please clone slapos repository and then, <br/>open or create a software to start with your project!!')
+  return redirect(url_for('manageRepository'))
 
 
 #create file or directory

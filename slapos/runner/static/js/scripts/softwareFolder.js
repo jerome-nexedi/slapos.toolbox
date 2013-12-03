@@ -229,7 +229,7 @@ $(document).ready(function () {
       node.setFocus();
       node.setActive();
       if (srcElement.hasClass('fancytree-folder')){
-        menu.disableContextMenuItems("#edit,#editfull,#view,#md5sum");
+        menu.disableContextMenuItems("#edit,#editfull,#view,#md5sum,#favorite");
       }
       else{
         menu.disableContextMenuItems("#nfile,#nfolder,#refresh,#paste");
@@ -550,6 +550,9 @@ $(document).ready(function () {
     }
 
     function addToFavourite(filepath){
+      if (! filepath ) {
+        return;
+      }
       var i = favourite_list.length,
           filename = filepath.replace(/^.*(\\|\/|\:)/, '');
       if (i === 0){
