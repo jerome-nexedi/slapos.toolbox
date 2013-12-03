@@ -1,3 +1,14 @@
+0.38 (2013-12-03)
+-----------------
+
+ * Slaprunner: adds an integrated shell [ca6a670a]
+ * Slaprunner: uses basic authentification [05913751]
+ * Slaprunner: adds automated deployment of a Software Release [c8ab1273]
+ * Slaprunner: flask development server replaced by Gunicorn, a WSGI server [48d60d0f]
+ * Slaprunner: new test scenario for auto-deployment [c6007954]
+ * Runner resiliencytestsuite: adds basic auth support [3c03f12b]
+ * Runner resiliencytestsuite: tests can be done on only one Slapos node [07198d87]
+ 
 0.37.4 (2013-10-15)
 -------------------
 
