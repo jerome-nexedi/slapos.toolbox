@@ -297,6 +297,10 @@ input[type="radio"], input[type="checkbox"]{
 	margin-bottom:10px;
 }
 
+#commitmsg {
+	width:95%;
+}
+
 .message {
 	color:#FF5500;
 	line-height:21px;
@@ -449,7 +453,7 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 }
 #code{
     float: right;
-    width: 692px;
+    width: 680px;
 }
 #details_head{margin-bottom: 10px;}
 
@@ -728,3 +732,5 @@ padding:10px; font-size:14px; color:#03406A}
 .login-input{width:220px;}
 .information{display:block; float:left; height:16px; margin-top:10px; margin-left:10px; font-weight:bold}
 .account{margin-left:60px;}
+/*  ********************/
+#shellinabox{width:100%; min-height:530px;}

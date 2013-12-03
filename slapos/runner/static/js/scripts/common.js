@@ -90,3 +90,4 @@ function bindRemove() {
         }
     });
 }(jQuery, document, this));
+

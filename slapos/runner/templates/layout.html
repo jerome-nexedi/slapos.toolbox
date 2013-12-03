@@ -56,8 +56,11 @@
 		    <div class="line"></div>
 		    <a href="{{ url_for('editCurrentProject') }}" style="float:left" title="Edit your current project"><img alt="" src="{{ url_for('static', filename='images/project.png') }}" /></a>
         <div class="line"></div>
+		    <a href="{{ url_for('manageProject') }}" style="float:left" title="Manage Your repositories"><img alt="" src="{{ url_for('static', filename='images/manage_repo-little.png') }}" /></a>
+        <div class="line"></div>
+		    <a href="{{ url_for('shell') }}" style="float:left" title="Use the shell"><img alt="" src="{{ url_for('static', filename='images/terminal.png') }}" /></a>
+        <div class="line"></div>
   	    <a href="{{ url_for('dologout') }}" style="float:left" title="Close your session"><img alt="" src="{{ url_for('static', filename='images/logout.png') }}" /></a>
-		    <div class="line"></div>
                     <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
 		    <div class="run"><span id="running" style="display:none"><img alt="" src="{{ url_for('static', filename='images/ajax_roller.gif') }}"
 			height='26' title="slapgrid is currently running"/></span></div>

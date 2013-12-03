@@ -5,15 +5,18 @@
 import logging
 import md5
 import multiprocessing
+import os
 import re
 import shutil
-import os
+import thread
 import time
 import urllib
 from xml.dom import minidom
 
 import xml_marshaller
 from flask import jsonify
+
+from slapos.runner.gittools import cloneRepo
 
 from slapos.runner.process import Popen, isRunning, killRunningProcess
 from slapos.htpasswd import HtpasswdFile
@@ -23,6 +26,7 @@ import slapos.slap
 
 logger = logging.getLogger('werkzeug')
 
+TRUE_VALUES = (1, '1', True, 'true', 'True')
 
 html_escape_table = {
   "&": "&amp;",
@@ -276,12 +280,16 @@ def config_SR_folder(config):
       if len(cfg) != 2:
         continue  # there is a broken config file
       list.append(cfg[1])
-  folder_list = os.listdir(config['software_root'])
+  if os.path.exists(config['software_root']):
+    folder_list = os.listdir(config['software_root'])
+  else:
+    return
   if not folder_list:
     return
   current_project = open(os.path.join(config['etc_dir'], ".project")).read()
-  projects = current_project.split('/')
-  name = projects[-2]
+  if current_project[-1] == '/':
+     current_project = current_project[:-1]
+  name = current_project.split('/')[-1]
   for folder in folder_list:
     if folder in list:
       continue  # this folder is already registered
@@ -337,7 +345,7 @@ def runInstanceWithLock(config):
   slapgrid = Popen([config['slapgrid_cp'], '-vc',
                     '--pidfile', slapgrid_pid,
                     config['configuration_file_path'], '--now'],
-                   stdout=logfile, name='slapgrid-cp')
+                    stdout=logfile, name='slapgrid-cp')
   slapgrid.wait()
   return True
 
@@ -803,3 +811,58 @@ def readParameters(path):
       return str(e)
   else:
     return "No such file or directory: %s" % path
+
+
+def isSoftwareReleaseReady(config):
+  """Return 1 if the Software Release has
+  correctly been deployed, 0 if not,
+  and 2 if it is currently deploying"""
+  project = os.path.join(config['etc_dir'], '.project')
+  if not os.path.exists(project):
+    return "0"
+  path = open(project, 'r').readline().strip()
+  software_name = path
+  if software_name[-1] == '/':
+    software_name = software_name[:-1]
+  software_name = software_name.split('/')[-1]
+  config_SR_folder(config)
+  if os.path.exists(os.path.join(config['runner_workdir'],
+      'softwareLink', software_name, '.completed')):
+    return "1"
+  else:
+    if isSoftwareRunning(config):
+      return "2"
+    elif config['auto_deploy'] in TRUE_VALUES:
+      configNewSR(config, path)
+      runSoftwareWithLock(config)
+      return "2"
+    else:
+      return "0"
+
+
+def cloneDefaultGit(config):
+  """Test if the default git has been downloaded yet
+  If not, download it in read-only mode"""
+  default_git = os.path.join(config['runner_workdir'],
+    'project', 'default_repo')
+  if not os.path.exists(default_git):
+    data = {'path': default_git,
+            'repo': config['default_repo'],
+    }
+    cloneRepo(data)
+
+
+def buildAndRun(config):
+  runSoftwareWithLock(config)
+  runInstanceWithLock(config)
+
+
+def setupDefaultSR(config):
+  """If a default_sr is in the parameters,
+  and no SR is deployed yet, setup it
+  also run SR and Instance if required"""
+  project = os.path.join(config['etc_dir'], '.project')
+  if not os.path.exists(project) and config['default_sr'] != '':
+    configNewSR(config, config['default_sr'])
+  if config['auto_deploy']:
+    thread.start_new_thread(buildAndRun, (config,))

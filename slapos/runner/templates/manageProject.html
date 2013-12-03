@@ -40,13 +40,20 @@
 	<!--<img class="waitting" id="pullimgwaitting" src="{{ url_for('static', filename='images/waiting.gif') }}" alt="" />-->
 	</div>
 	</div>
-	<div id="push" style="margin-bottom:20px;">
+	<div id="commit" style="margin-bottom:20px;">
 	<h2>Commit All your changes (On active branch)</h2>
 	<div style="margin-left:15px;">
 	<label for='commitmsg'>Commit message: </label>
-	<input type="text" name="commitmsg" id="commitmsg" size='40' value="Enter message..." />
-	<input type="submit" name="commit" id ="commit" value="Commit" class="button"/>
+	<textarea name="commitmsg" id="commitmsg" cols="40" rows="3">
+	</textarea>
+	<input type="submit" name="commit" id ="commitbutton" value="Commit" class="button"/>
 	<img class="waitting" id="imgwaitting" src="{{ url_for('static', filename='images/waiting.gif') }}" alt="" />
+	</div>
+	</div>
+	<div id="push" style="margin-bottom:20px;">
+	<h2>Push your Last Commits</h2>
+	<div style="margin-left:15px;">
+	<input type="submit" name="push" id="push" value="Push" class="button"/>
 	</div>
 	</div>
 	<br/>

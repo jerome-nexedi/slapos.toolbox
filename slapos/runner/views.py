@@ -7,7 +7,7 @@ import os
 import shutil
 import urllib
 
-from flaskext.auth import Auth, AuthUser, login_required, logout
+from flaskext.auth import logout
 from flask import (Flask, request, redirect, url_for, render_template,
                    g, flash, jsonify, session, abort, send_file)
 
@@ -17,7 +17,7 @@ from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getFolder,
                                  getProjectList, getProjectTitle, getSession,
                                  getSlapStatus, getSvcStatus,
                                  getSvcTailProcess, isInstanceRunning,
-                                 isSoftwareRunning, isText,
+                                 isSoftwareRunning, isSoftwareReleaseReady, isText,
                                  loadSoftwareRList, md5sum, newSoftware,
                                  readFileFrom, readParameters, realpath,
                                  removeInstanceRoot, removeProxyDb,
@@ -28,13 +28,11 @@ from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getFolder,
 
 from slapos.runner.fileBrowser import FileBrowser
 from slapos.runner.gittools import (cloneRepo, gitStatus, switchBranch,
-                                    addBranch, getDiff, gitPush, gitPull)
+                                    addBranch, getDiff, gitCommit, gitPush, gitPull)
 
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
-auth = Auth(app, login_url_name='login')
-auth.user_timeout = 0
 file_request = FileBrowser(app.config)
 
 # Setup default flask (werkzeug) parser
@@ -46,18 +44,15 @@ def login_redirect(*args, **kwargs):
   return redirect(url_for('login'))
 
 
-#Access Control: Only static files and login pages are allowed to guest
 @app.before_request
 def before_request():
-  if request.path.startswith('/static'):
+  if request.path.startswith('/static') \
+    or request.path == '/isSRReady':
     return
 
   account = getSession(app.config)
   if account:
-    user = AuthUser(username=account[0])
-    user.set_and_encrypt_password(account[1], "123400ZYX")
     session['title'] = getProjectTitle(app.config)
-    g.users = {account[0]: user}
   else:
     session['title'] = "No account is defined"
     if request.path != "/setAccount" and request.path != "/configAccount":
@@ -65,13 +60,11 @@ def before_request():
 
 
 # general views
-@login_required()
 def home():
   return render_template('index.html')
 
 
 # general views
-@login_required()
 def browseWorkspace():
   return render_template('workspace.html')
 
@@ -89,7 +82,6 @@ def setAccount():
   return redirect(url_for('login'))
 
 
-@login_required()
 def myAccount():
   account = getSession(app.config)
   return render_template('account.html', username=account[0],
@@ -102,7 +94,6 @@ def dologout():
   return redirect(url_for('login'))
 
 
-@login_required()
 def configRepo():
   public_key = open(app.config['public_key']).read()
   account = getSession(app.config)
@@ -113,16 +104,12 @@ def configRepo():
 
 @app.route("/doLogin", methods=['POST'])
 def doLogin():
-  username = request.form['clogin']
-  if username in g.users:
-    # Authenticate and log in!
-    if g.users[username].authenticate(request.form['cpwd']):
-      return jsonify(code=1, result="")
-  return jsonify(code=0, result="Login or password is incorrect, please check it!"), 401
+  #XXX Now has to check the .htpasswd if we want to warn
+  #the user that he misspelled his name/password
+  return jsonify(code=1, result="")
 
 
 # software views
-@login_required()
 def editSoftwareProfile():
   profile = getProfilePath(app.config['etc_dir'], app.config['software_profile'])
   if profile == "":
@@ -131,14 +118,12 @@ def editSoftwareProfile():
       profile=profile, projectList=getProjectList(app.config['workspace']))
 
 
-@login_required()
 def inspectSoftware():
   return render_template('runResult.html', softwareRoot='software_link/',
                          softwares=loadSoftwareRList(app.config))
 
 
 #remove content of compiled software release
-@login_required()
 def removeSoftware():
   if isSoftwareRunning(app.config) or isInstanceRunning(app.config):
     flash('Software installation or instantiation in progress, cannot remove')
@@ -151,7 +136,6 @@ def removeSoftware():
   return redirect(url_for('inspectSoftware'))
 
 
-@login_required()
 def runSoftwareProfile():
   if runSoftwareWithLock(app.config):
     return jsonify(result=True)
@@ -159,7 +143,6 @@ def runSoftwareProfile():
     return jsonify(result=False)
 
 
-@login_required()
 def viewSoftwareLog():
   if os.path.exists(app.config['software_log']):
     result = tail(open(app.config['software_log']), lines=1500)
@@ -170,7 +153,6 @@ def viewSoftwareLog():
 
 
 # instance views
-@login_required()
 def editInstanceProfile():
   profile = getProfilePath(app.config['etc_dir'], app.config['instance_profile'])
   if profile == "":
@@ -180,7 +162,6 @@ def editInstanceProfile():
 
 
 # get status of all computer partitions and process state
-@login_required()
 def inspectInstance():
   if os.path.exists(app.config['instance_root']):
     file_path = 'instance_root'
@@ -196,7 +177,6 @@ def inspectInstance():
 
 
 #Reload instance process ans returns new value to ajax
-@login_required()
 def supervisordStatus():
   result = getSvcStatus(app.config)
   if not result:
@@ -213,7 +193,6 @@ def supervisordStatus():
   return jsonify(code=1, result=html)
 
 
-@login_required()
 def removeInstance():
   if isInstanceRunning(app.config):
     flash('Instantiation in progress, cannot remove')
@@ -228,7 +207,6 @@ def removeInstance():
   return redirect(url_for('inspectInstance'))
 
 
-@login_required()
 def runInstanceProfile():
   if not os.path.exists(app.config['instance_root']):
     os.mkdir(app.config['instance_root'])
@@ -238,7 +216,6 @@ def runInstanceProfile():
     return jsonify(result=False)
 
 
-@login_required()
 def viewInstanceLog():
   if os.path.exists(app.config['instance_log']):
     result = open(app.config['instance_log']).read()
@@ -248,31 +225,26 @@ def viewInstanceLog():
       result=result.encode("utf-8"))
 
 
-@login_required()
 def stopAllPartition():
   svcStopAll(app.config)
   return redirect(url_for('inspectInstance'))
 
 
-@login_required(login_redirect)
 def tailProcess(process):
   return render_template('processTail.html',
       process_log=getSvcTailProcess(app.config, process), process=process)
 
 
-@login_required(login_redirect)
 def startStopProccess(process, action):
   svcStartStopProcess(app.config, process, action)
   return redirect(url_for('inspectInstance'))
 
 
-@login_required(login_redirect)
 def openProject(method):
   return render_template('projectFolder.html', method=method,
                          workDir='workspace')
 
 
-@login_required()
 def cloneRepository():
   path = realpath(app.config, request.form['name'], False)
   data = {
@@ -284,27 +256,22 @@ def cloneRepository():
   return cloneRepo(data)
 
 
-@login_required()
 def readFolder():
   return getFolderContent(app.config, request.form['dir'])
 
 
-@login_required()
 def openFolder():
   return getFolder(app.config, request.form['dir'])
 
 
-@login_required()
 def createSoftware():
   return newSoftware(request.form['folder'], app.config, session)
 
 
-@login_required()
 def checkFolder():
   return checkSoftwareFolder(request.form['path'], app.config)
 
 
-@login_required()
 def setCurrentProject():
   if configNewSR(app.config, request.form['path']):
     session['title'] = getProjectTitle(app.config)
@@ -313,13 +280,11 @@ def setCurrentProject():
     return jsonify(code=0, result=("Can not setup this Software Release"))
 
 
-@login_required()
 def manageProject():
   return render_template('manageProject.html', workDir='workspace',
                          project=getProjectList(app.config['workspace']))
 
 
-@login_required()
 def getProjectStatus():
   path = realpath(app.config, request.form['project'])
   if path:
@@ -329,7 +294,6 @@ def getProjectStatus():
 
 
 #view for current software release files
-@login_required()
 def editCurrentProject():
   project = os.path.join(app.config['etc_dir'], ".project")
   if os.path.exists(project):
@@ -340,7 +304,6 @@ def editCurrentProject():
 
 
 #create file or directory
-@login_required()
 def createFile():
   path = realpath(app.config, request.form['file'], False)
   if not path:
@@ -356,7 +319,6 @@ def createFile():
 
 
 #remove file or directory
-@login_required()
 def removeFile():
   try:
     if request.form['type'] == "folder":
@@ -368,7 +330,6 @@ def removeFile():
     return jsonify(code=0, result=str(e))
 
 
-@login_required()
 def removeSoftwareDir():
   try:
     data = removeSoftwareByName(app.config, request.form['md5'],
@@ -379,7 +340,6 @@ def removeSoftwareDir():
 
 
 #read file and return content to ajax
-@login_required()
 def getFileContent():
   file_path = realpath(app.config, request.form['file'])
   if file_path:
@@ -395,7 +355,6 @@ def getFileContent():
     return jsonify(code=0, result="Error: No such file!")
 
 
-@login_required()
 def saveFileContent():
   file_path = realpath(app.config, request.form['file'])
   if file_path:
@@ -405,7 +364,6 @@ def saveFileContent():
     return jsonify(code=0, result="Error: No such file!")
 
 
-@login_required()
 def changeBranch():
   path = realpath(app.config, request.form['project'])
   if path:
@@ -414,7 +372,6 @@ def changeBranch():
     return jsonify(code=0, result="Can not read folder: Permission Denied")
 
 
-@login_required()
 def newBranch():
   path = realpath(app.config, request.form['project'])
   if path:
@@ -426,23 +383,26 @@ def newBranch():
     return jsonify(code=0, result="Can not read folder: Permission Denied")
 
 
-@login_required(login_redirect)
 def getProjectDiff(project):
   path = os.path.join(app.config['workspace'], project)
   return render_template('projectDiff.html', project=project,
                            diff=getDiff(path))
-
-
-@login_required()
-def pushProjectFiles():
+def commitProjectFiles():
   path = realpath(app.config, request.form['project'])
   if path:
-    return gitPush(path, request.form['msg'])
+    return gitCommit(path, request.form['msg'])
   else:
     return jsonify(code=0, result="Can not read folder: Permission Denied")
 
 
-@login_required()
+def pushProjectFiles():
+  path = realpath(app.config, request.form['project'])
+  if path:
+    return gitPush(path)
+  else:
+    return jsonify(code=0, result="Can not read folder: Permission Denied")
+
+
 def pullProjectFiles():
   path = realpath(app.config, request.form['project'])
   if path:
@@ -451,7 +411,6 @@ def pullProjectFiles():
     return jsonify(code=0, result="Can not read folder: Permission Denied")
 
 
-@login_required()
 def checkFileType():
   path = realpath(app.config, request.form['path'])
   if not path:
@@ -463,7 +422,6 @@ def checkFileType():
                    result="Can not open a binary file, please select a text file!")
 
 
-@login_required()
 def getmd5sum():
   realfile = realpath(app.config, request.form['file'])
   if not realfile:
@@ -476,7 +434,6 @@ def getmd5sum():
 
 
 #return information about state of slapgrid process
-@login_required()
 def slapgridResult():
   software_state = isSoftwareRunning(app.config)
   instance_state = isInstanceRunning(app.config)
@@ -494,13 +451,11 @@ def slapgridResult():
                  result=(instance_state or software_state), content=log_result)
 
 
-@login_required()
 def stopSlapgrid():
   result = killRunningProcess(request.form['type'])
   return jsonify(result=result)
 
 
-@login_required()
 def getPath():
   files = request.form['file'].split('#')
   list = []
@@ -519,7 +474,6 @@ def getPath():
     return jsonify(code=1, result=realfile)
 
 
-@login_required()
 def saveParameterXml():
   """
   Update instance parameter into a local xml file.
@@ -550,7 +504,6 @@ def saveParameterXml():
     return jsonify(code=1, result="")
 
 
-@login_required()
 def getSoftwareType():
   software_type_path = os.path.join(app.config['etc_dir'], ".software_type.xml")
   if os.path.exists(software_type_path):
@@ -559,7 +512,6 @@ def getSoftwareType():
 
 
 #read instance parameters into the local xml file and return a dict
-@login_required()
 def getParameterXml(request):
   param_path = os.path.join(app.config['etc_dir'], ".parameter.xml")
   if not os.path.exists(param_path):
@@ -576,7 +528,6 @@ def getParameterXml(request):
 
 
 #update user account data
-@login_required()
 def updateAccount():
   code = request.form['rcode'].strip()
   recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"), "r").read()
@@ -622,7 +573,6 @@ def configAccount():
 
 
 #Global File Manager
-@login_required()
 def fileBrowser():
   if request.method == 'POST':
     filename = request.form.get('filename', '').encode('utf-8')
@@ -687,12 +637,18 @@ def fileBrowser():
   return result
 
 
-@login_required()
 def editFile():
   return render_template('editFile.html', workDir='workspace',
     profile=urllib.unquote(request.args.get('profile', '')),
     projectList=getProjectList(app.config['workspace']),
     filename=urllib.unquote(request.args.get('filename', '')))
+
+def shell():
+  return render_template('shell.html')
+
+
+def isSRReady():
+  return isSoftwareReleaseReady(app.config)
 
 
 #Setup List of URLs
@@ -735,6 +691,8 @@ app.add_url_rule("/checkFileType", 'checkFileType', checkFileType,
                  methods=['POST'])
 app.add_url_rule("/pullProjectFiles", 'pullProjectFiles', pullProjectFiles,
                  methods=['POST'])
+app.add_url_rule("/commitProjectFiles", 'commitProjectFiles', commitProjectFiles,
+                 methods=['POST'])
 app.add_url_rule("/pushProjectFiles", 'pushProjectFiles', pushProjectFiles,
                  methods=['POST'])
 app.add_url_rule("/getProjectDiff/<project>", 'getProjectDiff', getProjectDiff,
@@ -774,3 +732,5 @@ app.add_url_rule("/updateAccount", 'updateAccount', updateAccount,
 app.add_url_rule("/fileBrowser", 'fileBrowser', fileBrowser,
                  methods=['GET', 'POST'])
 app.add_url_rule("/editFile", 'editFile', editFile, methods=['GET'])
+app.add_url_rule('/shell', 'shell', shell)
+app.add_url_rule('/isSRReady', 'isSRReady', isSRReady)

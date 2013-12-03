@@ -6,51 +6,12 @@ import ConfigParser
 import datetime
 import logging
 import logging.handlers
-from optparse import OptionParser, Option
 import os
-import slapos.runner.process
+from slapos.htpasswd import HtpasswdFile
+from slapos.runner.process import setHandler
 import sys
 from slapos.runner.utils import runInstanceWithLock
-
-
-class Parser(OptionParser):
-  """
-  Parse all arguments.
-  """
-  def __init__(self, usage=None, version=None):
-    """
-    Initialize all possible options.
-    """
-    option_list = [
-      Option("-l", "--log_file",
-             help="The path to the log file used by the script.",
-             type=str),
-      Option("-v", "--verbose",
-             default=False,
-             action="store_true",
-             help="Verbose output."),
-      Option("-c", "--console",
-             default=False,
-             action="store_true",
-             help="Console output."),
-      Option("-d", "--debug",
-             default=False,
-             action="store_true",
-             help="Debug mode."),
-    ]
-
-    OptionParser.__init__(self, usage=usage, version=version,
-                          option_list=option_list)
-
-  def check_args(self):
-    """
-    Check arguments
-    """
-    (options, args) = self.parse_args()
-    if len(args) != 1:
-      self.error("Incorrect number of arguments")
-
-    return options, args[0]
+from slapos.runner.views import *
 
 
 class Config:
@@ -61,19 +22,15 @@ class Config:
     self.logger = None
     self.verbose = None
 
-  def setConfig(self, option_dict, configuration_file_path):
+  def setConfig(self):
     """
     Set options given by parameters.
     """
-    self.configuration_file_path = os.path.abspath(configuration_file_path)
-    # Set options parameters
-    for option, value in option_dict.__dict__.items():
-      setattr(self, option, value)
+    self.configuration_file_path = os.path.abspath(os.getenv('RUNNER_CONFIG'))
 
     # Load configuration file
     configuration_parser = ConfigParser.SafeConfigParser()
-    configuration_parser.read(configuration_file_path)
-    # Merges the arguments and configuration
+    configuration_parser.read(self.configuration_file_path)
 
     for section in ("slaprunner", "slapos", "slapproxy", "slapformat",
                     "sshkeys_authority", "gitclient", "cloud9_IDE"):
@@ -88,17 +45,17 @@ class Config:
     if self.console:
       self.logger.addHandler(logging.StreamHandler())
 
-    if self.log_file:
-      if not os.path.isdir(os.path.dirname(self.log_file)):
-        # fallback to console only if directory for logs does not exists and
-        # continue to run
-        raise ValueError('Please create directory %r to store %r log file' % (
-          os.path.dirname(self.log_file), self.log_file))
-      else:
-        file_handler = logging.FileHandler(self.log_file)
-        file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
-        self.logger.addHandler(file_handler)
-        self.logger.info('Configured logging to file %r' % self.log_file)
+    self.log_file = self.log_dir + '/slaprunner.log'
+    if not os.path.isdir(os.path.dirname(self.log_file)):
+    # fallback to console only if directory for logs does not exists and
+    # continue to run
+      raise ValueError('Please create directory %r to store %r log file' % (
+      os.path.dirname(self.log_file), self.log_file))
+    else:
+      file_handler = logging.FileHandler(self.log_file)
+      file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+      self.logger.addHandler(file_handler)
+      self.logger.info('Configured logging to file %r' % self.log_file)
 
     self.logger.info("Started.")
     self.logger.info(os.environ['PATH'])
@@ -107,30 +64,33 @@ class Config:
       self.logger.debug("Verbose mode enabled.")
 
 
+def checkHtpasswd(config):
+  """XXX:set for backward compatiblity
+  create a htpassword if etc/.users exist"""
+  user = os.path.join(config['etc_dir'], '.users')
+  htpasswdfile = os.path.join(config['etc_dir'], '.htpasswd')
+  if os.path.exists(user) and not os.path.exists(htpasswdfile):
+    data = open(user).read().strip().split(';')
+    htpasswd = HtpasswdFile(htpasswdfile, create=True)
+    htpasswd.update(data[0], data[1])
+    htpasswd.save()
+  else:
+    return
+
+
 def run():
   "Run default configuration."
-  usage = "usage: %s [options] CONFIGURATION_FILE" % sys.argv[0]
+  # Parse arguments
+  config = Config()
+  config.setConfig()
 
-  try:
-    # Parse arguments
-    config = Config()
-    config.setConfig(*Parser(usage=usage).check_args())
+  if os.getuid() == 0:
+    # avoid mistakes (mainly in development mode)
+    raise Exception('Do not run SlapRunner as root.')
 
-    if os.getuid() == 0:
-        # avoid mistakes (mainly in development mode)
-        raise Exception('Do not run SlapRunner as root.')
-
-    serve(config)
-    return_code = 0
-  except SystemExit as err:
-    # Catch exception raise by optparse
-    return_code = err
-
-  sys.exit(return_code)
-
+  serve(config)
 
 def serve(config):
-  from views import app
   from werkzeug.contrib.fixers import ProxyFix
   workdir = os.path.join(config.runner_workdir, 'project')
   software_link = os.path.join(config.runner_workdir, 'softwareLink')
@@ -145,14 +105,15 @@ def serve(config):
     SECRET_KEY=os.urandom(24),
     PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=31),
   )
+  checkHtpasswd(app.config)
   if not os.path.exists(workdir):
     os.mkdir(workdir)
   if not os.path.exists(software_link):
     os.mkdir(software_link)
-  slapos.runner.process.setHandler()
+  setHandler()
   config.logger.info('Running slapgrid...')
   runInstanceWithLock(app.config)
   config.logger.info('Done.')
   app.wsgi_app = ProxyFix(app.wsgi_app)
-  app.run(host=config.runner_host, port=int(config.runner_port),
-      debug=config.debug, threaded=True)
+
+run()

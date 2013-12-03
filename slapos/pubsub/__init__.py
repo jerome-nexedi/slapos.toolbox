@@ -1,14 +1,15 @@
-from datetime import datetime
+import argparse
 import csv
 import feedparser
-import io
-import socket
-import json
-import time
-import math
 import httplib # To avoid magic numbers
-import argparse
+import io
+import json
+import math
 import os
+import socket
+import sys
+import time
+from datetime import datetime
 from hashlib import sha512
 
 from atomize import Entry
@@ -18,6 +19,9 @@ from flask import Flask
 from flask import abort
 from flask import request
 app = Flask(__name__)
+
+# csv entries can be very large, increase limit.
+csv.field_size_limit(sys.maxsize)
 
 @app.route('/get/<feed>')
 def get_feed(feed):
