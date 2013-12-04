@@ -309,9 +309,12 @@ def editCurrentProject():
     return render_template('softwareFolder.html', workDir='workspace',
                            project=open(project).read(),
                            projectList=projectList)
-  flash('Please clone slapos repository and then, <br/>open or create a software to start with your project!!')
-  return redirect(url_for('manageRepository'))
-
+  elif not projectList:
+    flash('Please clone slapos repository, or your own repository')
+    return redirect(url_for('manageRepository'))
+  else:
+    flash('Please, <br/>open or create a software to start with your project!!')
+    return redirect(url_for('openProject', method='open'))
 
 #create file or directory
 def createFile():
