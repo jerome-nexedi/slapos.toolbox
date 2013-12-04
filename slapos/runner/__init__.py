@@ -13,6 +13,7 @@ import sys
 from slapos.runner.utils import runInstanceWithLock
 from slapos.runner.views import *
 
+TRUE_VALUES = (1, '1', True, 'true', 'True')
 
 class Config:
   def __init__(self):
@@ -112,7 +113,8 @@ def serve(config):
     os.mkdir(software_link)
   setHandler()
   config.logger.info('Running slapgrid...')
-  runInstanceWithLock(app.config)
+  if app.config['auto_deploy_instance'] in TRUE_VALUES:
+    runInstanceWithLock(app.config)
   config.logger.info('Done.')
   app.wsgi_app = ProxyFix(app.wsgi_app)
 
