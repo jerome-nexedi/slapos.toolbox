@@ -247,7 +247,6 @@ def runSoftwareWithLock(config):
   if not os.path.exists(config['software_root']):
     os.mkdir(config['software_root'])
   stopProxy(config)
-  removeProxyDb(config)
   startProxy(config)
   logfile = open(config['software_log'], 'w')
   if not updateProxy(config):
