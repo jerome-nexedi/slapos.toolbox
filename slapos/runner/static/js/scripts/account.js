@@ -59,7 +59,33 @@ $(document).ready(function () {
             },
             success: function (data) {
                 if (data.code === 1) {
-                    window.location.href = base_url +  $SCRIPT_ROOT + '/';
+                    window.location.href = $SCRIPT_ROOT + '/';
+                } else {
+                    $("#error").Popup(data.result, {type: 'error', duration: 5000});
+                }
+                send = false;
+            },
+            error: function () { send = false; }
+        });
+        return false;
+    });
+    $("#save").click(function () {
+        if (send) {
+            return false;
+        }
+        send = true;
+        $.ajax({
+            type: "POST",
+            url: $SCRIPT_ROOT + '/updateBuildAndRun',
+            data: {
+                run_instance: $("input#run_instance").is(':checked'),
+                run_software: $("input#run_software").is(':checked'),
+                max_run_instance: $("input#max_run_instance").val(),
+                max_run_software: $("input#max_run_software").val()
+            },
+            success: function (data) {
+                if (data.code === 1) {
+                    $("#error").Popup(data.result, {type: 'alert', duration: 5000});
                 } else {
                     $("#error").Popup(data.result, {type: 'error', duration: 5000});
                 }
