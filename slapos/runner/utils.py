@@ -26,6 +26,11 @@ import slapos.slap
 
 logger = logging.getLogger('werkzeug')
 
+RUN_INSTANCE = True
+RUN_SOFTWARE = True
+MAX_RUN_INSTANCE = 3
+MAX_RUN_SOFTWARE = 2
+
 TRUE_VALUES = (1, '1', True, 'true', 'True')
 
 html_escape_table = {
@@ -788,6 +793,26 @@ def cloneDefaultGit(config):
 def buildAndRun(config):
   runSoftwareWithLock(config)
   runInstanceWithLock(config)
+
+
+def runSlapgridUntilSuccess(config, step):
+  """Run slapgrid-sr or slapgrid-cp several times,
+  in the maximum of the constant MAX_RUN_~~~~"""
+  if step == "instance":
+    max_tries = (MAX_RUN_INSTANCE if RUN_INSTANCE else 0)
+    runSlapgridWithLock = runInstanceWithLock
+  elif step == "software":
+    max_tries = (MAX_RUN_SOFTWARE if RUN_SOFTWARE else 0)
+    runSlapgridWithLock = runSoftwareWithLock
+  else:
+    return
+  # XXX-Nico runSoftwareWithLock can return 0 or False (0==False)
+  while max_tries > 0:
+    if runSlapgridWithLock(config):
+      break
+    max_tries -= 1
+  if step == "software" and RUN_INSTANCE:
+    runSlapgridUntilSuccess(config, "instance")
 
 
 def setupDefaultSR(config):
