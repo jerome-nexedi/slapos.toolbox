@@ -3,10 +3,11 @@
 # pylint: disable-msg=W0311,C0301,C0103,C0111
 
 
+import json
 import os
 import shutil
+import thread
 import urllib
-import json
 
 from flask import (Flask, request, redirect, url_for, render_template,
                    g, flash, jsonify, session, abort, send_file)
@@ -136,10 +137,8 @@ def removeSoftware():
 
 
 def runSoftwareProfile():
-  if runSoftwareWithLock(app.config):
-    return jsonify(result=True)
-  else:
-    return jsonify(result=False)
+  thread.start_new_thread(runSlapgridUntilSuccess, (app.config, "software"))
+  return jsonify(result=True)
 
 
 # instance views
@@ -200,10 +199,8 @@ def removeInstance():
 def runInstanceProfile():
   if not os.path.exists(app.config['instance_root']):
     os.mkdir(app.config['instance_root'])
-  if runInstanceWithLock(app.config):
-    return jsonify(result=True)
-  else:
-    return jsonify(result=False)
+  thread.start_new_thread(runSlapgridUntilSuccess, (app.config, "instance"))
+  return jsonify(result=True)
 
 
 def viewLog():
