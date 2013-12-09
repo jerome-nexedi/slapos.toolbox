@@ -14,7 +14,8 @@ from flask import (Flask, request, redirect, url_for, render_template,
 
 from slapos.runner.process import killRunningProcess
 from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getProfilePath,
-                                 listFolder, getProjectTitle, getSession,
+                                 listFolder, getBuildAndRunParams,
+                                 getProjectTitle, getSession,
                                  getSlapStatus, getSvcStatus,
                                  getSvcTailProcess, isInstanceRunning,
                                  isSoftwareRunning, isSoftwareReleaseReady, isText,
@@ -85,7 +86,8 @@ def setAccount():
 def myAccount():
   account = getSession(app.config)
   return render_template('account.html', username=account[0],
-          email=account[2], name=account[3].decode('utf-8'))
+          email=account[2], name=account[3].decode('utf-8'),
+          params=getBuildAndRunParams())
 
 
 @app.route("/dologout")

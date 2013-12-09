@@ -41,6 +41,14 @@ html_escape_table = {
   "<": "&lt;",
 }
 
+def getBuildAndRunParams():
+  dict_params = {
+    'run_instance' : RUN_INSTANCE,
+    'run_software' : RUN_SOFTWARE,
+    'max_run_instance' : MAX_RUN_INSTANCE,
+    'max_run_software' : MAX_RUN_SOFTWARE
+  }
+  return dict_params
 
 def html_escape(text):
   """Produce entities within text."""
