@@ -89,12 +89,6 @@ function getRunningState() {
             }
         }).error(function () {
             clearAll(false);
-        }).complete(function () {
-            if (running) {
-                setTimeout(function () {
-                    getRunningState();
-                }, speed);
-            }
         });
 }
 
@@ -197,6 +191,13 @@ function setRunningState(data) {
                   $("#softrun").addClass('slapos_stop');
                   $("#running img").before('<p id="running_info" class="instance">Running instance...</p>');
                 }
+		if (processType === "Software") {
+                  running = false;
+                  $("#running_info").remove();
+                  $("#softrun").addClass('slapos_run');
+                  $("#softrun").removeClass('slapos_stop');
+                  $("#instrun").click();
+		}
                 processType = "Instance";
             }
         }
@@ -238,9 +239,12 @@ function runProcess(urlfor, data) {
         if ( $("#running_info").children('span').length > 0 ) {
           $("#running_info").children('p').remove();
         }
-        setRunningState(data);
-        setTimeout(getRunningState, 6000);
     }
+}
+
+setInterval('GetStateRegularly()', 800);
+function GetStateRegularly() {
+    getRunningState();
 }
 
 function checkSavedCmd() {
