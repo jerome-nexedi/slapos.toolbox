@@ -235,7 +235,7 @@ def isSoftwareRunning(config=None):
   return isRunning('slapgrid-sr')
 
 
-def runSoftwareWithLock(config):
+def runSoftwareWithLock(config, lock=True):
   """
     Use Slapgrid to compile current Software Release and wait until
     compilation is done
@@ -260,10 +260,13 @@ def runSoftwareWithLock(config):
                     config['configuration_file_path'], '--now', '--develop'],
                    stdout=logfile, env=environment,
                    name='slapgrid-sr')
-  slapgrid.wait()
-  #Saves the current compile software for re-use
-  config_SR_folder(config)
-  return True
+  if lock:
+    slapgrid.wait()
+    #Saves the current compile software for re-use
+    config_SR_folder(config)
+    return ( True if slapgrid.returncode == 0 else False )
+  else:
+    return False
 
 
 def config_SR_folder(config):
@@ -328,7 +331,7 @@ def isInstanceRunning(config=None):
   return isRunning('slapgrid-cp')
 
 
-def runInstanceWithLock(config):
+def runInstanceWithLock(config, lock=True):
   """
     Use Slapgrid to deploy current Software Release and wait until
     deployment is done.
@@ -345,8 +348,11 @@ def runInstanceWithLock(config):
                     '--pidfile', slapgrid_pid,
                     config['configuration_file_path'], '--now'],
                     stdout=logfile, name='slapgrid-cp')
-  slapgrid.wait()
-  return True
+  if lock:
+    slapgrid.wait()
+    return ( True if slapgrid.returncode == 0 else False )
+  else:
+    return False
 
 
 def getProfilePath(projectDir, profile):
