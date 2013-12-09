@@ -11,7 +11,8 @@
 <div id="tabContainer">
   <ul>
     <li><a href="#tab1" class="active">Your personal information</a></li>
-    <!--<li><a href="#tab2">Configurations</a></li>-->
+    <li><a href="#tab2">Build & Run configuration</a></li>
+    <!--<li><a href="#tab3">Configurations</a></li>-->
   </ul><!-- //Tab buttons -->
   <div class="tabDetails">
     <div id="tab1" class="tabContents">
@@ -45,7 +46,31 @@
         <input type="hidden" name="hasAccount" id="hasAccount" value="{{name}}"/>
       </form>
     </div>
-    <!--<div id="tab2" class="tabContents">
+    <div id="tab2" class="tabContents">
+      <form class="slapgrid">
+        <div class='form'>
+          <h2>Which one do you want to run ?</h2>
+          <label for="run_software">Build :</label>
+          <input type='checkbox' name='run_software' id='run_software' value='run_software' {% if params.run_software -%}checked{% endif %}>
+          <div class='clear'></div>
+          <label for="run_instance">Run :</label>
+          <input type='checkbox' name='run_instance' id='run_instance' value='run_instance' {% if params.run_instance -%}checked{% endif %}>
+          <div class='clear'></div>
+          <h2>How many tries ?</h2>
+          <label for="max_run_software">Max times for Build :</label>
+          <input type='text' name='max_run_software' id='max_run_software' value="{{params.max_run_software}}">
+          <div class='clear'></div>
+          <label for="max_run_instance">Max times for Run :</label>
+          <input type='text' name='max_run_instance' id='max_run_instance' value="{{params.max_run_instance}}">
+          <div class='clear'></div>
+          <br/>
+          <label></label>
+          <input type="submit" name="save" id ="save" value="Save config" class="button"/>
+          <div class='clear'></div>
+        </div>
+      </form>
+    </div>
+    <!--<div id="tab3" class="tabContents">
     </div>-->
 </div>
 </div>
