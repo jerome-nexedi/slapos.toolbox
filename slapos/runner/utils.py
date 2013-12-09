@@ -50,6 +50,20 @@ def getBuildAndRunParams():
   }
   return dict_params
 
+
+def saveBuildAndRunParams(params):
+  """XXX-Nico parameters have to be correct.
+  Works like that because this function do not care
+  about how you got the parameters"""
+  global RUN_INSTANCE
+  global RUN_SOFTWARE
+  global MAX_RUN_INSTANCE
+  global MAX_RUN_SOFTWARE
+  RUN_INSTANCE = params['run_instance']
+  RUN_SOFTWARE = params['run_software']
+  MAX_RUN_INSTANCE = params['max_run_instance']
+  MAX_RUN_SOFTWARE = params['max_run_software']
+
 def html_escape(text):
   """Produce entities within text."""
   return "".join(html_escape_table.get(c, c) for c in text)
