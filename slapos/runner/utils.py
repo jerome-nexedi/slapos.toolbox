@@ -830,10 +830,13 @@ def runSlapgridUntilSuccess(config, step):
     return
   # XXX-Nico runSoftwareWithLock can return 0 or False (0==False)
   while max_tries > 0:
-    if runSlapgridWithLock(config):
+    slapgrid = runSlapgridWithLock(config)
+    if slapgrid:
       break
     max_tries -= 1
-  if step == "software" and RUN_INSTANCE:
+  # run instance only if we are deploying the software release,
+  # if it is defined so, and sr is correctly deployed
+  if step == "software" and RUN_INSTANCE and slapgrid:
     runSlapgridUntilSuccess(config, "instance")
 
 
