@@ -322,10 +322,9 @@ class SlaprunnerTestCase(unittest.TestCase):
 
     # Compile software and wait until slapgrid ends
     # this is supposed to use current SR
-    response = loadJson(self.app.post('/runSoftwareProfile',
-                                      data=dict(),
-                                      follow_redirects=True))
-    self.assertTrue(response['result'])
+    while self.app.get('/isSRReady').data == "2":
+      time.sleep(2)
+    self.assertEqual(self.app.get('/isSRReady').data, "1")
     self.assertTrue(os.path.exists(self.app.config['software_root']))
     self.assertTrue(os.path.exists(self.app.config['software_log']))
     assert "test-application" in open(self.app.config['software_log']).read()
@@ -387,12 +386,16 @@ class SlaprunnerTestCase(unittest.TestCase):
     response = loadJson(self.app.post('/runSoftwareProfile',
                                       data=dict(),
                                       follow_redirects=True))
-    self.assertTrue(response['result'])
+    while self.app.get('/isSRReady').data == "2":
+      time.sleep(2)
+    self.assertEqual(self.app.get('/isSRReady').data, "1")
     #run instance profile
     response = loadJson(self.app.post('/runInstanceProfile',
                                       data=dict(),
                                       follow_redirects=True))
     self.assertTrue(response['result'])
+    # lets some time to the Instance to be deployed
+    time.sleep(5)
     #Check that all partitions has been created
     assert "create-file" in open(self.app.config['instance_log']).read()
     instanceDir = os.listdir(self.app.config['instance_root'])
