@@ -827,17 +827,21 @@ def runSlapgridUntilSuccess(config, step):
     max_tries = (MAX_RUN_SOFTWARE if RUN_SOFTWARE else 0)
     runSlapgridWithLock = runSoftwareWithLock
   else:
-    return
+    return -1
+  counter = max_tries
   # XXX-Nico runSoftwareWithLock can return 0 or False (0==False)
-  while max_tries > 0:
+  while counter > 0:
+    counter -= 1
     slapgrid = runSlapgridWithLock(config)
     if slapgrid:
       break
-    max_tries -= 1
+  max_tries -= counter
   # run instance only if we are deploying the software release,
   # if it is defined so, and sr is correctly deployed
   if step == "software" and RUN_INSTANCE and slapgrid:
-    runSlapgridUntilSuccess(config, "instance")
+    return (max_tries, runSlapgridUntilSuccess(config, "instance"))
+  else:
+    return max_tries
 
 
 def setupDefaultSR(config):
