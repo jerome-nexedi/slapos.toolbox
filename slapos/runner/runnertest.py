@@ -22,7 +22,9 @@ import unittest
 
 from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning,
                                  isSoftwareRunning, startProxy,
-                                 isSoftwareReleaseReady)
+                                 isSoftwareReleaseReady,
+                                 runSlapgridUntilSuccess,
+                                 MAX_RUN_INSTANCE, MAX_RUN_SOFTWARE)
 from slapos.runner.process import killRunningProcess, isRunning
 from slapos.runner import views
 import slapos.slap
@@ -94,6 +96,7 @@ class SlaprunnerTestCase(unittest.TestCase):
       software_profile='software.cfg',
       SECRET_KEY="123456",
       PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=31),
+      auto_deploy = True,
     )
     self.app = views.app.test_client()
     self.app.config = views.app.config
@@ -440,6 +443,60 @@ class SlaprunnerTestCase(unittest.TestCase):
     response = isSoftwareReleaseReady(self.app.config)
     self.assertEqual(response, "1")
     assert completed_text in open(completed_path).read()
+
+  def test_maximumRunOfSlapgrid(self):
+    """Scenario 8: runSlapgridUntilSucces run until a defined maximum of time
+    slapgrid-sr and slapgrid-cp if it fails. It can also run only one or both
+    of them if it is defined so
+    We directly calls runSlapgridUntilSuccess, because we want
+    to test the return code of the function"""
+    # Installs a wrong buildout which will fail
+    self.test_createSR()
+    newSoftware = self.getCurrentSR()
+    softwareRelease = "[buildout]\n\nparts =\n  test-application\n"
+    softwareRelease += "#Test download git web repos éè@: utf-8 caracters\n"
+    softwareRelease += "[test-application]\nrecipe = slapos.cookbook:mkdirectory\n"
+    softwareRelease += "test = /root/test\n"
+    response = loadJson(self.app.post('/saveFileContent',
+                                      data=dict(file=newSoftware,
+                                                content=softwareRelease),
+                                      follow_redirects=True))
+    response = runSlapgridUntilSuccess(self.app.config, 'software')
+    self.assertEqual(response, MAX_RUN_SOFTWARE)
+    # clean folders for other tests
+    workdir = os.path.join(self.app.config['runner_workdir'], 'project')
+    git_repo = os.path.join(workdir, 'slapos')
+    if os.path.exists(git_repo):
+      shutil.rmtree(git_repo)
+    # Installs a software which deploys, but fails while instanciating
+    # preparation
+    base = os.path.join(self.app.config['workspace'], 'slapos')
+    software = os.path.join(base, 'software')
+    testSoftware = os.path.join(software, 'slaprunner-test')
+    if not os.path.exists(testSoftware):
+      os.makedirs(testSoftware)
+    software_cfg = os.path.join(testSoftware, 'software.cfg')
+    instance_cfg = os.path.join(testSoftware, 'instance.cfg')
+    # software.cfg
+    softwareRelease = "[buildout]\n\nparts =\n  failing-template\n\n"
+    softwareRelease += "[failing-template]\nrecipe = hexagonit.recipe.download\n"
+    softwareRelease += "url = %s\n" % (instance_cfg)
+    softwareRelease += "destination = ${buildout:directory}\n"
+    softwareRelease += "download-only = true\n"
+    open(software_cfg, 'w+').write(softwareRelease)
+    # instance.cfg
+    content = "[buildout]\n\nparts =\n fail\n"
+    content += "[fail]\nrecipe=plone.recipe.command\n"
+    content += "command = exit 1"
+    open(instance_cfg, 'w+').write(content)
+    project = open(os.path.join(self.app.config['etc_dir'],
+                  '.project'), "w")
+    project.write(self.software + 'slaprunner-test')
+    project.close()
+    # Build and Run
+    response = runSlapgridUntilSuccess(self.app.config, 'software')
+    self.assertEqual(response, (1, MAX_RUN_INSTANCE))
+
 
 def main():
   # Empty parser for now - so that erp5testnode is happy when doing --help
