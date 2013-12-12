@@ -24,6 +24,7 @@ from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning,
                                  isSoftwareRunning, startProxy,
                                  isSoftwareReleaseReady,
                                  runSlapgridUntilSuccess,
+                                 getBuildAndRunParams, saveBuildAndRunParams,
                                  MAX_RUN_INSTANCE, MAX_RUN_SOFTWARE)
 from slapos.runner.process import killRunningProcess, isRunning
 from slapos.runner import views
@@ -494,6 +495,13 @@ class SlaprunnerTestCase(unittest.TestCase):
     project.write(self.software + 'slaprunner-test')
     project.close()
     # Build and Run
+    parameters = getBuildAndRunParams()
+    parameters['run_instance'] = False
+    saveBuildAndRunParams(parameters)
+    response = runSlapgridUntilSuccess(self.app.config, 'software')
+    self.assertEqual(response, 1)
+    parameters['run_instance'] = True
+    saveBuildAndRunParams(parameters)
     response = runSlapgridUntilSuccess(self.app.config, 'software')
     self.assertEqual(response, (1, MAX_RUN_INSTANCE))
 
