@@ -11,7 +11,9 @@
 <div id="tabContainer">
   <ul>
     <li><a href="#tab1" class="active">Your personal information</a></li>
+    {% if params %}
     <li><a href="#tab2">Build & Run configuration</a></li>
+    {% endif %}
     <!--<li><a href="#tab3">Configurations</a></li>-->
   </ul><!-- //Tab buttons -->
   <div class="tabDetails">
@@ -46,6 +48,7 @@
         <input type="hidden" name="hasAccount" id="hasAccount" value="{{name}}"/>
       </form>
     </div>
+    {% if params %}
     <div id="tab2" class="tabContents">
       <form class="slapgrid">
         <div class='form'>
@@ -70,6 +73,7 @@
         </div>
       </form>
     </div>
+    {% endif %}
     <!--<div id="tab3" class="tabContents">
     </div>-->
 </div>
