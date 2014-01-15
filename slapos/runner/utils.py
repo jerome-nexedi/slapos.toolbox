@@ -829,6 +829,7 @@ def runSlapgridUntilSuccess(config, step):
   else:
     return -1
   counter = max_tries
+  slapgrid = True
   # XXX-Nico runSoftwareWithLock can return 0 or False (0==False)
   while counter > 0:
     counter -= 1
