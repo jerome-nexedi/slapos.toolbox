@@ -78,6 +78,19 @@ def checkHtpasswd(config):
   else:
     return
 
+def checkJSONConfig(config):
+  """create a default json file with some parameters inside
+  if the file has never been created"""
+  json_file = os.path.join(config['etc_dir'], 'config.json')
+  if not os.path.exists(json_file):
+    params = {
+      'run_instance' : True,
+      'run_software' : True,
+      'max_run_instance' : 3,
+      'max_run_software' : 2
+    }
+    open(json_file, "w").write(json.dumps(params))
+    
 
 def run():
   "Run default configuration."
@@ -107,6 +120,7 @@ def serve(config):
     PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=31),
   )
   checkHtpasswd(app.config)
+  checkJSONConfig(app.config)
   if not os.path.exists(workdir):
     os.mkdir(workdir)
   if not os.path.exists(software_link):

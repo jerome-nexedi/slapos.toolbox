@@ -2,6 +2,7 @@
 # vim: set et sts=2:
 # pylint: disable-msg=W0311,C0301,C0103,C0111,W0141,W0142
 
+import json
 import logging
 import md5
 import multiprocessing
@@ -26,11 +27,6 @@ import slapos.slap
 
 logger = logging.getLogger('werkzeug')
 
-RUN_INSTANCE = True
-RUN_SOFTWARE = True
-MAX_RUN_INSTANCE = 3
-MAX_RUN_SOFTWARE = 2
-
 TRUE_VALUES = (1, '1', True, 'true', 'True')
 
 html_escape_table = {
@@ -41,28 +37,19 @@ html_escape_table = {
   "<": "&lt;",
 }
 
-def getBuildAndRunParams():
-  dict_params = {
-    'run_instance' : RUN_INSTANCE,
-    'run_software' : RUN_SOFTWARE,
-    'max_run_instance' : MAX_RUN_INSTANCE,
-    'max_run_software' : MAX_RUN_SOFTWARE
-  }
-  return dict_params
+def getBuildAndRunParams(config):
+  json_file = os.path.join(config['etc_dir'], 'config.json')
+  json_params = json.load(open(json_file))
+  return json_params
 
 
-def saveBuildAndRunParams(params):
+def saveBuildAndRunParams(config, params):
   """XXX-Nico parameters have to be correct.
   Works like that because this function do not care
   about how you got the parameters"""
-  global RUN_INSTANCE
-  global RUN_SOFTWARE
-  global MAX_RUN_INSTANCE
-  global MAX_RUN_SOFTWARE
-  RUN_INSTANCE = params['run_instance']
-  RUN_SOFTWARE = params['run_software']
-  MAX_RUN_INSTANCE = params['max_run_instance']
-  MAX_RUN_SOFTWARE = params['max_run_software']
+  json_file = os.path.join(config['etc_dir'], 'config.json')
+  open(json_file, "w").write(json.dumps(params))
+
 
 def html_escape(text):
   """Produce entities within text."""
@@ -820,11 +807,12 @@ def buildAndRun(config):
 def runSlapgridUntilSuccess(config, step):
   """Run slapgrid-sr or slapgrid-cp several times,
   in the maximum of the constant MAX_RUN_~~~~"""
+  params = getBuildAndRunParams(config)
   if step == "instance":
-    max_tries = (MAX_RUN_INSTANCE if RUN_INSTANCE else 0)
+    max_tries = (params['max_run_instance'] if params['run_instance'] else 0)
     runSlapgridWithLock = runInstanceWithLock
   elif step == "software":
-    max_tries = (MAX_RUN_SOFTWARE if RUN_SOFTWARE else 0)
+    max_tries = (params['max_run_software'] if params['run_software'] else 0)
     runSlapgridWithLock = runSoftwareWithLock
   else:
     return -1
@@ -839,7 +827,7 @@ def runSlapgridUntilSuccess(config, step):
   max_tries -= counter
   # run instance only if we are deploying the software release,
   # if it is defined so, and sr is correctly deployed
-  if step == "software" and RUN_INSTANCE and slapgrid:
+  if step == "software" and params['run_instance'] and slapgrid:
     return (max_tries, runSlapgridUntilSuccess(config, "instance"))
   else:
     return max_tries

@@ -88,7 +88,7 @@ def myAccount():
   account = getSession(app.config)
   return render_template('account.html', username=account[0],
           email=account[2], name=account[3].decode('utf-8'),
-          params=getBuildAndRunParams())
+          params=getBuildAndRunParams(app.config))
 
 
 @app.route("/dologout")
@@ -550,7 +550,7 @@ def updateBuildAndRun():
     params['run_software'] = run_software 
     params['max_run_instance'] = max_run_instance 
     params['max_run_software'] = max_run_software 
-    saveBuildAndRunParams(params) 
+    saveBuildAndRunParams(app.config, params) 
     result = "Your parameters have correctly been updated"
   return jsonify(code=code, result=result)
 
