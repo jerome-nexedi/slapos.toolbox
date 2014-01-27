@@ -24,8 +24,7 @@ from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning,
                                  isSoftwareRunning, startProxy,
                                  isSoftwareReleaseReady,
                                  runSlapgridUntilSuccess,
-                                 getBuildAndRunParams, saveBuildAndRunParams,
-                                 MAX_RUN_INSTANCE, MAX_RUN_SOFTWARE)
+                                 getBuildAndRunParams, saveBuildAndRunParams)
 from slapos.runner.process import killRunningProcess, isRunning
 from slapos.runner import views
 import slapos.slap
@@ -98,12 +97,23 @@ class SlaprunnerTestCase(unittest.TestCase):
       SECRET_KEY="123456",
       PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=31),
       auto_deploy = True,
+      autorun = False,
     )
     self.app = views.app.test_client()
     self.app.config = views.app.config
     #Create password recover code
     with open(os.path.join(views.app.config['etc_dir'], '.rcode'), 'w') as rpwd:
       rpwd.write(self.rcode)
+    #Create config.json
+    json_file = os.path.join(views.app.config['etc_dir'], 'config.json')
+    if not os.path.exists(json_file):            
+      params = {
+        'run_instance' : True,
+        'run_software' : True,
+        'max_run_instance' : 3,
+        'max_run_software' : 2
+      }
+      open(json_file, "w").write(json.dumps(params))
 
   def tearDown(self):
     """Remove all test data"""
@@ -452,6 +462,8 @@ class SlaprunnerTestCase(unittest.TestCase):
     We directly calls runSlapgridUntilSuccess, because we want
     to test the return code of the function"""
     # Installs a wrong buildout which will fail
+    MAX_RUN_SOFTWARE = getBuildAndRunParams(self.app.config)['max_run_software']
+    MAX_RUN_INSTANCE = getBuildAndRunParams(self.app.config)['max_run_instance']
     self.test_createSR()
     newSoftware = self.getCurrentSR()
     softwareRelease = "[buildout]\n\nparts =\n  test-application\n"
@@ -495,13 +507,13 @@ class SlaprunnerTestCase(unittest.TestCase):
     project.write(self.software + 'slaprunner-test')
     project.close()
     # Build and Run
-    parameters = getBuildAndRunParams()
+    parameters = getBuildAndRunParams(self.app.config)
     parameters['run_instance'] = False
-    saveBuildAndRunParams(parameters)
+    saveBuildAndRunParams(self.app.config, parameters)
     response = runSlapgridUntilSuccess(self.app.config, 'software')
     self.assertEqual(response, 1)
     parameters['run_instance'] = True
-    saveBuildAndRunParams(parameters)
+    saveBuildAndRunParams(self.app.config, parameters)
     response = runSlapgridUntilSuccess(self.app.config, 'software')
     self.assertEqual(response, (1, MAX_RUN_INSTANCE))
 
