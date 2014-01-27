@@ -775,6 +775,8 @@ def isSoftwareReleaseReady(config):
   config_SR_folder(config)
   if os.path.exists(os.path.join(config['runner_workdir'],
       'softwareLink', software_name, '.completed')):
+    if config['autorun'] in TRUE_VALUES:
+      runSlapgridUntilSuccess(config, 'instance')
     return "1"
   else:
     if isSoftwareRunning(config):
@@ -782,6 +784,10 @@ def isSoftwareReleaseReady(config):
     elif config['auto_deploy'] in TRUE_VALUES:
       configNewSR(config, path)
       runSoftwareWithLock(config)
+      config_SR_folder(config)
+      time.sleep(15)
+      if config['autorun'] in TRUE_VALUES:
+        runSlapgridUntilSuccess(config, 'instance')
       return "2"
     else:
       return "0"
