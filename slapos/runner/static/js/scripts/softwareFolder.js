@@ -13,7 +13,7 @@ $(document).ready(function () {
         softwareDisplay = true,
         projectDir = $("input#project").val(),
         workdir = $("input#workdir").val(),
-        currentProject = workdir + "/" + projectDir.replace(workdir, "").split('/')[1],
+        currentProject = "workspace/" + projectDir.replace(workdir, "").split('/')[1],
         send = false,
         edit = false,
         ajaxResult = false,
@@ -24,7 +24,7 @@ $(document).ready(function () {
         current_file = null,
         favourite_list = new Array(),
         base_path = function () {
-            return softwareDisplay ? currentProject : 'workspace/';
+            return softwareDisplay ? currentProject : 'runner_workdir/';
         };
 
     function openFile(file) {
@@ -75,7 +75,7 @@ $(document).ready(function () {
     function switchContent() {
         if (!softwareDisplay) {
             $("span.swith_btn").empty();
-            $("span.swith_btn").append("Workspace");
+            $("span.swith_btn").append("Working dir");
             $('#fileTreeFull').show();
             $('#fileTree').hide();
         } else {
@@ -594,7 +594,7 @@ $(document).ready(function () {
     editor.renderer.setHScrollBarAlwaysVisible(false);
 
     initTree('#fileTree', currentProject, 'pfolder');
-    initTree('#fileTreeFull', 'workspace');
+    initTree('#fileTreeFull', 'runner_workdir');
     //bindContextMenu('#fileTree');
     $("#info").append("Current work tree: " + base_path());
 

@@ -301,7 +301,7 @@ def editCurrentProject():
   project = os.path.join(app.config['etc_dir'], ".project")
   projectList = listFolder(app.config, 'workspace')
   if os.path.exists(project) and projectList:
-    return render_template('softwareFolder.html', workDir='workspace',
+    return render_template('softwareFolder.html', workDir='runner_workdir',
                            project=open(project).read(),
                            projectList=projectList)
   elif not projectList:

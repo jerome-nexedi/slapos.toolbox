@@ -719,6 +719,7 @@ def realpath(config, path, check_exist=True):
     'software_root': config['software_root'],
     'instance_root': config['instance_root'],
     'workspace': config['workspace'],
+    'runner_workdir': config['runner_workdir'],
     'software_link': config['software_link']
   }
   if key not in allow_list:
