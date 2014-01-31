@@ -223,6 +223,7 @@ function setRunningState(data) {
           $("#slapswitch").text('Access application');
         }
         $("#running").hide();
+        $("#running_info").remove();
         running = false; //nothing is currently running
         $("#softrun").removeClass('slapos_stop');
         $("#softrun").addClass('slapos_run');
