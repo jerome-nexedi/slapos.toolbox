@@ -167,6 +167,13 @@ function updateStatus(elt, val) {
       $(src).children('p').text("Processing");
       break;
   }
+  // in case of failure
+  if ($("#salpgridLog").text().indexOf("Failed to run buildout profile") !== -1) {
+    var src = '#' + elt + '_run_state', value = 'state_' + "stopped";
+    $(src).removeClass();
+    $(src).addClass(value);
+    $(src).children('p').text("Buildout Failed");
+  }
 }
 
 function setRunningState(data) {
