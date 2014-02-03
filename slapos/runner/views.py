@@ -590,7 +590,7 @@ def configAccount():
   account.append(request.form['name'].strip())
   code = request.form['rcode'].strip()
   recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"),
-                      "r").read()
+                      "r").read().strip()
   if code != recovery_code:
     return jsonify(code=0, result="Your password recovery code is not valid!")
   result = saveSession(app.config, account)
