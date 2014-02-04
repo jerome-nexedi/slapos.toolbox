@@ -30,6 +30,7 @@ from .resiliencytestsuite import ResiliencyTestSuite
 
 import base64
 import cookielib
+import json
 import random
 import string
 import time
@@ -91,24 +92,27 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     Store the logfile (=data) of the instance, check it is not empty nor it is
     html.
     """
+    time.sleep(30)
     data = self._connectToSlaprunner(
-        resource='fileBrowser',
-        data='opt=9&filename=log.log&dir=instance_root%252Fslappart0%252Fvar%252Flog%252F'
+        resource='getFileContent',
+        data="file=instance_root/slappart0/var/log/log.log"
     )
-    self.logger.info('Retrieved data are:\n%s' % data)
-
-    if data.find('<') is not -1:
-      raise IOError(
-          'Could not retrieve logfile content: retrieved content is html.'
-      )
-    if data.find('Could not load') is not -1:
-      raise IOError(
-          'Could not retrieve logfile content: server could not load the file.'
-      )
-    if data.find('Hello') is -1:
-      raise IOError(
-          'Could not retrieve logfile content: retrieve content does not match "Hello".'
-      )
+    try:
+        data = json.loads(data)['result']
+        self.logger.info('Retrieved data are:\n%s' % data)
+    except (ValueError, KeyError):
+        if data.find('<') is not -1:
+          raise IOError(
+              'Could not retrieve logfile content: retrieved content is html.'
+          )
+        if data.find('Could not load') is not -1:
+          raise IOError(
+              'Could not retrieve logfile content: server could not load the file.'
+          )
+        if data.find('Hello') is -1:
+          raise IOError(
+              'Could not retrieve logfile content: retrieve content does not match "Hello".'
+          )
     return data
 
   def _waitForSoftwareBuild(self):
