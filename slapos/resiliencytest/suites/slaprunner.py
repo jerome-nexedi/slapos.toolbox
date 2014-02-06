@@ -169,6 +169,41 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
         data='path=workspace/slapos/software/%s/' % software_name
     )
 
+  def _getRcode(self):
+    from HTMLParser import HTMLParser
+    class MyHTMLParser(HTMLParser):
+      def __init__(self):
+        HTMLParser.__init__(self)
+        self.recovery_code = ""
+        self.attributes = None
+
+      def handle_starttag(self, tag, attrs):
+        print "Encountered a start tag:", tag, " with attrs:", attrs
+        for at, val in attrs:
+          if at == "name" and val == "recovery-code":
+            self.attributes = attrs
+
+      def getRcode(self):
+        if type(self.attributes) == list:
+          for attr, val in self.attributes:
+            if attr == "value":
+              return val
+        else:
+          return ""
+
+    #XXX-Nicolas: hardcoded url. Best way right now to automate the tests...
+    monitor_url = self.monitor_url + "?script=zero-knowledge%2Fsettings.cgi"
+    result = self._opener_director.open(monitor_url, 
+                                       "password=passwordtochange")
+
+    if result.getcode() is not 200:
+      raise NotHttpOkException(result.getcode())
+
+    page = result.read().strip()
+
+    parser = MyHTMLParser()
+    parser.feed(page)
+    return parser.getRcode
 
   def generateData(self):
     self.slaprunner_password = ''.join(
@@ -191,7 +226,8 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     parameter_dict = self._getPartitionParameterDict()
     self.slaprunner_backend_url = parameter_dict['backend_url']
     self.logger.info('backend_url is %s.' % self.slaprunner_backend_url)
-    slaprunner_recovery_code = parameter_dict['password_recovery_code']
+    self.monitor_url = parameter_dict['monitor_url']
+    slaprunner_recovery_code = self._getRcode()
 
     self.logger.debug('Creating the slaprunner account...')
     self._connectToSlaprunner(
