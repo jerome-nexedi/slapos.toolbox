@@ -31,6 +31,7 @@ from .resiliencytestsuite import ResiliencyTestSuite
 import base64
 import cookielib
 import json
+from lxml import etree
 import random
 import string
 import time
@@ -170,27 +171,6 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     )
 
   def _getRcode(self):
-    from HTMLParser import HTMLParser
-    class MyHTMLParser(HTMLParser):
-      def __init__(self):
-        HTMLParser.__init__(self)
-        self.recovery_code = ""
-        self.attributes = None
-
-      def handle_starttag(self, tag, attrs):
-        print "Encountered a start tag:", tag, " with attrs:", attrs
-        for at, val in attrs:
-          if at == "name" and val == "recovery-code":
-            self.attributes = attrs
-
-      def getRcode(self):
-        if type(self.attributes) == list:
-          for attr, val in self.attributes:
-            if attr == "value":
-              return val
-        else:
-          return ""
-
     #XXX-Nicolas: hardcoded url. Best way right now to automate the tests...
     monitor_url = self.monitor_url + "?script=zero-knowledge%2Fsettings.cgi"
     result = self._opener_director.open(monitor_url, 
@@ -200,10 +180,10 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
       raise NotHttpOkException(result.getcode())
 
     page = result.read().strip()
+    html = etree.HTML(page)
 
-    parser = MyHTMLParser()
-    parser.feed(page)
-    return parser.getRcode
+    input = html.xpath("//input[@name='recovery-code']")
+    return input[0].get('value')
 
   def generateData(self):
     self.slaprunner_password = ''.join(
