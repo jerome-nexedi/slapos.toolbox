@@ -112,6 +112,16 @@ def saveSession(config, account):
     return str(e)
 
 
+def createNewUser(config, name, passwd):
+  htpasswdfile = os.path.join(config['etc_dir'], '.htpasswd')
+  if os.path.exists(htpasswdfile):
+    htpasswd = HtpasswdFile(htpasswdfile)
+    htpasswd.update(name, passwd)
+    htpasswd.save()
+    return True
+  return False
+
+
 def getCurrentSoftwareReleaseProfile(config):
   """
   Returns used Software Release profile as a string.

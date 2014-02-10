@@ -13,7 +13,8 @@ from flask import (Flask, request, redirect, url_for, render_template,
                    g, flash, jsonify, session, abort, send_file)
 
 from slapos.runner.process import killRunningProcess
-from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getProfilePath,
+from slapos.runner.utils import (checkSoftwareFolder, configNewSR,
+                                 createNewUser, getProfilePath,
                                  listFolder, getBuildAndRunParams,
                                  getProjectTitle, getSession,
                                  getSlapStatus, getSvcStatus,
@@ -599,6 +600,18 @@ def configAccount():
   else:
     return jsonify(code=1, result="")
 
+def addUser():
+  code = request.form['rcode'].strip()
+  recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"),
+                      "r").read().strip()
+  if code != recovery_code:
+    return jsonify(code=0, result="Your password recovery code is not valid!")
+  if createNewUser(app.config, request.form['username'],
+                   request.form['password']):
+    return jsonify(code=1, result="New user succesfully saved")
+  else:
+    return jsonify(code=0, result="Problem while creating new user")
+
 
 #Global File Manager
 def fileBrowser():
@@ -769,3 +782,4 @@ app.add_url_rule("/fileBrowser", 'fileBrowser', fileBrowser,
 app.add_url_rule("/editFile", 'editFile', editFile, methods=['GET'])
 app.add_url_rule('/shell', 'shell', shell)
 app.add_url_rule('/isSRReady', 'isSRReady', isSRReady)
+app.add_url_rule('/addUser', 'addUser', addUser, methods=['POST'])

@@ -13,8 +13,8 @@
     <li><a href="#tab1" class="active">Your personal information</a></li>
     {% if params %}
     <li><a href="#tab2">Build & Run configuration</a></li>
+    <li><a href="#tab3">Add user</a></li>
     {% endif %}
-    <!--<li><a href="#tab3">Configurations</a></li>-->
   </ul><!-- //Tab buttons -->
   <div class="tabDetails">
     <div id="tab1" class="tabContents">
@@ -73,9 +73,27 @@
         </div>
       </form>
     </div>
+    <div id="tab3" class="tabContents">
+      <form class="slapgrid">
+        <div class='form'>
+          <label for="username">New user name :</label>
+          <input type='text' name='username' id='new_username'/>
+          <div class='clear'></div>
+          <label for="password">New password :</label>
+          <input type='password' name='password' id='new_password'/>
+          <div class='clear'></div>
+          <label for="new_rcode">Password Recovery code:</label>
+          <input type='password' name='new_rcode' id='new_rcode' value=''/>
+          <span class="information"><a href="#" id="information" rel="tooltip">help ?</a></span>
+          <div class='clear'></div>
+          <br/>
+          <label></label>
+          <input type="submit" name="add_user" id="add_user" value="Add new user" class="button"/>
+          <div class='clear'></div>
+        </div>
+      </form>
+    </div>
     {% endif %}
-    <!--<div id="tab3" class="tabContents">
-    </div>-->
 </div>
 </div>
 {% if username %}<div id="file_info" class="file_info">leave passwords blank to preserve your current password...
