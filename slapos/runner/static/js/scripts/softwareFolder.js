@@ -632,9 +632,7 @@ $(document).ready(function () {
       name: 'Fullscreen',
       bindKey: {win: 'Ctrl-E',  mac: 'Command-E'},
       exec: function(editor) {
-          $("body").toggleClass("fullScreen");
-          $("#editor").toggleClass("fullScreen-editor");
-          editor.resize();
+          $("#fullscreen").click();
       }
     });
 
@@ -729,5 +727,10 @@ $(document).ready(function () {
       return false;
     });
 
+    $("#fullscreen").click(function(){                                                                   
+          $("body").toggleClass("fullScreen");
+          $("#editor").toggleClass("fullScreen-editor");                                                 
+          editor.resize();
+    });
 
 });
