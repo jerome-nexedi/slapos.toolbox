@@ -23,6 +23,7 @@ $(document).ready(function () {
         edit_status = "",
         current_file = null,
         favourite_list = new Array(),
+        beforeunload_warning_set = false,
         base_path = function () {
             return softwareDisplay ? currentProject : 'runner_workdir/';
         };
@@ -585,7 +586,10 @@ $(document).ready(function () {
 
     editor = ace.edit("editor");
     modelist = require("ace/ext/modelist");
+    ace.require("ace/ext/language_tools");
     config = require("ace/config");
+
+    editor.setOptions({ enableBasicAutocompletion: true, enableSnippets: true });
 
     editor.setTheme("ace/theme/crimson_editor");
     editor.getSession().setMode("ace/mode/text");
@@ -602,6 +606,18 @@ $(document).ready(function () {
 
     $("#option").Tooltip();
     $("#filelist").Tooltip();
+
+    editor.getSession().on('change', function(){
+        $("#editor").val(editor.getSession().getValue());
+        if (!beforeunload_warning_set) {
+            window.onbeforeunload = function() { return "You have unsaved changes"; };
+            beforeunload_warning_set = true;
+        }
+    });
+
+    $('input[value="Save Changes"]').click(function() {
+        window.onbeforeunload = function() { return; };
+    });
 
     editor.on("change", function (e) {
         if (edit_status === "" && edit) {
