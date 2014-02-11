@@ -57,6 +57,8 @@ $(document).ready(function () {
                     var mode = modelist.getModeForPath(file);
                     editor.getSession().modeName = mode.name;
                     editor.getSession().setMode(mode.mode);
+                    beforeunload_warning_set = false;
+                    window.onbeforeunload = function() { return; };
                     edit = true;
                     current_file = file;
                     $("span#edit_status").html("");
@@ -607,23 +609,16 @@ $(document).ready(function () {
     $("#option").Tooltip();
     $("#filelist").Tooltip();
 
-    editor.getSession().on('change', function(){
-        $("#editor").val(editor.getSession().getValue());
+    editor.on("change", function (e) {
+        if (edit_status === "" && edit) {
+            $("span#edit_status").html("*");
+        }
         if (!beforeunload_warning_set) {
             window.onbeforeunload = function() { return "You have unsaved changes"; };
             beforeunload_warning_set = true;
         }
     });
 
-    $('input[value="Save Changes"]').click(function() {
-        window.onbeforeunload = function() { return; };
-    });
-
-    editor.on("change", function (e) {
-        if (edit_status === "" && edit) {
-            $("span#edit_status").html("*");
-        }
-    });
     editor.commands.addCommand({
       name: 'myCommand',
       bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
@@ -634,6 +629,8 @@ $(document).ready(function () {
     });
 
     $("#save").click(function () {
+        beforeunload_warning_set = false;
+        window.onbeforeunload = function() { return; };
         if (!edit) {
             $("#error").Popup("Please select the file to edit", {type: 'alert', duration: 3000});
             return false;
