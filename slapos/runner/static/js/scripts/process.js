@@ -130,7 +130,8 @@ function bindRun() {
         } else {
             if (!isRunning()) {
                 setCookie("slapgridCMD", "Software");
-                window.location.href = $SCRIPT_ROOT + "/viewLog";
+                if (window.location.pathname === "/viewLog")
+                     window.location.href = $SCRIPT_ROOT + "/viewLog";
             }
         }
         return false;
@@ -141,7 +142,8 @@ function bindRun() {
         } else {
             if (!isRunning()) {
                 setCookie("slapgridCMD", "Instance");
-                window.location.href = $SCRIPT_ROOT + "/viewLog";
+                if (window.location.pathname === "/viewLog")
+                     window.location.href = $SCRIPT_ROOT + "/viewLog";
             }
         }
         return false;
