@@ -61,6 +61,7 @@ def before_request():
     if request.path != "/setAccount" and request.path != "/configAccount":
       return redirect(url_for('setAccount'))
 
+  g.instance_monitoring_url =  app.config['instance_monitoring_url']
 
 # general views
 def home():
