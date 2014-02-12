@@ -275,15 +275,10 @@ def runSoftwareWithLock(config, lock=True):
   logfile = open(config['software_log'], 'w')
   if not updateProxy(config):
     return False
-  # Accelerate compilation by setting make -jX
-  # XXX-Marco can have issues with implicit dependencies or recursive makefiles. should be configurable.
-  environment = os.environ.copy()
-  environment['MAKEFLAGS'] = '-j%r' % multiprocessing.cpu_count()
   slapgrid = Popen([config['slapgrid_sr'], '-vc',
                     '--pidfile', slapgrid_pid,
                     config['configuration_file_path'], '--now', '--develop'],
-                   stdout=logfile, env=environment,
-                   name='slapgrid-sr')
+                   stdout=logfile, name='slapgrid-sr')
   if lock:
     slapgrid.wait()
     #Saves the current compile software for re-use
