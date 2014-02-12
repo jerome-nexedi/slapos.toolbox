@@ -8,7 +8,6 @@ import shutil
 import urllib
 import json
 
-from flaskext.auth import logout
 from flask import (Flask, request, redirect, url_for, render_template,
                    g, flash, jsonify, session, abort, send_file)
 
@@ -91,12 +90,6 @@ def myAccount():
   return render_template('account.html', username=account[0],
           email=account[2], name=account[3].decode('utf-8'),
           params=getBuildAndRunParams(app.config))
-
-
-@app.route("/dologout")
-def dologout():
-  _ = logout()
-  return redirect(url_for('login'))
 
 
 def manageRepository():
