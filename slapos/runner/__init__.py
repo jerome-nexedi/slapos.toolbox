@@ -10,7 +10,7 @@ import os
 from slapos.htpasswd import HtpasswdFile
 from slapos.runner.process import setHandler
 import sys
-from slapos.runner.utils import runInstanceWithLock, updateProxy, startProxy
+from slapos.runner.utils import runInstanceWithLock
 from slapos.runner.views import *
 
 TRUE_VALUES = (1, '1', True, 'true', 'True')
@@ -126,8 +126,6 @@ def serve(config):
   if not os.path.exists(software_link):
     os.mkdir(software_link)
   setHandler()
-  startProxy(app.config)
-  updateProxy(app.config)
   config.logger.info('Running slapgrid...')
   if app.config['auto_deploy_instance'] in TRUE_VALUES:
     runInstanceWithLock(app.config)
