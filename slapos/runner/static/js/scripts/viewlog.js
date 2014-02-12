@@ -14,7 +14,7 @@ $(document).ready(function () {
         if (pair[0] == variable) {
           return pair[1];
         }
-      } 
+      }
     }
 
     // Current_log is not used for auto displaying mode, only for manual reload of log file!!!

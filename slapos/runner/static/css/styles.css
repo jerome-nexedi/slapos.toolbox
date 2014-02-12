@@ -816,7 +816,7 @@ padding:10px; font-size:14px; color:#03406A}
   max-width: 350px;
 }
 
-.fullScreen .fullScreen-editor{ 
+.fullScreen .fullScreen-editor{
   height: auto!important;
   width: auto!important;
   border: 0;
@@ -831,7 +831,7 @@ padding:10px; font-size:14px; color:#03406A}
 
 .fullScreen {
   overflow: hidden;
-} 
+}
 
 /*  *******************  */
 #shellinabox{width:100%; min-height:530px;}

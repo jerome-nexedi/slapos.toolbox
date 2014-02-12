@@ -541,11 +541,11 @@ def updateBuildAndRunConfig():
   run_software = (True if request.form['run_software']=="true" else False)
   if code:
     params =  {}
-    params['run_instance'] = run_instance 
-    params['run_software'] = run_software 
-    params['max_run_instance'] = max_run_instance 
-    params['max_run_software'] = max_run_software 
-    saveBuildAndRunParams(app.config, params) 
+    params['run_instance'] = run_instance
+    params['run_software'] = run_software
+    params['max_run_instance'] = max_run_instance
+    params['max_run_software'] = max_run_software
+    saveBuildAndRunParams(app.config, params)
     result = "Your parameters have correctly been updated"
   return jsonify(code=code, result=result)
 

@@ -106,7 +106,7 @@ class SlaprunnerTestCase(unittest.TestCase):
       rpwd.write(self.rcode)
     #Create config.json
     json_file = os.path.join(views.app.config['etc_dir'], 'config.json')
-    if not os.path.exists(json_file):            
+    if not os.path.exists(json_file):
       params = {
         'run_instance' : True,
         'run_software' : True,

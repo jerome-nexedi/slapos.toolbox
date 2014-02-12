@@ -27,7 +27,7 @@ $(document).ready(function () {
         $("#login").removeClass("button").addClass("dsblebutton");
         $.post(url, param, function (data) {
             if (data.code === 1) {
-	        url = 'https://' + param.clogin + ':' + param.cpwd + '@' 
+	        url = 'https://' + param.clogin + ':' + param.cpwd + '@'
 		+ location.host + $SCRIPT_ROOT + '/';
                 window.location.href = url;
             } else {

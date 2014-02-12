@@ -727,9 +727,9 @@ $(document).ready(function () {
       return false;
     });
 
-    $("#fullscreen").click(function(){                                                                   
+    $("#fullscreen").click(function(){
           $("body").toggleClass("fullScreen");
-          $("#editor").toggleClass("fullScreen-editor");                                                 
+          $("#editor").toggleClass("fullScreen-editor");
           editor.resize();
     });
 
