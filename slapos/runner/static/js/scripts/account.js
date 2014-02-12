@@ -59,7 +59,8 @@ $(document).ready(function () {
             },
             success: function (data) {
                 if (data.code === 1) {
-                    window.location.href = $SCRIPT_ROOT + '/';
+                    url = 'https://' + $("input#username").val() + ':' + $("input#password").val() + '@' + location.host + $SCRIPT_ROOT + '/';
+                    window.location.href = url;
                 } else {
                     $("#error").Popup(data.result, {type: 'error', duration: 5000});
                 }
