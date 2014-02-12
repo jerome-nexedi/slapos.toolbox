@@ -76,7 +76,7 @@ $(document).ready(function () {
         send = true;
         $.ajax({
             type: "POST",
-            url: $SCRIPT_ROOT + '/updateBuildAndRun',
+            url: $SCRIPT_ROOT + '/updateBuildAndRunConfig',
             data: {
                 run_instance: $("input#run_instance").is(':checked'),
                 run_software: $("input#run_software").is(':checked'),

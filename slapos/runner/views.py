@@ -529,7 +529,7 @@ def getParameterXml(request):
 
 
 #update user-defined slapgrid parameters
-def updateBuildAndRun():
+def updateBuildAndRunConfig():
   code = 1
   try:
     max_run_instance = int(request.form['max_run_instance'].strip())
@@ -769,7 +769,7 @@ app.add_url_rule("/getPath", 'getPath', getPath, methods=['POST'])
 app.add_url_rule("/myAccount", 'myAccount', myAccount)
 app.add_url_rule("/updateAccount", 'updateAccount', updateAccount,
                  methods=['POST'])
-app.add_url_rule("/updateBuildAndRun", 'updateBuildAndRun', updateBuildAndRun,
+app.add_url_rule("/updateBuildAndRunConfig", 'updateBuildAndRunConfig', updateBuildAndRunConfig,
                  methods=['POST'])
 app.add_url_rule("/fileBrowser", 'fileBrowser', fileBrowser,
                  methods=['GET', 'POST'])
