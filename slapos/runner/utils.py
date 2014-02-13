@@ -828,6 +828,8 @@ def runSlapgridUntilSuccess(config, step):
     runSlapgridWithLock = runSoftwareWithLock
   else:
     return -1
+  counter_file = os.path.join(config['runner_workdir'], '.turn-left')
+  open(counter_file, 'w+').write(str(max_tries))
   counter = max_tries
   slapgrid = True
   # XXX-Nico runSoftwareWithLock can return 0 or False (0==False)
@@ -836,6 +838,12 @@ def runSlapgridUntilSuccess(config, step):
     slapgrid = runSlapgridWithLock(config)
     if slapgrid:
       break
+    times_left = int(open(counter_file).read()) - 1
+    if times_left > 0 :
+      open(counter_file, 'w+').write(str(times_left))
+      counter = times_left
+    else :
+      counter = 0
   max_tries -= counter
   # run instance only if we are deploying the software release,
   # if it is defined so, and sr is correctly deployed
