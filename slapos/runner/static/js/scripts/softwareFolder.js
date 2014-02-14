@@ -1,16 +1,17 @@
 /*jslint undef: true */
-/*global $, document, $SCRIPT_ROOT, ace */
+/*global $, document, $SCRIPT_ROOT, ace, window */
 /*global path: true */
 /* vim: set et sts=4: */
-
 
 $(document).ready(function () {
     "use strict";
 
     var editor = ace.edit("editor"),
+        viewer,
         CurrentMode,
         script = "/readFolder",
         softwareDisplay = true,
+        fileTree,
         Mode,
         modes,
         projectDir = $("input#project").val(),
@@ -18,11 +19,14 @@ $(document).ready(function () {
         currentProject = workdir + "/" + projectDir.replace(workdir, "").split('/')[1],
         send = false,
         edit = false,
+        clipboardNode = null,
+        pasteMode = null,
         selection = "",
         edit_status = "",
         base_path = function () {
             return softwareDisplay ? projectDir : currentProject;
         };
+
 
     function setEditMode(file) {
         var i,
@@ -117,19 +121,23 @@ $(document).ready(function () {
         selection = "";
     }
 
-    function getmd5sum() {
+    function getmd5sum(path) {
         if (send) {
             return;
         }
         send = true;
+        var filepath = (path) ? path : $("input#subfolder").val(),
+            filename;
+
         $.ajax({
             type: "POST",
             url: $SCRIPT_ROOT + '/getmd5sum',
-            data: {file: $("input#subfolder").val()},
+            data: {file: filepath},
             success: function (data) {
                 if (data.code === 1) {
+                    filename = filepath.replace(/^.*(\\|\/|\:)/, '')
                     $("#info").empty();
-                    $("#info").html("Md5sum Current file: " + data.result);
+                    $("#info").html("Md5sum for file [" + filename + "]: " + data.result);
                 } else {
                     $("#error").Popup(data.result, {type: 'error', duration: 5000});
                 }
@@ -171,6 +179,290 @@ $(document).ready(function () {
         editor.insert("\n");
     }
 
+    // --- Implement Cut/Copy/Paste --------------------------------------------
+
+    function copyPaste(action, node) {
+      switch( action ) {
+        case "cut":
+        case "copy":
+          clipboardNode = node;
+          pasteMode = action;
+          break;
+        case "paste":
+          if( !clipboardNode ) {
+            $("#error").Popup("Clipoard is empty. Make a copy first!", {type: 'alert', duration: 5000});
+            break;
+          }
+          var dataForSend = {
+            opt: 5,
+            files: clipboardNode.data.path,
+            dir: node.data.path
+          };
+          if( pasteMode == "cut" ) {
+            // Cut mode: check for recursion and remove source
+            dataForSend.opt = 7;
+            fileBrowserOp(dataForSend);
+            var cb = clipboardNode.toDict(true);
+            if( node.isDescendantOf(cb) ) {
+              $("#error").Popup("Cannot move a node to it's sub node.", {type: 'error', duration: 5000});
+              return;
+            }
+            if (node.isExpanded()){
+              node.addChildren(cb);
+              node.render();
+            }
+            clipboardNode.remove();
+          } else {
+            if (node.key === clipboardNode.getParent().key){
+              dataForSend = {opt: 14, filename: clipboardNode.title,
+                              dir: node.data.path,
+                              newfilename: clipboardNode.title
+                            };
+            }
+            fileBrowserOp(dataForSend);
+            // Copy mode: prevent duplicate keys:
+            var cb = clipboardNode.toDict(true, function(dict){
+              delete dict.key; // Remove key, so a new one will be created
+            });
+            if (dataForSend.opt === 14){
+              node.lazyLoad(true);
+              node.toggleExpanded();
+            }
+            else if (node.isExpanded()){
+              node.addChildren(cb);
+              node.render();
+            }
+          }
+          clipboardNode = pasteMode = null;
+          break;
+      }
+    };
+
+    function manageMenu (srcElement, menu){
+      if (srcElement.hasClass('fancytree-folder')){
+        menu.disableContextMenuItems("#edit,#editfull,#view,#md5sum");
+      }
+      else{
+        menu.disableContextMenuItems("#nfile,#nfolder,#refresh,#paste");
+      }
+      return true;
+    }
+
+    function fileBrowserOp(data){
+      $.ajax({
+        type: "POST",
+        url: $SCRIPT_ROOT + '/fileBrowser',
+        data: data,
+        success: function (data) {
+          if (data.indexOf('1') === -1) {
+            $("#error").Popup("Error: " + data, {type: 'error', duration: 5000});
+          } else {
+            $("#error").Popup("Operation complete!", {type: 'info', duration: 5000});
+          }
+        },
+        error: function(jqXHR, exception) {
+          if (jqXHR.status == 404) {
+              $("#error").Popup("Requested page not found. [404]", {type: 'error'});
+          } else if (jqXHR.status == 500) {
+              $("#error").Popup("Internal Error. Cannot respond to your request, please check your parameters", {type: 'error'});
+          } else {
+              $("#error").Popup("An Error occured: \n" + jqXHR.responseText, {type: 'error'});
+          }
+        }
+      });
+    }
+
+    // --- Contextmenu helper --------------------------------------------------
+    function bindContextMenu(span, editable) {
+      // Add context menu to this node:
+      var item = $(span).contextMenu({menu: "myMenu"}, function(action, el, pos) {
+        // The event was bound to the <span> tag, but the node object
+        // is stored in the parent <li> tag
+        var node = $.ui.fancytree.getNode(el);
+        var directory = encodeURIComponent(node.data.path.substring(0, node.data.path.lastIndexOf('/')) +"/");
+        switch( action ) {
+        case "cut":
+        case "copy":
+        case "paste":
+          copyPaste(action, node);
+          break;
+        case "edit": openFile(node.data.path); break;
+        case "view":
+          $.colorbox.remove();
+          $.ajax({
+                type: "POST",
+                url: $SCRIPT_ROOT + '/fileBrowser',
+                data: {opt: 9, filename: node.title, dir: directory},
+                success: function (data) {
+                  $("#inline_content").empty();
+                  $("#inline_content").append('<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">Content of file: ' +
+            				node.title +'</h2>');
+            			$("#inline_content").append('<br/><div class="main_content"><pre id="editorViewer"></pre></div>');
+                  viewer = ace.edit("editorViewer");
+                  viewer.setTheme("ace/theme/crimson_editor");
+
+                  var CurentMode = require("ace/mode/text").Mode;
+                  viewer.getSession().setMode(new CurentMode());
+                  viewer.getSession().setTabSize(2);
+                  viewer.getSession().setUseSoftTabs(true);
+                  viewer.renderer.setHScrollBarAlwaysVisible(false);
+                  viewer.setReadOnly(true);
+            			$("#inlineViewer").colorbox({inline:true, width: "847px", onComplete:function(){
+            				viewer.getSession().setValue(data);
+            			}});
+      			      $("#inlineViewer").click();
+                }
+            });
+          break;
+        case "editfull":
+          var url = $SCRIPT_ROOT+"/editFile?profile="+encodeURIComponent(node.data.path)+"&filename="+encodeURIComponent(node.title);
+          window.open(url, '_blank');
+          window.focus();
+          break;
+        case "md5sum":
+          getmd5sum(node.data.path);
+          break;
+        case "refresh":
+          node.lazyLoad(true);
+          node.toggleExpanded();
+          break;
+        case "nfolder":
+          var newName = window.prompt('Please Enter the folder name: ');
+          if (newName == null || newName.length < 1) {
+              return;
+          }
+          var dataForSend = {
+              opt: 3,
+              filename: newName,
+              dir: node.data.path
+          };
+          fileBrowserOp(dataForSend);
+          node.lazyLoad(true);
+          node.toggleExpanded();
+          break;
+        case "nfile":
+          var newName = window.prompt('Please Enter the file name: ');
+          if (newName == null || newName.length < 1) {
+              return;
+          }
+          var dataForSend = {
+              opt: 2,
+              filename: newName,
+              dir: node.data.path
+          };
+          fileBrowserOp(dataForSend);
+          node.lazyLoad(true);
+          node.toggleExpanded();
+          break;
+        case "delete":
+          if(!window.confirm("Are you sure that you want to delete this item?")){
+            return;
+          }
+          var dataForSend = {
+              opt: 4,
+              files: encodeURIComponent(node.title),
+              dir: directory
+          };
+          fileBrowserOp(dataForSend);
+          node.remove();
+          break;
+        case "rename":
+          var newName = window.prompt('Please enter the new name: ', node.title);
+          if (newName == null) {
+              return;
+          }
+          dataForSend = {
+              opt: 6,
+              filename: node.data.path,
+              dir: directory,
+              newfilename: newName
+          };
+          fileBrowserOp(dataForSend);
+          var copy = node.toDict(true, function(dict){
+            dict.title = newName;
+          });
+          node.applyPatch(copy);
+          break;
+        default:
+          return;
+        }
+      }, manageMenu);
+    };
+
+    // --- Init fancytree during startup ----------------------------------------
+    $(function(){
+      $("#fileTree").fancytree({
+        activate: function(event, data) {
+          var node = data.node;
+        },
+        click: function(event, data) {
+          // Close menu on click
+          if( $(".contextMenu:visible").length > 0 ){
+            $(".contextMenu").hide();
+  //          return false;
+          }
+        },
+        source: {
+          url: $SCRIPT_ROOT + "/fileBrowser",
+          data:{opt: 20, dir: currentProject, key: 0},
+          cache: false
+        },
+        lazyload: function(event, data) {
+          var node = data.node;
+          data.result = {
+            url: $SCRIPT_ROOT + "/fileBrowser",
+            data: {opt: 20, dir: node.data.path , key: node.key}
+          }
+        },
+        keydown: function(event, data) {
+          var node = data.node;
+          // Eat keyboard events, when a menu is open
+          if( $(".contextMenu:visible").length > 0 )
+            return false;
+
+          switch( event.which ) {
+
+          // Open context menu on [Space] key (simulate right click)
+          case 32: // [Space]
+            $(node.span).trigger("mousedown", {
+              preventDefault: true,
+              button: 2
+              })
+            .trigger("mouseup", {
+              preventDefault: true,
+              pageX: node.span.offsetLeft,
+              pageY: node.span.offsetTop,
+              button: 2
+              });
+            return false;
+
+          // Handle Ctrl-C, -X and -V
+          case 67:
+            if( event.ctrlKey ) { // Ctrl-C
+              copyPaste("copy", node);
+              return false;
+            }
+            break;
+          case 86:
+            if( event.ctrlKey ) { // Ctrl-V
+              copyPaste("paste", node);
+              return false;
+            }
+            break;
+          case 88:
+            if( event.ctrlKey ) { // Ctrl-X
+              copyPaste("cut", node);
+              return false;
+            }
+            break;
+          }
+        },
+        createNode: function(event, data){
+          bindContextMenu(data.node.span, !data.node.isFolder());
+        }
+      });
+    });
+
 
     editor.setTheme("ace/theme/crimson_editor");
 
@@ -194,12 +486,14 @@ $(document).ready(function () {
         new Mode("python", "Python", require("ace/mode/python").Mode, ["py"]),
         new Mode("buildout", "Python Buildout config", require("ace/mode/buildout").Mode, ["cfg"])
     ];
+    /*
     $('#fileTree').fileTree({ root: projectDir, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function (file) {
         selectFile(file);
-    }, function (file) { openFile(file); });
-    $('#fileTreeFull').fileTree({ root: currentProject, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function (file) {
+    }, function (file) { openFile(file); });*/
+    /*$("#fileTree").fancytree();*/
+    /*$('#fileTreeFull').fileTree({ root: currentProject, script: $SCRIPT_ROOT + script, folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false, selectFolder: true }, function (file) {
         selectFile(file);
-    }, function (file) { openFile(file); });
+    }, function (file) { openFile(file); });*/
     $("#info").append("Selection: " + base_path());
     /*setDetailBox();*/
 
@@ -207,42 +501,6 @@ $(document).ready(function () {
         if (edit_status === "" && edit) {
             $("span#edit_status").html("*");
         }
-    });
-
-    $("#add").click(function () {
-        var path = base_path();
-        if (send) {
-            return false;
-        }
-        if ($("input#file").val() === "" || $("input#file").val() === "Name here...") {
-            $("#error").Popup("Please select a directory or nothing for root directory and enter your file name", {type: 'alert', duration: 5000});
-            return false;
-        }
-        if (selection !== "") {
-            path = selection;
-        }
-        path = path + "/" + $("input#file").val();
-        send = true;
-        $.ajax({
-            type: "POST",
-            url: $SCRIPT_ROOT + '/createFile',
-            data: "file=" + path + "&type=" + $("#type").val(),
-            success: function (data) {
-                if (data.code === 1) {
-                    switchContent();
-                    $("input#file").val("");
-                    $("#flash").fadeOut('normal');
-                    $("#flash").empty();
-                    $("#info").empty();
-                    $("#info").append("Selection: " + base_path());
-                    selection = "";
-                } else {
-                    $("#error").Popup(data.result, {type: 'error', duration: 5000});
-                }
-                send = false;
-            }
-        });
-        return false;
     });
 
     $("#save").click(function () {

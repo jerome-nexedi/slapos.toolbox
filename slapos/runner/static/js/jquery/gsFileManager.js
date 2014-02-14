@@ -557,7 +557,7 @@ if (jQuery) (function(jQuery){
 
                         //remember current dir id
                         jQuery("#curDir").html(splitPath(unescape(t)));
-												jQuery("#curDir").attr('val', unescape(t));
+  											jQuery("#curDir").attr('val', unescape(t));
                         jQuery("#curDir").attr('rel', jQuery('a', cObject).attr('id'));
 
                         gs_cur_items = new Array();
@@ -941,220 +941,252 @@ if (jQuery) (function(jQuery){
 //   and the MIT License and is copyright A Beautiful Site, LLC.
 //
 if(jQuery)( function() {
-    jQuery.extend(jQuery.fn, {
 
-        contextMenu: function(o, callback, onShowMenu) {
-            // Defaults
-            if( o.menu == undefined ) return false;
-            if( o.inSpeed == undefined ) o.inSpeed = 150;
-            if( o.addSelectedClass == undefined ) o.addSelectedClass = true;
-            if( o.outSpeed == undefined ) o.outSpeed = 75;
-            // 0 needs to be -1 for expected results (no fade)
-            if( o.inSpeed == 0 ) o.inSpeed = -1;
-            if( o.outSpeed == 0 ) o.outSpeed = -1;
-            // Loop each context menu
-            jQuery(this).each( function() {
-                var el = jQuery(this);
-                var offset = jQuery(el).offset();
-                // Add contextMenu class
-                jQuery('#' + o.menu).addClass('contextMenu');
-                // Simulate a true right click
-                jQuery(this).mousedown( function(e) {
-                    var evt = e;
-                    evt.stopPropagation();
-                    jQuery(this).mouseup( function(e) {
-                        e.stopPropagation();
-                        var srcElement = jQuery(this);
-                        srcElement.unbind('mouseup');
-                        if( evt.button == 2 ) {
-                            // Hide context menus that may be showing
-                            jQuery(".contextMenu").hide();
-                            // Get this context menu
-                            var menu = jQuery('#' + o.menu);
-                            menu.enableContextMenuItems();
-                            if (onShowMenu) {
-                                if (!onShowMenu( srcElement, menu )) {
-                                    return false;
-                                }
-                            }
-                            if (!srcElement.hasClass('rowSelected')){
-                                jQuery("#gs_content_table div.gsItem").each(function(){
-                                    jQuery(this).removeClass('rowSelected');
-                                });
-                                if (o.addSelectedClass) {
-                                    srcElement.addClass('rowSelected');
-                                }
-                            }
+  /* Check browser version, since $.browser was removed in jQuery 1.9 */
+  function _checkBrowser(){
+		var matched, browser;
+		function uaMatch( ua ) {
+			ua = ua.toLowerCase();
+			var match = /(chrome)[ \/]([\w.]+)/.exec( ua ) ||
+				 /(webkit)[ \/]([\w.]+)/.exec( ua ) ||
+				 /(opera)(?:.*version|)[ \/]([\w.]+)/.exec( ua ) ||
+				 /(msie) ([\w.]+)/.exec( ua ) ||
+				 ua.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec( ua ) ||
+				 [];
+			return {
+				browser: match[ 1 ] || "",
+				version: match[ 2 ] || "0"
+			};
+		}
+		matched = uaMatch( navigator.userAgent );
+		browser = {};
+		 if ( matched.browser ) {
+			 browser[ matched.browser ] = true;
+			 browser.version = matched.version;
+		 }
+		 if ( browser.chrome ) {
+			 browser.webkit = true;
+		 } else if ( browser.webkit ) {
+			 browser.safari = true;
+		 }
+		 return browser;
+	}
+	var BROWSER = jQuery.browser || _checkBrowser();
 
-                            var jmenu = jQuery(menu);
-                            if( jQuery(el).hasClass('disabled')) {
-                                return false;
-                            }
-                            // Detect mouse position
-                            var d = {}, x, y;
-                            if( self.innerHeight ) {
-                                d.pageYOffset = self.pageYOffset;
-                                d.pageXOffset = self.pageXOffset;
-                                d.innerHeight = self.innerHeight;
-                                d.innerWidth = self.innerWidth;
-                            } else if( document.documentElement &&
-                                document.documentElement.clientHeight ) {
-                                d.pageYOffset = document.documentElement.scrollTop;
-                                d.pageXOffset = document.documentElement.scrollLeft;
-                                d.innerHeight = document.documentElement.clientHeight;
-                                d.innerWidth = document.documentElement.clientWidth;
-                            } else if( document.body ) {
-                                d.pageYOffset = document.body.scrollTop;
-                                d.pageXOffset = document.body.scrollLeft;
-                                d.innerHeight = document.body.clientHeight;
-                                d.innerWidth = document.body.clientWidth;
-                            }
-                            (e.pageX) ? x = e.pageX : x = e.clientX + d.scrollLeft;
-                            (e.pageY) ? y = e.pageY : y = e.clientY + d.scrollTop;
+  jQuery.extend(jQuery.fn, {
 
-                            // Show the menu
-                            jQuery(document).unbind('click');
-                            jmenu.css({
-                                top: y,
-                                left: x
-                            }).fadeIn(o.inSpeed);
+      contextMenu: function(o, callback, onShowMenu) {
+          // Defaults
+          if( o.menu == undefined ) return false;
+          if( o.inSpeed == undefined ) o.inSpeed = 150;
+          if( o.addSelectedClass == undefined ) o.addSelectedClass = true;
+          if( o.outSpeed == undefined ) o.outSpeed = 75;
+          // 0 needs to be -1 for expected results (no fade)
+          if( o.inSpeed == 0 ) o.inSpeed = -1;
+          if( o.outSpeed == 0 ) o.outSpeed = -1;
+          // Loop each context menu
+          jQuery(this).each( function() {
+              var el = jQuery(this);
+              var offset = jQuery(el).offset();
+              // Add contextMenu class
+              jQuery('#' + o.menu).addClass('contextMenu');
+              // Simulate a true right click
+              jQuery(this).mousedown( function(e) {
+                  var evt = e;
+                  evt.stopPropagation();
+                  jQuery(this).mouseup( function(e) {
+                      e.stopPropagation();
+                      var srcElement = jQuery(this);
+                      srcElement.unbind('mouseup');
+                      if( evt.button == 2 ) {
+                          // Hide context menus that may be showing
+                          jQuery(".contextMenu").hide();
+                          // Get this context menu
+                          var menu = jQuery('#' + o.menu);
+                          menu.enableContextMenuItems();
+                          if (onShowMenu) {
+                              if (!onShowMenu( srcElement, menu )) {
+                                  return false;
+                              }
+                          }
+                          if (!srcElement.hasClass('rowSelected')){
+                              jQuery("#gs_content_table div.gsItem").each(function(){
+                                  jQuery(this).removeClass('rowSelected');
+                              });
+                              if (o.addSelectedClass) {
+                                  srcElement.addClass('rowSelected');
+                              }
+                          }
 
-                            // Hover events
-                            jmenu.find('A').mouseover( function() {
-                                jmenu.find('LI.hover').removeClass('hover');
-                                if (!jQuery(this).parent().parent().hasClass('subContextMenu')) {
-                                    jmenu.find('UL.subContextMenu').hide();
-                                }
-                                jQuery(this).parent().addClass('hover');
-                                jQuery(this).parent().find('UL').css({
-                                    top: 0,
-                                    left: 120
-                                }).fadeIn(o.inSpeed);
-                            }).mouseout( function() {
-                                jmenu.find('LI.hover').removeClass('hover');
-                            });
+                          var jmenu = jQuery(menu);
+                          if( jQuery(el).hasClass('disabled')) {
+                              return false;
+                          }
+                          // Detect mouse position
+                          var d = {}, x, y;
+                          if( self.innerHeight ) {
+                              d.pageYOffset = self.pageYOffset;
+                              d.pageXOffset = self.pageXOffset;
+                              d.innerHeight = self.innerHeight;
+                              d.innerWidth = self.innerWidth;
+                          } else if( document.documentElement &&
+                              document.documentElement.clientHeight ) {
+                              d.pageYOffset = document.documentElement.scrollTop;
+                              d.pageXOffset = document.documentElement.scrollLeft;
+                              d.innerHeight = document.documentElement.clientHeight;
+                              d.innerWidth = document.documentElement.clientWidth;
+                          } else if( document.body ) {
+                              d.pageYOffset = document.body.scrollTop;
+                              d.pageXOffset = document.body.scrollLeft;
+                              d.innerHeight = document.body.clientHeight;
+                              d.innerWidth = document.body.clientWidth;
+                          }
+                          (e.pageX) ? x = e.pageX : x = e.clientX + d.scrollLeft;
+                          (e.pageY) ? y = e.pageY : y = e.clientY + d.scrollTop;
 
-                            // When items are selected
-                            menu.find('A').unbind('click');
-                            menu.find('A').bind('click', function() {
-                                if(jQuery(this).parent().hasClass('disabled')){
-                                    return false;
-                                }
-                                jQuery(".contextMenu").hide();
-                                // Callback
-                                if (callback) {
-                                    callback( jQuery(this).attr('rel'), jQuery(srcElement), {
-                                        x: x - offset.left,
-                                        y: y - offset.top,
-                                        docX: x,
-                                        docY: y
-                                    } );
-                                }
-                                return false;
-                            });
+                          // Show the menu
+                          jQuery(document).unbind('click');
+                          jmenu.css({
+                              top: y,
+                              left: x
+                          }).fadeIn(o.inSpeed);
 
-                            // Hide bindings
-                            setTimeout( function() { // Delay for Mozilla
-                                jQuery(document).click( function() {
-                                    jQuery(menu).fadeOut(o.outSpeed);
-                                });
-                            }, 0);
-                        }
-                    });
-                });
+                          // Hover events
+                          jmenu.find('A').mouseover( function() {
+                              jmenu.find('LI.hover').removeClass('hover');
+                              if (!jQuery(this).parent().parent().hasClass('subContextMenu')) {
+                                  jmenu.find('UL.subContextMenu').hide();
+                              }
+                              jQuery(this).parent().addClass('hover');
+                              jQuery(this).parent().find('UL').css({
+                                  top: 0,
+                                  left: 120
+                              }).fadeIn(o.inSpeed);
+                          }).mouseout( function() {
+                              jmenu.find('LI.hover').removeClass('hover');
+                          });
 
-                // Disable text selection
-                if( jQuery.browser.mozilla ) {
-                    jQuery('#' + o.menu).each( function() {
-                        jQuery(this).css({
-                            'MozUserSelect' : 'none'
-                        });
-                    });
-                } else if( jQuery.browser.msie ) {
-                    jQuery('#' + o.menu).each( function() {
-                        jQuery(this).bind('selectstart.disableTextSelect', function() {
-                            return false;
-                        });
-                    });
-                } else {
-                    jQuery('#' + o.menu).each(function() {
-                        jQuery(this).bind('mousedown.disableTextSelect', function() {
-                            return false;
-                        });
-                    });
-                }
-                // Disable browser context menu (requires both selectors to work in IE/Safari + FF/Chrome)
-                jQuery(el).add(jQuery('UL.contextMenu')).bind('contextmenu', function() {
-                    return false;
-                });
+                          // When items are selected
+                          menu.find('A').unbind('click');
+                          menu.find('A').bind('click', function() {
+                              if(jQuery(this).parent().hasClass('disabled')){
+                                  return false;
+                              }
+                              jQuery(".contextMenu").hide();
+                              // Callback
+                              if (callback) {
+                                  callback( jQuery(this).attr('rel'), jQuery(srcElement), {
+                                      x: x - offset.left,
+                                      y: y - offset.top,
+                                      docX: x,
+                                      docY: y
+                                  } );
+                              }
+                              return false;
+                          });
 
-            });
-            return jQuery(this);
-        },
+                          // Hide bindings
+                          setTimeout( function() { // Delay for Mozilla
+                              jQuery(document).click( function() {
+                                  jQuery(menu).fadeOut(o.outSpeed);
+                              });
+                          }, 0);
+                      }
+                  });
+              });
 
-        // Disable context menu items on the fly
-        disableContextMenuItems: function(o) {
-            if( o == undefined ) {
-                // Disable all
-                jQuery(this).find('LI').addClass('disabled');
-                return( jQuery(this) );
-            }
-            jQuery(this).each( function() {
-                if( o != undefined ) {
-                    var d = o.split(',');
-                    for( var i = 0; i < d.length; i++ ) {
-                        //alert(d[i]);
-                        jQuery(this).find('A[rel="' + d[i] + '"]').parent().addClass('disabled');
-                    }
-                }
-            });
-            return( jQuery(this) );
-        },
+              // Disable text selection
+              if( BROWSER.mozilla ) {
+                  jQuery('#' + o.menu).each( function() {
+                      jQuery(this).css({
+                          'MozUserSelect' : 'none'
+                      });
+                  });
+              } else if( BROWSER.msie ) {
+                  jQuery('#' + o.menu).each( function() {
+                      jQuery(this).bind('selectstart.disableTextSelect', function() {
+                          return false;
+                      });
+                  });
+              } else {
+                  jQuery('#' + o.menu).each(function() {
+                      jQuery(this).bind('mousedown.disableTextSelect', function() {
+                          return false;
+                      });
+                  });
+              }
+              // Disable browser context menu (requires both selectors to work in IE/Safari + FF/Chrome)
+              jQuery(el).add(jQuery('UL.contextMenu')).bind('contextmenu', function() {
+                  return false;
+              });
 
-        // Enable context menu items on the fly
-        enableContextMenuItems: function(o) {
-            if( o == undefined ) {
-                // Enable all
-                jQuery(this).find('LI.disabled').removeClass('disabled');
-                return( jQuery(this) );
-            }
-            jQuery(this).each( function() {
-                if( o != undefined ) {
-                    var d = o.split(',');
-                    for( var i = 0; i < d.length; i++ ) {
-                        jQuery(this).find('A[rel="' + d[i] + '"]').parent().removeClass('disabled');
+          });
+          return jQuery(this);
+      },
 
-                    }
-                }
-            });
-            return( jQuery(this) );
-        },
+      // Disable context menu items on the fly
+      disableContextMenuItems: function(o) {
+          if( o == undefined ) {
+              // Disable all
+              jQuery(this).find('LI').addClass('disabled');
+              return( jQuery(this) );
+          }
+          jQuery(this).each( function() {
+              if( o != undefined ) {
+                  var d = o.split(',');
+                  for( var i = 0; i < d.length; i++ ) {
+                      //alert(d[i]);
+                      jQuery(this).find('A[rel="' + d[i] + '"]').parent().addClass('disabled');
+                  }
+              }
+          });
+          return( jQuery(this) );
+      },
 
-        // Disable context menu(s)
-        disableContextMenu: function() {
-            jQuery(this).each( function() {
-                jQuery(this).addClass('disabled');
-            });
-            return( jQuery(this) );
-        },
+      // Enable context menu items on the fly
+      enableContextMenuItems: function(o) {
+          if( o == undefined ) {
+              // Enable all
+              jQuery(this).find('LI.disabled').removeClass('disabled');
+              return( jQuery(this) );
+          }
+          jQuery(this).each( function() {
+              if( o != undefined ) {
+                  var d = o.split(',');
+                  for( var i = 0; i < d.length; i++ ) {
+                      jQuery(this).find('A[rel="' + d[i] + '"]').parent().removeClass('disabled');
 
-        // Enable context menu(s)
-        enableContextMenu: function() {
-            jQuery(this).each( function() {
-                jQuery(this).removeClass('disabled');
-            });
-            return( jQuery(this) );
-        },
+                  }
+              }
+          });
+          return( jQuery(this) );
+      },
 
-        // Destroy context menu(s)
-        destroyContextMenu: function() {
-            // Destroy specified context menus
-            jQuery(this).each( function() {
-                // Disable action
-                jQuery(this).unbind('mousedown').unbind('mouseup');
-            });
-            return( jQuery(this) );
-        }
+      // Disable context menu(s)
+      disableContextMenu: function() {
+          jQuery(this).each( function() {
+              jQuery(this).addClass('disabled');
+          });
+          return( jQuery(this) );
+      },
 
-    });
+      // Enable context menu(s)
+      enableContextMenu: function() {
+          jQuery(this).each( function() {
+              jQuery(this).removeClass('disabled');
+          });
+          return( jQuery(this) );
+      },
+
+      // Destroy context menu(s)
+      destroyContextMenu: function() {
+          // Destroy specified context menus
+          jQuery(this).each( function() {
+              // Disable action
+              jQuery(this).unbind('mousedown').unbind('mouseup');
+          });
+          return( jQuery(this) );
+      }
+
+  });
 })(jQuery);

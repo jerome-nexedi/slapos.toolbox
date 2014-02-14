@@ -13,10 +13,15 @@
         <meta name="description" content="" />
 
         <link href="{{ url_for('static', filename='css/styles.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-        <script src="{{ url_for('static', filename='js/jquery/jquery-1.8.0.js') }}" type="text/javascript" charset="utf-8"></script>
+        <link href="{{ url_for('static', filename='css/superfish.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+        <link href="{{ url_for('static', filename='css/jquery-ui-1.10.3.custom.min.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+        <script src="{{ url_for('static', filename='js/jquery/jquery-1.10.2.min.js') }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ url_for('static', filename='js/jquery/jquery-ui-1.10.3.custom.min.js') }}" type="text/javascript" charset="utf-8"></script>
         <script src="{{ url_for('static', filename='js/jquery/jquery.form.js') }}" type="text/javascript" charset="utf-8"></script>
       	<script src="{{ url_for('static', filename='js/jquery/popup.js') }}" type="text/javascript" charset="utf-8"></script>
       	<script src="{{ url_for('static', filename='js/jquery/jqueryToolTip.js') }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ url_for('static', filename='js/jquery/superfish.min.js') }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ url_for('static', filename='js/jquery/hoverIntent.js') }}" type="text/javascript" charset="utf-8"></script>
         <script type=text/javascript>
           $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
         </script>
@@ -39,6 +44,11 @@
   		if(!checkSavedCmd()){
   		    getRunningState();
   		}
+      $('ul.sf-menu').superfish({
+    		delay:       600,
+  			speed:       'fast',
+  			cssArrows:  false
+  		});
 		});
 	</script>
   {%endif%}
@@ -54,30 +64,38 @@
                 <div class="block_header">
                     <a href="{{ url_for('home') }}" style="float:left;" id="home" {% if request.path != '/' %}rel="tooltip"{% endif %} title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
 		    <div class="line"></div>
-		    <a href="{{ url_for('editCurrentProject') }}" style="float:left" title="Edit your current project"><img alt="" src="{{ url_for('static', filename='images/project.png') }}" /></a>
-        <div class="line"></div>
-		    <a href="{{ url_for('manageProject') }}" style="float:left" title="Manage Your repositories"><img alt="" src="{{ url_for('static', filename='images/manage_repo-little.png') }}" /></a>
-        <div class="line"></div>
-		    <a href="{{ url_for('shell') }}" style="float:left" title="Use the shell"><img alt="" src="{{ url_for('static', filename='images/terminal.png') }}" /></a>
-        <div class="line"></div>
   	    <a href="{{ url_for('dologout') }}" style="float:left" title="Close your session"><img alt="" src="{{ url_for('static', filename='images/logout.png') }}" /></a>
                     <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
-		    <div class="run"><span id="running" style="display:none"><img alt="" src="{{ url_for('static', filename='images/ajax_roller.gif') }}"
-			height='26' title="slapgrid is currently running"/></span></div>
+		    <div class="run">
+          <div id="running">
+            <p id="running_info" class='instance'>Building software...</p>
+            <img alt="" src="{{ url_for('static', filename='images/ajax_roller.gif') }}" height='26' title="slapgrid is currently running"/>
+            <div class="clear"></div>
+          </div>
+        </div>
                 </div>
-                <div class="wmenu">
-                    <ul>
-                        <li><a href="{{ url_for('editSoftwareProfile') }}">Profiles</a></li>
-                        <li><a href="{{ url_for('browseWorkspace') }}">Workspace</a></li>
-                        <li class='sep'></li>
-                        <li><a href="{{ url_for('runSoftwareProfile') }}" id="softrun">Run software</a></li>
-                        <li><a href="{{ url_for('viewSoftwareLog') }}">Software log</a></li>
-                        <li><a href="{{ url_for('inspectSoftware') }}">SR result</a></li>
-                        <li class='sep'></li>
-                        <li><a href="{{ url_for('runInstanceProfile') }}" id="instrun">Run instance</a></li>
-                        <li><a href="{{ url_for('viewInstanceLog') }}">Instance log</a></li>
-                        <li><a href="{{ url_for('inspectInstance') }}">Inspect instance</a></li>
-                        <li><a id="removeIst" href="#">Destroy instance</a></li>
+                <div id="wmenu">
+                    <ul class="sf-menu">
+                        <li><a href="{{ url_for('editCurrentProject') }}">Editor</a></li>
+                        <li><a href="{{ url_for('browseWorkspace') }}">Services</a></li>
+                        <li><a href="{{ url_for('runSoftwareProfile') }}" id="softrun">Logs</a></li>
+                        <li><a href="{{ url_for('viewSoftwareLog') }}">Terminal</a></li>
+                        <li><a href="{{ url_for('inspectSoftware') }}">Git</a></li>
+                        <li class='right_menu'><a class="main_menu" href="{{ url_for('viewInstanceLog') }}"></a>
+                          <ul>
+                            <li><a href="{{ url_for('myAccount')}}">Parameters</a></li>
+                            <li class='sep'></li>
+                            <li><a href="#">Open Software Release</a></li>
+                            <li><a href="#">Create Software Release</a></li>
+                            <li class='sep'></li>
+                            <li><a href="{{ url_for('browseWorkspace') }}">Browse Workspace</a></li>
+                            <li><a href="{{ url_for('inspectSoftware') }}">My Softwares Releases</a></li>
+                            <li class='sep'></li>
+                            <li><a href="{{ url_for('dologout') }}">Log out</a></li>
+                         </ul>
+                        </li>
+                        <li class='right_menu'><a class="slapos_run" href="{{ url_for('runInstanceProfile') }}" id="instrun"></a>
+                        </li>
                     </ul>
                 </div>
                 <div class="clear"></div>

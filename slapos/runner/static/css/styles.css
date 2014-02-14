@@ -4,6 +4,14 @@ blockquote, q {quotes: none;}
 blockquote:before, blockquote:after, q:before, q:after {content: none;}
 :focus {outline: 0 none;}
 img{border:0}
+
+/*YAHOO RESET FONT*/
+html{color:#000;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,button,textarea,select,p,blockquote,th,td{margin:0;padding:0}table{border-collapse:collapse;border-spacing:0}fieldset,img{border:0}address,button,caption,cite,code,dfn,em,input,optgroup,option,select,strong,textarea,th,var{font:inherit}del,ins{text-decoration:none}li{list-style:none}caption,th{text-align:left}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal}q:before,q:after{content:''}abbr,acronym{border:0;font-variant:normal}sup{vertical-align:baseline}sub{vertical-align:baseline}legend{color:#000}body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small}select,input,textarea,button{font:99% arial,helvetica,clean,sans-serif}table{font-size:inherit;font:100%}pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%}
+body{
+  background: #1E73BD;
+  height:100%;
+}
+
 a{
     text-decoration: none;
     color: #19485C;
@@ -40,16 +48,13 @@ th{
 table.small th{padding: 4px;font-size: 16px;}
 textarea {
 	width:932px;
-  font-family: 'Helvetica Neue',Tahoma,Helvetica,Arial,sans-serif;
+  font-family: 'Arial,Helvetica Neue',Tahoma,Helvetica,sans-serif;
 }
 
 body {
-	background: #1E73BD;/*#1862C4 url("../images/1307251316-background-stripes.gif") repeat #9C9C9C;*/
-	font-family: 'Helvetica Neue',Tahoma,Helvetica,Arial,sans-serif;
 	color: #000000;
-	font-size: 13px;
   overflow: -moz-scrollbars-vertical;
-overflow-y: scroll;
+  overflow-y: scroll;
 }
 
 #page
@@ -63,8 +68,8 @@ overflow-y: scroll;
 }
 
 #header{
-    height: 78px;
-    padding-top: 12px;
+    height: 73px;
+    padding-top: 10px;
     width: 1014px;
     background: url(../images/head.png) no-repeat;
 }
@@ -77,16 +82,31 @@ overflow-y: scroll;
 }
 
 #header .run{
-    margin-right: 30px;
+    margin-right: 20px;
     float: right;
+}
+#running p{
+  float:left;
+  padding: 5px;
+  padding-right: 10px;
+  border-left: 4px solid #C753C4;
+  font-size: 1.08em;
+  color: #2D73B1;
+}
+#running p.instance{
+  border-left: 4px solid #1E73BD;
+}
+#running img{
+  float:left
 }
 
 #header .info{
     font-size: 16px;
     font-weight: normal;
     padding-top: 3px;
+    margin-left:20px;
     float: left;
-    width: 820px;
+    width: 700px;
     height: 22px;
     text-align: center;
     color: #4c6172;
@@ -104,79 +124,44 @@ overflow-y: scroll;
      margin-left:5px
 }
 
-#editor {
+#editor, #editorViewer {
     margin: 0;
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
-    }
-
-.wmenu{
-  margin: 1px 0 1px 20px;
 }
 
-.wmenu ul{
-    height: 34px;
-    overflow:hidden;
+#wmenu{
+  margin: 1px 11px 1px 10px;
+}
+
+#wmenu ul{
+    width: 100%;
 }
 
 .space{
     margin-left: 28px;
 }
 
-.wmenu li{
-    float:left;
+#wmenu a.slapos_run{
+  background: url(../images/run_button.png) center no-repeat;
 }
-
-.wmenu li .title_software{
-    float:left;
-    background: url(../images/software.png) left center no-repeat;
-    font-size:15px;
-    font-weight:bold;
-    color:#678dad;
-    cursor: default;
-    padding:8px;
-    padding-left: 20px;
-    padding-right: 5px;
-    margin-left:4px;
-    height: 18px;
-    text-shadow:1px 1px 0 #E6EDF2;
+#wmenu a.slapos_run:hover{
+  background: #c2c2c2 url(../images/run_button2.png) center no-repeat;
 }
-
-.wmenu li .title_instance{
-    float:left;
-    background: url(../images/settings2.png) left center no-repeat;
-    font-size:15px;
-    font-weight:bold;
-    color:#678dad;
-    cursor: default;
-    padding:8px;
-    padding-left: 20px;
-    padding-right: 5px;
-    height: 20px;
-    margin-left:2px;
-    text-shadow:1px 1px 0 #E6EDF2;
+#wmenu a.slapos_stop{
+  background: url(../images/stop_button.png) center no-repeat;
 }
-
-.wmenu ul li.sep{border-right: 1px solid #c2c2c2; min-width:20px; height:34px}
-.wmenu ul li a{
-    display:block;
-    height: 20px;
-    Color:#275777;
-    /*background: url(../images/sep.png) right center no-repeat;*/
-    border-right: 1px solid #c2c2c2;
-    /*font-weight:bold;*/
-    font-size:15px;
-    text-decoration:none;
-    padding:7px 10px 7px 10px;
+#wmenu a.slapos_stop:hover{
+  background: #c2c2c2 url(../images/stop_button2.png) center no-repeat;
 }
-.wmenu ul li:last-child a {border: none}
-
-.wmenu ul li a:hover, .wmenu ul li a.active{
-    color: #000;/*#0271BF;*/
-    background:#c2c2c2;
+#wmenu a.main_menu{
+  background: url(../images/main_menu.png) center no-repeat;
+}
+#wmenu a.main_menu:hover{
+  background: #c2c2c2 url(../images/main_menu_hover.png) center no-repeat;
 }
 
 #main
@@ -214,7 +199,7 @@ overflow-y: scroll;
 .content h2{
     color: #4c6172;
     font-weight: normal;
-    font-size: 18px;
+    font-size: 1.4em;
 }
 .content h2 a{
     text-decoration:none;
@@ -435,12 +420,12 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 }
 
 .file_tree_short{
-    width: 228px;
-    height: 379px;
+    width: 238px;
+    height: 429px;
     border: solid 1px #678dad;
     background: #fff;
     overflow: auto;
-    padding: 5px;
+    padding: 0px;
 }
 .box_software{
     width: 240px;
@@ -495,19 +480,29 @@ h2.hight:hover{
 }
 
 .log_content{
-    border: solid 1px #4c6172;
+    border: solid 1px #519ADA;
     padding: 2px;
+    width: 719px;
+    float: left;
+}
+
+.log_information{
+  border: solid 1px #519ADA;
+  padding: 2px;
+  width: 200px;
+  float: left;
+  margin-left: 5px;
 }
 
 .log {
     border: none;
     background: #f6f7f8;
     color: #000;
-    width: 926px;
+    width: 715px;
     padding: 2px;
     height: 450px;
     resize: both;
-    font-size: 13px;
+    /*font-size: 0.98em;*/
     overflow-y: auto;
     white-space: pre-wrap;
 }
@@ -515,6 +510,79 @@ h2.hight:hover{
     padding:4px 10px 4px 10px; font-size: 16px; color: #4c6172;}
 .log p{white-space: pre-wrap; width:100%}
 .log p.info{white-space: pre-wrap; width:98%; font-size: 15px; margin: 5px; color:red;}
+
+.log_info_box{
+  height: 454px;
+  width: 200px;
+}
+.log_info_box h2{
+  font-weight: bold;
+  padding: 5px;
+  padding-left: 20px;
+  text-align: left;
+  color: #fff;
+  display: block;
+  height: 20px;
+  font-size: 16px;
+  margin-top: 20px;
+}
+.log_info_box h2:first-child{
+  margin-top: 0;
+}
+
+.log_info_box h2.software{
+  background: #1E73BD;
+}
+.log_info_box h2.instance{
+  background: #C753C4;
+}
+
+#sr_run_state, #instance_run_state{
+  color: #000;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+#sr_run_state p, #instance_run_state p{
+  padding-top: 3px;
+  font-size: 16px;
+
+}
+.log_content_box{
+  padding: 10px 5px;
+  font-size: 14px;
+  min-height: 130px;
+}
+.log_content_box p{
+  line-height: 20px;
+}
+.log_content_box a{
+  color: #2084CA;
+  font-weight: bold;
+}
+.log_content_box a:hover{
+  color: #286d9e;
+}
+.log_info_box span.legend{
+  height: 22px;
+  width: 24px;
+  margin-right: 10px;
+  display: block;
+  float: left;
+}
+.log_info_box div.state_running span{
+  background: #FFC800;
+}
+.log_info_box div.state_terminated span{
+  background: #00C800;
+}
+.log_info_box div.state_waiting span, .log_info_box div.state_stopped{
+  background: #FF3131;
+}
+
+.separator{
+  border-bottom: 3px solid #D6D6D6;
+  width: 100%
+}
 
 .waitting{
     margin-left: 10px;
@@ -587,9 +655,9 @@ select {
 
 a.lshare{
     background: #fff;
-    padding: 4px 7px 4px 7px;
+    padding: 0.27em .47em;
     height: 18px;
-    font-size: 15px;
+    font-size: 1.14em;
     border: solid 1px #678dad;
     color: #4DA0C6;
     text-align:center;
