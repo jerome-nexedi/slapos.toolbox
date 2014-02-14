@@ -735,8 +735,6 @@ app.add_url_rule("/checkFileType", 'checkFileType', checkFileType,
                  methods=['POST'])
 app.add_url_rule("/pullProjectFiles", 'pullProjectFiles', pullProjectFiles,
                  methods=['POST'])
-app.add_url_rule("/commitProjectFiles", 'commitProjectFiles', commitProjectFiles,
-                 methods=['POST'])
 app.add_url_rule("/pushProjectFiles", 'pushProjectFiles', pushProjectFiles,
                  methods=['POST'])
 app.add_url_rule("/getProjectDiff", 'getProjectDiff', getProjectDiff,
