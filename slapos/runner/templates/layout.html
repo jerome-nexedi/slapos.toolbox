@@ -22,8 +22,6 @@
   	<script src="{{ url_for('static', filename='js/jquery/jqueryToolTip.js') }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{ url_for('static', filename='js/jquery/superfish.min.js') }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{ url_for('static', filename='js/jquery/hoverIntent.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/ace/ext-modelist.js') }}" type="text/javascript" charset="utf-8"></script>
     <script type=text/javascript>
       $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
     </script>
@@ -36,6 +34,8 @@
     	});
     </script>
     {% if request.path != '/login' %}
+    <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/ext-modelist.js') }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{ url_for('static', filename='js/scripts/process.js') }}" type="text/javascript" charset="utf-8"></script>
     <script type="text/javascript">
   		$(document).ready(function() {
@@ -131,23 +131,5 @@
     {%endif%}
     </div>
 
-
-    <div class="popup">
-      <table id="dpop" cellpadding="0" border="0">
-      <tbody><tr>
-        <td id="topleft" class="corner"></td>
-        <td class="top"><img width="30" height="29" alt="" src="{{ url_for('static', filename='images/bubble-tail2.png') }}"/></td>
-        <td id="topright" class="corner"></td>
-      </tr><tr>
-        <td class="left"></td>
-        <td><div class="popup-contents" id="jqtooltip"></div></td>
-        <td class="right"></td>
-      </tr><tr>
-        <td class="corner" id="bottomleft"></td>
-        <td class="bottom" valign="left"></td>
-        <td id="bottomright" class="corner"></td>
-      </tr>
-      </tbody></table>
-    </div>
   </body>
 </html>

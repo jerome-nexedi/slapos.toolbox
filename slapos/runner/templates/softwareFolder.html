@@ -8,10 +8,18 @@
   <script src="{{ url_for('static', filename='js/jquery/jquery.fancytree.min.js') }}" type="text/javascript" charset="utf-8"></script>
   <link href="{{ url_for('static', filename='css/colorbox.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
   <script src="{{ url_for('static', filename='js/jquery/jquery.colorbox-min.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('static', filename='js/scripts/softwareFolder.js') }}" type="text/javascript" charset="utf-8"></script>  
+  <script src="{{ url_for('static', filename='js/scripts/softwareFolder.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
-
+<style>
+  .ace_search{
+    max-width: 350px;
+    width: 350px;
+  }
+  .ace_searchbtn:hover{background-color: #F8F8F8;}
+  .ace_replacebtn{padding: 5px;}
+  .ace_replacebtn:hover{background: #F8F8F8;}
+</style>
 <form action="" method=post>
 <input type="hidden" name="project" id="project" value="{{project}}" />
 <input type="hidden" name="workdir" id="workdir" value="{{workDir}}" />
@@ -72,10 +80,14 @@
 </form>
 
 
-<div id="tooltip-option" style="display:none">
+<div id="tooltip-option" style="display:none;min-width: 190px;">
   <span class="list first-list">Current file Menu</span>
-  <a id='getmd5' href="#">Get or Update md5sum</a>
-  <a id='addflist' href="#">Add to favourites</a>
+  <ul class="inline">
+    <li><a id='getmd5' href="#">Get or Update md5sum</a></li>
+    <li><a id='addflist' href="#">Add to favourites</a></li>
+    <li><a id='find' href="#">Find in file &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Ctl+F]</a></li>
+    <li><a id='replace' href="#">Replace in file &nbsp;&nbsp;[Ctl+H]</a></li></li>
+  </ul>
   <div class="sep"></div>
   <span class="list">Add project development</span>
   <ul id="plist">

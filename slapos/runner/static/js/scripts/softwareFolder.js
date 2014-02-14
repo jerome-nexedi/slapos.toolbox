@@ -9,11 +9,8 @@ $(document).ready(function () {
     var viewer,
         editor,
         modelist,
-        CurrentMode,
-        script = "/readFolder",
+        config,
         softwareDisplay = true,
-        Mode,
-        modes,
         projectDir = $("input#project").val(),
         workdir = $("input#workdir").val(),
         currentProject = workdir + "/" + projectDir.replace(workdir, "").split('/')[1],
@@ -37,6 +34,7 @@ $(document).ready(function () {
         edit = false;
         $("a#option").hide();
         if (file.substr(-1) !== "/") {
+          var info = $("#edit_info").html();
           $("#edit_info").empty();
           $("#edit_info").append("LOADING FILE... <img src='"+$SCRIPT_ROOT+"/static/images/loading.gif' />");
           $.ajax({
@@ -66,14 +64,12 @@ $(document).ready(function () {
                     setCookie("EDIT_CURRENT_FILE", file);
                 } else {
                     $("#error").Popup(data.result, {type: 'error', duration: 5000});
+                    $("#edit_info").html(info);
+                    $("a#option").show();
                 }
                 send = false;
             }
           });
-        } else {
-            $("#edit_info").empty();
-            $("#edit_info").append("No file in editor");
-            editor.getSession().setValue("");
         }
         return;
     }
@@ -152,6 +148,8 @@ $(document).ready(function () {
             .error(function () {})
             .complete(function () {});
         editor.insert("\n");
+        //Close popup
+        $("#option").click();
     }
 
     // --- Implement Cut/Copy/Paste --------------------------------------------
@@ -270,9 +268,7 @@ $(document).ready(function () {
                 data: {opt: 9, filename: node.title, dir: directory},
                 success: function (data) {
                   $("#inline_content").empty();
-                  $("#inline_content").append('<h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">Content of file: ' +
-                  	node.title +'</h2>');
-            			$("#inline_content").append('<br/><div class="main_content"><pre id="editorViewer"></pre></div>');
+            			$("#inline_content").append('<div class="main_content"><pre id="editorViewer"></pre></div>');
                   viewer = ace.edit("editorViewer");
                   viewer.setTheme("ace/theme/crimson_editor");
 
@@ -285,7 +281,7 @@ $(document).ready(function () {
                   viewer.setReadOnly(true);
             			$("#inlineViewer").colorbox({inline:true, width: "847px", onComplete:function(){
             				viewer.getSession().setValue(data);
-            			}});
+            			}, title: "Content of file: " + node.title});
       			      $("#inlineViewer").click();
                 }
             });
@@ -451,7 +447,7 @@ $(document).ready(function () {
       var index = parseInt($elt.attr('rel')),
           file = favourite_list[index];
       openFile(file);
-      $('a[rel=tooltip], span[rel=tooltip], .popup').mouseout();
+      $("#filelist").click();
     }
 
     function removeFavourite($elt){
@@ -461,6 +457,17 @@ $(document).ready(function () {
       $('#tooltip-filelist ul li[rel="'+index+'"]').remove();
       if (favourite_list.length === 0){
         $("#tooltip-filelist ul").append("<li>Your favourites files list is <br/>empty for the moment!</li>");
+      }
+      else{
+        var i = 0;
+        $("#tooltip-filelist ul li").each(function(){
+          $(this).attr('rel', i);
+          //Change attribute rel of all children!!
+          $(this).children().each(function(){
+            $(this).attr('rel', i);
+          });
+          i++;
+        });
       }
       deleteCookie("FAV_FILE_LIST");
       setCookie("FAV_FILE_LIST", favourite_list.join('#'));
@@ -501,6 +508,7 @@ $(document).ready(function () {
 
     editor = ace.edit("editor");
     modelist = require("ace/ext/modelist");
+    config = require("ace/config");
 
     editor.setTheme("ace/theme/crimson_editor");
     editor.getSession().setMode("ace/mode/text");
@@ -513,6 +521,9 @@ $(document).ready(function () {
     $("#info").append("Current work tree: " + base_path());
 
     initEditor();
+
+    $("#option").Tooltip();
+    $("#filelist").Tooltip();
 
     editor.on("change", function (e) {
         if (edit_status === "" && edit) {
@@ -568,6 +579,7 @@ $(document).ready(function () {
     });
     $("#getmd5").click(function () {
         getmd5sum(current_file);
+        $("#option").click();
         return false;
     });
 
@@ -622,8 +634,21 @@ $(document).ready(function () {
           removeFavourite($(this));
           return false;
         });
+        $("#option").click();
         $("#error").Popup("<b>Item added!</b><br/>"+filename+" has been added to your favourite list.", {type: 'confirm', duration: 3000});
       }
+      return false;
+    });
+
+    $("a#find").click(function(){
+      config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor)});
+      $("#option").click();
+      return false;
+    });
+
+    $("a#replace").click(function(){
+      config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
+      $("#option").click();
       return false;
     });
 
