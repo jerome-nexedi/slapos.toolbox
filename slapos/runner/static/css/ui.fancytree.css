@@ -20,7 +20,7 @@
 	margin: 0; /* issue 201 */
 	background-color: white;
 	overflow: auto;
-	height: 98%; /* issue 263 */
+	/*height: 98%; /* issue 263 */
 }
 
 ul.fancytree-container ul
