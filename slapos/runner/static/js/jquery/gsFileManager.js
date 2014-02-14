@@ -60,13 +60,13 @@ var gsItem = function (type, name, path, size, id, exta, lastMod) {
         return type;
     };
 };
-var editor;
+var editor,
+    modelist = modelist = require("ace/ext/modelist");
 function setupEditor(){
     editor = ace.edit("editor");
     editor.setTheme("ace/theme/crimson_editor");
 
-    var CurentMode = require("ace/mode/text").Mode;
-    editor.getSession().setMode(new CurentMode());
+    editor.getSession().setMode("ace/mode/text");
     editor.getSession().setTabSize(2);
     editor.getSession().setUseSoftTabs(true);
     editor.renderer.setHScrollBarAlwaysVisible(false);
@@ -759,6 +759,9 @@ if (jQuery) (function(jQuery){
           				gsitem.name +'</h2>');
           			$("#sfile_content").append('<br/><div class="main_content"><pre id="editor"></pre></div>');
                 setupEditor();
+                var mode = modelist.getModeForPath(gsitem.name);
+                editor.getSession().modeName = mode.name;
+                editor.getSession().setMode(mode.mode);
           			$("#showfile").colorbox({inline:true, width: "847px", onComplete:function(){
           				editor.getSession().setValue(data);
           			}});

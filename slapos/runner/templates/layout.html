@@ -1,148 +1,153 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-
-    <head>
+  <head>
 	{% block head %}
-        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
-        <title>SlapOS Buildout web runner</title>
+    <title>SlapOS Buildout web runner</title>
 
-        <meta name="keywords" content="" />
+    <meta name="keywords" content="" />
 
-        <meta name="description" content="" />
+    <meta name="description" content="" />
 
-        <link href="{{ url_for('static', filename='css/styles.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-        <link href="{{ url_for('static', filename='css/superfish.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-        <link href="{{ url_for('static', filename='css/jquery-ui-1.10.3.custom.min.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-        <script src="{{ url_for('static', filename='js/jquery/jquery-1.10.2.min.js') }}" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ url_for('static', filename='js/jquery/jquery-ui-1.10.3.custom.min.js') }}" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ url_for('static', filename='js/jquery/jquery.form.js') }}" type="text/javascript" charset="utf-8"></script>
-      	<script src="{{ url_for('static', filename='js/jquery/popupBox.js') }}" type="text/javascript" charset="utf-8"></script>
-      	<script src="{{ url_for('static', filename='js/jquery/jqueryToolTip.js') }}" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ url_for('static', filename='js/jquery/superfish.min.js') }}" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ url_for('static', filename='js/jquery/hoverIntent.js') }}" type="text/javascript" charset="utf-8"></script>
-        <script type=text/javascript>
-          $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-        </script>
-	<script src="{{ url_for('static', filename='js/scripts/cookies.js') }}" type="text/javascript" charset="utf-8"></script>
-	<script src="{{ url_for('static', filename='js/scripts/common.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script type="text/javascript">
-  	$(document).ready(function() {
-      setInput();
-      bindRemove();
-  	});
-  </script>
-  {% if request.path != '/login' %}
-  <script src="{{ url_for('static', filename='js/scripts/process.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script type="text/javascript">
-		$(document).ready(function() {
-  		if($("input#fmsg").val() != ""){
-  		   $("#error").Popup($("input#fmsg").val(), {type:'info', duration:5000, load:true});
-  		}
-  		bindRun();
-  		if(!checkSavedCmd()){
-  		    getRunningState();
-  		}
-      $('ul.sf-menu').superfish({
-    		delay:       600,
-  			speed:       'fast',
-  			cssArrows:  false
+    <link href="{{ url_for('static', filename='css/styles.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+    <link href="{{ url_for('static', filename='css/superfish.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+    <link href="{{ url_for('static', filename='css/jquery-ui-1.10.3.custom.min.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+
+    <script src="{{ url_for('static', filename='js/jquery/jquery-1.10.2.min.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/jquery/jquery-ui-1.10.3.custom.min.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/jquery/jquery.form.js') }}" type="text/javascript" charset="utf-8"></script>
+  	<script src="{{ url_for('static', filename='js/jquery/popupBox.js') }}" type="text/javascript" charset="utf-8"></script>
+  	<script src="{{ url_for('static', filename='js/jquery/jqueryToolTip.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/jquery/superfish.min.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/jquery/hoverIntent.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/ext-modelist.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script type=text/javascript>
+      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
+  	<script src="{{ url_for('static', filename='js/scripts/cookies.js') }}" type="text/javascript" charset="utf-8"></script>
+  	<script src="{{ url_for('static', filename='js/scripts/common.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+    	$(document).ready(function() {
+        setInput();
+        bindRemove();
+    	});
+    </script>
+    {% if request.path != '/login' %}
+    <script src="{{ url_for('static', filename='js/scripts/process.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+  		$(document).ready(function() {
+    		if($("input#fmsg").val() != ""){
+    		   $("#error").Popup($("input#fmsg").val(), {type:'info', duration:5000, load:true});
+    		}
+    		bindRun();
+    		if(!checkSavedCmd()){
+    		    getRunningState();
+    		}
+        $('ul.sf-menu').superfish({
+      		delay:       600,
+    			speed:       'fast',
+    			cssArrows:  false
+    		});
   		});
-		});
-	</script>
-  {%endif%}
+  	</script>
+    {%endif%}
 	{% endblock %}
-    </head>
-    <body>
-	<div id="error"></div>
+  </head>
+  <body>
+	  <div id="error"></div>
 
-        <div {% if request.path != '/login' %}id="page"{%else%}id="login-page"{%endif%}>
-	    <input type="hidden" name="fmsg" value="{{ get_flashed_messages()[0] }}" id="fmsg" />
-      {% if request.path != '/login' %}
-            <div id="header">
-                <div class="block_header">
-                    <a href="{{ url_for('home') }}" style="float:left;" id="home" title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
-		    <div class="line"></div>
-  	    <a href="{{ url_for('dologout') }}" style="float:left" title="Close your session"><img alt="" src="{{ url_for('static', filename='images/logout.png') }}" /></a>
-                    <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
-		    <div class="run">
-          <div id="running">
-            <p id="running_info" class='software'>Building software...</p>
-            <!--<p id="running_info" class='instance'>Running instance...</p>-->
-            <img alt="" src="{{ url_for('static', filename='images/ajax_roller.gif') }}" height='26' title="slapgrid is currently running"/>
-            <div class="clear"></div>
+    <div {% if request.path != '/login' %}id="page"{%else%}id="login-page"{%endif%}>
+    <input type="hidden" name="fmsg" value="{{ get_flashed_messages()[0] }}" id="fmsg" />
+    {% if request.path != '/login' %}
+      <div id="header">
+        <div class="block_header">
+          <a href="{{ url_for('home') }}" style="float:left;" id="home" title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
+	        <div class="line"></div>
+	        <a href="{{ url_for('dologout') }}" style="float:left" title="Close your session"><img alt="" src="{{ url_for('static', filename='images/logout.png') }}" /></a>
+	        <div class="line"></div>
+          <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
+    	    <div class="run">
+            <div id="running">
+              <p id="running_info" class='software'>Building software...</p>
+              <!--<p id="running_info" class='instance'>Running instance...</p>-->
+              <img alt="" src="{{ url_for('static', filename='images/ajax_roller.gif') }}" height='26' title="slapgrid is currently running"/>
+              <div class="clear"></div>
+            </div>
           </div>
         </div>
-                </div>
-                <div id="wmenu">
-                    <ul class="sf-menu">
-                        <li><a href="{{ url_for('editCurrentProject') }}">Editor</a></li>
-                        <li><a href="{{ url_for('inspectInstance') }}">Services</a></li>
-                        <li><a href="{{ url_for('viewInstanceLog') }}">Logs</a></li>
-                        <li><a href="{{ url_for('viewSoftwareLog') }}">Terminal</a></li>
-                        <li><a href="{{ url_for('manageRepository')}}#tab2">Git</a></li>
-                        <li class='right_menu main_menu'><a href="#"></a>
-                          <ul>
-                            <li><a href="{{ url_for('myAccount')}}">Parameters</a></li>
-                            <li class='sep'></li>
-                            <li><a href="{{ url_for('openProject', method='open')}}">Open Software Release</a></li>
-                            <li><a href="{{ url_for('openProject', method='new')}}">Create Software Release</a></li>
-                            <li class='sep'></li>
-                            <li><a href="{{ url_for('removeInstance') }}" id="removeIst">Destroy All Services</a></li>
-                            <li><a href="{{ url_for('runInstanceProfile') }}">Redeploy Services</a></li>
-                            <li class='sep'></li>
-                            <li><a href="{{ url_for('browseWorkspace') }}">Browse Workspace</a></li>
-                            <li><a href="{{ url_for('inspectSoftware') }}">My Softwares Releases</a></li>
-                            <li class='sep'></li>
-                            <li><a href="{{ url_for('dologout') }}">Log out</a></li>
-                         </ul>
-                        </li>
-                        <li class='right_menu slapos_run'><a href="{{ url_for('runSoftwareProfile') }}" id="instrun"></a>
-                        <!--<li class='right_menu slapos_top'><a href="{{ url_for('runInstanceProfile') }}" id="instrun"></a>-->
-                        </li>
-                    </ul>
-                </div>
-                <div class="clear"></div>
-            </div>
-            {% endif %}
-            <div {% if request.path != '/login' %}id="main"{% endif %}>
-                <div {% if request.path == '/' %} class="home_content" {%elif request.path == '/login'%} {%else%} id="content" {% endif %}>
-                    {% if request.path != '/' and request.path != '/login'%}
-                        <div class="main_head">
-                        </div>
-                        <div class="content">
-                    {% endif %}
-                    {% block body %}{% endblock %}
-                    {% if request.path != '/' and request.path != '/login'%}
-                        </div>
-                        <div class="main_foot">
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% if request.path != '/login' %}
-            <div id="footer">
-                SlapOS web runner &copy; Vifib SARL 2011, 2012, 2013 - All right reserved - Creative Commons Shared Alike
-            </div>
-            {%endif%}
+        <div id="wmenu">
+          <ul class="sf-menu">
+            <li><a href="{{ url_for('editCurrentProject') }}">Editor</a></li>
+            <li><a href="{{ url_for('inspectInstance') }}">Services</a></li>
+            <li><a href="{{ url_for('viewInstanceLog') }}">Logs</a></li>
+            <li><a href="{{ url_for('viewSoftwareLog') }}">Terminal</a></li>
+            <li><a href="{{ url_for('manageRepository')}}#tab2">Git</a></li>
+            <li class='right_menu main_menu'><a href="#"></a>
+              <ul>
+                <li><a href="{{ url_for('myAccount')}}">Parameters</a></li>
+                <li class='sep'></li>
+                <li><a href="{{ url_for('openProject', method='open')}}">Open Software Release</a></li>
+                <li><a href="{{ url_for('openProject', method='new')}}">Create Software Release</a></li>
+                <li class='sep'></li>
+                <li><a href="{{ url_for('removeInstance') }}" id="removeIst">Destroy All Services</a></li>
+                <li><a href="{{ url_for('runInstanceProfile') }}">Redeploy Services</a></li>
+                <li class='sep'></li>
+                <li><a href="{{ url_for('browseWorkspace') }}">Browse Workspace</a></li>
+                <li><a href="{{ url_for('inspectSoftware') }}">My Softwares Releases</a></li>
+                <li class='sep'></li>
+                <li><a href="{{ url_for('dologout') }}">Log out</a></li>
+             </ul>
+            </li>
+            <li class='right_menu slapos_run'><a href="{{ url_for('runSoftwareProfile') }}" id="instrun"></a>
+            <!--<li class='right_menu slapos_top'><a href="{{ url_for('runInstanceProfile') }}" id="instrun"></a>-->
+            </li>
+          </ul>
         </div>
-        <div class="popup">
-        <table id="dpop" cellpadding="0" border="0">
-        <tbody><tr>
-          <td id="topleft" class="corner"></td>
-          <td class="top"><img width="30" height="29" alt="" src="{{ url_for('static', filename='images/bubble-tail2.png') }}"/></td>
-          <td id="topright" class="corner"></td>
-        </tr><tr>
-          <td class="left"></td>
-          <td><div class="popup-contents" id="jqtooltip"></div></td>
-          <td class="right"></td>
-        </tr><tr>
-          <td class="corner" id="bottomleft"></td>
-          <td class="bottom" valign="left"></td>
-          <td id="bottomright" class="corner"></td>
-        </tr>
-        </tbody></table>
+        <div class="clear"></div>
       </div>
-    </body>
+    {% endif %}
+    <div {% if request.path != '/login' %}id="main"{% endif %}>
+      <div {% if request.path == '/' %} class="home_content" {%elif request.path == '/login'%} {%else%} id="content" {% endif %}>
+        {% if request.path != '/' and request.path != '/login'%}
+          <div class="main_head">
+          </div>
+          <div class="content">
+        {% endif %}
+        {% block body %}{% endblock %}
+        {% if request.path != '/' and request.path != '/login'%}
+          </div>
+          <div class="main_foot">
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    {% if request.path != '/login' %}
+    <div id="footer">
+        SlapOS web runner &copy; Vifib SARL 2011, 2012, 2013 - All right reserved - Creative Commons Shared Alike
+    </div>
+    {%endif%}
+    </div>
+
+
+    <div class="popup">
+      <table id="dpop" cellpadding="0" border="0">
+      <tbody><tr>
+        <td id="topleft" class="corner"></td>
+        <td class="top"><img width="30" height="29" alt="" src="{{ url_for('static', filename='images/bubble-tail2.png') }}"/></td>
+        <td id="topright" class="corner"></td>
+      </tr><tr>
+        <td class="left"></td>
+        <td><div class="popup-contents" id="jqtooltip"></div></td>
+        <td class="right"></td>
+      </tr><tr>
+        <td class="corner" id="bottomleft"></td>
+        <td class="bottom" valign="left"></td>
+        <td id="bottomright" class="corner"></td>
+      </tr>
+      </tbody></table>
+    </div>
+  </body>
 </html>

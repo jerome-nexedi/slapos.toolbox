@@ -4,10 +4,11 @@
 /* vim: set et sts=4: */
 
 $(document).ready(function () {
-    "use strict";
+  "use strict";
 
-    var editor = ace.edit("editor"),
-        viewer,
+    var viewer,
+        editor,
+        modelist,
         CurrentMode,
         script = "/readFolder",
         softwareDisplay = true,
@@ -27,19 +28,6 @@ $(document).ready(function () {
         base_path = function () {
             return softwareDisplay ? currentProject : 'workspace/';
         };
-
-
-    function setEditMode(file) {
-        var i,
-            CurrentMode = require("ace/mode/text").Mode;
-        editor.getSession().setMode(new CurrentMode());
-        for (i = 0; i < modes.length; i += 1) {
-            if (modes[i].extRe.test(file)) {
-                editor.getSession().setMode(modes[i].mode);
-                break;
-            }
-        }
-    }
 
     function openFile(file) {
         if (send) {
@@ -68,7 +56,9 @@ $(document).ready(function () {
                     $("#edit_info").append(" " + path);
                     $("a#option").show();
                     editor.getSession().setValue(data.result);
-                    setEditMode(name[name.length - 1]);
+                    var mode = modelist.getModeForPath(file);
+                    editor.getSession().modeName = mode.name;
+                    editor.getSession().setMode(mode.mode);
                     edit = true;
                     current_file = file;
                     $("span#edit_status").html("");
@@ -286,8 +276,9 @@ $(document).ready(function () {
                   viewer = ace.edit("editorViewer");
                   viewer.setTheme("ace/theme/crimson_editor");
 
-                  var CurentMode = require("ace/mode/text").Mode;
-                  viewer.getSession().setMode(new CurentMode());
+                  var mode = modelist.getModeForPath(node.data.path);
+                  viewer.getSession().modeName = mode.name;
+                  viewer.getSession().setMode(mode.mode);
                   viewer.getSession().setTabSize(2);
                   viewer.getSession().setUseSoftTabs(true);
                   viewer.renderer.setHScrollBarAlwaysVisible(false);
@@ -507,32 +498,20 @@ $(document).ready(function () {
     }
 
 
-    editor.setTheme("ace/theme/crimson_editor");
 
-    CurrentMode = require("ace/mode/text").Mode;
-    editor.getSession().setMode(new CurrentMode());
+    editor = ace.edit("editor");
+    modelist = require("ace/ext/modelist");
+
+    editor.setTheme("ace/theme/crimson_editor");
+    editor.getSession().setMode("ace/mode/text");
     editor.getSession().setTabSize(2);
     editor.getSession().setUseSoftTabs(true);
     editor.renderer.setHScrollBarAlwaysVisible(false);
 
-    Mode = function (name, desc, Clazz, extensions) {
-        this.name = name;
-        this.desc = desc;
-        this.clazz = Clazz;
-        this.mode = new Clazz();
-        this.mode.name = name;
-
-        this.extRe = new RegExp("^.*\\.(" + extensions.join("|") + ")$");
-    };
-    modes = [
-        new Mode("php", "PHP", require("ace/mode/php").Mode, ["php", "in", "inc"]),
-        new Mode("python", "Python", require("ace/mode/python").Mode, ["py"]),
-        new Mode("buildout", "Python Buildout config", require("ace/mode/buildout").Mode, ["cfg"])
-    ];
-
     initTree('#fileTree', currentProject, 'pfolder');
     initTree('#fileTreeFull', 'workspace');
     $("#info").append("Current work tree: " + base_path());
+
     initEditor();
 
     editor.on("change", function (e) {
