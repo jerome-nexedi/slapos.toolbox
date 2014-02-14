@@ -39,23 +39,29 @@
 </ul>
 
 <div id="software_folder">
+  <div>
+    <ul class='box_header'>
+      <li id="switch"><span class="swith_btn" title="Switch between differents file source">Workspace</span></li>
+      <li id="save"><span class="save_btn" title="Save current file. Hint: Use Ctrl+S">Save</span></li>
+      <li>
+        <h2>
+          <a style="display:none" id='option' href='#' rel='tooltip' title='Show more option'>[Current file]</a><span id="edit_info">No file in editor</span>
+          <span id="edit_status"></span>
+        </h2>
+      </li>
+    </ul>
+
+    <!--<a href="#"  id="clearselect" class="lshare no-right-border" style="float:left">Clean</a>-->
+
+    <div class="clear"></div>
+  </div>
   <div class="software_details">
-    <div>
-      <a href="#" id="switch" class="lshare no-right-border" style="float:left">Switch to Project</a>
-      <a href="#"  id="clearselect" class="lshare no-right-border" style="float:left">Reset</a>
-      <a href="#"  id="save" class="lshare" style="float:left">Save</a>
-      <div class="clear"></div>
-    </div>
     <div id="details_box">
   	  <div id="fileTree" class="file_tree_short"></div>
       <div id="fileTreeFull" style='display:none' class="file_tree_short"></div>
     </div>
   </div>
   <div id="code">
-  <h2 class='title'>
-    <a style="display:none" id='option' href='#' rel='tooltip' title='Show more option'>[Current file]</a><span id="edit_info">No file in editor</span>
-    <span id="edit_status"></span>
-  </h2>
   <div class="main_content">
 <pre id="editor">
 
@@ -67,13 +73,12 @@
 </div>
 <div class="clear"></div>
 <div id="file_info" class="file_info"><span id="info"></span></div>
-<br/>
 </form>
 <div id="tooltip-option" style="display:none">
   <span class="list first-list">MD5 SUM for the current file</span>
     <a id='getmd5' href="#">Get or Update md5sum</a>
     <div class="sep"></div>
-    <span class="list">Add Project to Develop</span>
+    <span class="list">Add project development</span>
     <ul id="plist">
     {% for name in projectList%}
       <li><input type="checkbox" name="develop" value="{{name}}" id="{{name}}">

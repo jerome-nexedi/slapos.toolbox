@@ -42,8 +42,8 @@
 }
 .sf-menu ul {
 	box-shadow: 2px 2px 6px rgba(0,0,0,.2);
-	min-width: 14em; /* allow long menu items to determine submenu width */
-	*width: 14em; /* no auto sub width for IE7, see white-space comment below */
+	min-width: 16em; /* allow long menu items to determine submenu width */
+	*width: 16em; /* no auto sub width for IE7, see white-space comment below */
   border: 1px solid #C2C2C2;
   background: #E4E4E4;
   border-left:none;
@@ -70,6 +70,15 @@
   width: 35px;
   padding:7px;
 }
+.sf-menu li.main_menu{
+  background: url(../images/main_menu.png) center no-repeat;
+}
+.sf-menu li.slapos_run{
+  background: url(../images/run_button.png) center no-repeat;
+}
+.sf-menu li.slapos_stop{
+  background: url(../images/stop_button.png) center no-repeat;
+}
 .sf-menu li:hover,
 .sf-menu li.sfHover {
   color: #fff;/*#0271BF;*/
@@ -77,6 +86,18 @@
 	/* only transition out, not in */
 	-webkit-transition: none;
 	transition: none;
+}
+.sf-menu li.main_menu:hover,
+.sf-menu li.main_menu.sfHover {
+  background: #c2c2c2 url(../images/main_menu_hover.png) center no-repeat;
+}
+.sf-menu li.slapos_stop:hover,
+.sf-menu li.slapos_stop.sfHover{
+  background: #c2c2c2 url(../images/stop_button2.png) center no-repeat;
+}
+.sf-menu li.slapos_run:hover,
+.sf-menu li.slapos_run.sfHover{
+  background: #c2c2c2 url(../images/run_button2.png) center no-repeat;
 }
 .sf-menu li a:hover{
   color: #fff;

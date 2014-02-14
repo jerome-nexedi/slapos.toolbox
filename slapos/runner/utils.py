@@ -450,94 +450,22 @@ def svcStartStopProcess(config, process, action):
                 cmd[action], process]).communicate()[0]
 
 
-def getFolderContent(config, folder):
-  """
-  Read all file and folder into specified directory
-
-  Args:
-    config: Slaprunner configuration.
-    folder: the directory to read.
-
-  Returns:
-    Html formatted string or error message when fail.
-  """
-  r = ['<ul class="jqueryFileTree" style="display: none;">']
-  try:
-    folder = str(folder)
-    r = ['<ul class="jqueryFileTree" style="display: none;">']
-    d = urllib.unquote(folder)
-    realdir = realpath(config, d)
-    if realdir:
-      ldir = sorted(os.listdir(realdir), key=str.lower)
-    else:
-      r.append('Could not load directory: Permission denied')
-      ldir = []
-
-    for f in ldir:
-      if f.startswith('.'):  # do not displays this file/folder
-        continue
-      ff = os.path.join(d, f)
-      if os.path.isdir(os.path.join(realdir, f)):
-        r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff, f))
-      else:
-        e = os.path.splitext(f)[1][1:]  # get .ext and remove dot
-        r.append('<li class="file ext_%s"><a href="#%s" rel="%s">%s</a></li>' % (e, ff, ff, f))
-    r.append('</ul>')
-  except Exception as e:
-    r.append('Could not load directory: %s' % str(e))
-  r.append('</ul>')
-  return jsonify(result=''.join(r))
-
-
-def getFolder(config, folder):
-  """
-  Read list of folder for the specified directory
-
-  Args:
-    config: Slaprunner configuration.
-    folder: the directory to read.
-
-  Returns:
-    Html formatted string or error message when fail.
-  """
-  r = ['<ul class="jqueryFileTree" style="display: none;">']
-  try:
-    folder = str(folder)
-    r = ['<ul class="jqueryFileTree" style="display: none;">']
-    d = urllib.unquote(folder)
-    realdir = realpath(config, d)
-    if not realdir:
-      r.append('Could not load directory: Permission denied')
-      ldir = []
-    else:
-      ldir = sorted(os.listdir(realdir), key=str.lower)
-    for f in ldir:
-      if f.startswith('.'):  # do not display this file/folder
-        continue
-      ff = os.path.join(d, f)
-      if os.path.isdir(os.path.join(realdir, f)):
-        r.append('<li class="directory collapsed"><a href="#%s" rel="%s/">%s</a></li>' % (ff, ff, f))
-    r.append('</ul>')
-  except Exception as e:
-    r.append('Could not load directory: %s' % str(e))
-  r.append('</ul>')
-  return jsonify(result=''.join(r))
-
-
-def getProjectList(folder):
-  """Return the list of projet (folder) into the workspace
+def listFolder(config, path):
+  """Return the list of folder into path
 
   Agrs:
-    folder: path of the workspace
+    path: path of the directory to list
   Returns:
     a list that contains each folder name.
   """
-  project = []
-  project_list = sorted(os.listdir(folder), key=str.lower)
-  for elt in project_list:
-    if os.path.isdir(os.path.join(folder, elt)):
-      project.append(elt)
-  return project
+  folderList = []
+  folder = realpath(config, path)
+  if folder:
+    path_list = sorted(os.listdir(folder), key=str.lower)
+    for elt in path_list:
+      if os.path.isdir(os.path.join(folder, elt)):
+        folderList.append(elt)
+  return folderList
 
 
 def configNewSR(config, projectpath):

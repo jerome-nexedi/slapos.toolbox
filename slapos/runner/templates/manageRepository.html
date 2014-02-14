@@ -6,17 +6,18 @@
   <link href="{{ url_for('static', filename='css/jqueryTabs.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
   <link href="{{ url_for('static', filename='css/colorbox.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
   <script src="{{ url_for('static', filename='js/jquery/gsFileManager.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('static', filename='js/scripts/folder.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/scripts/cloneRepo.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/scripts/repo.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/jquery/jqueryTabs.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/jquery/jquery.colorbox-min.js') }}" type="text/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
-<h2>Clone a project repository into your workspace</h2><br/>
 <div id="tabContaier">
   <ul>
-    <li><a href="#tab1" class="active">Clone your repository</a></li>
-    <li><a href="#tab2">Manage your project folder</a></li>
+    <li><a href="#tab1" class="active" id="cloneTab">Clone repository</a></li>
+    <li><a href="#tab2" id="gitTab">Manage (GIT)</a></li>
+    <li><a href="#tab3">Browse</a></li>
   </ul><!-- //Tab buttons -->
   <div class="tabDetails">
     <div id="tab1" class="tabContents">
@@ -74,6 +75,55 @@
 <!--Fin tab1-->
     </div>
     <div id="tab2" class="tabContents">
+      <form action="" method=post>
+      <input type="hidden" name="subfolder" id="subfolder" value="" />
+      <h2 style="{% if project %}display:none{% endif %}" id="repoEmpty">
+        Your repository folder is empty. <a id="switchtoclone">Click here</a> to create a new one!
+      </h2>
+      <div id="repoContent" style="{% if not project %}display:none{% endif %}">
+      <label for='project'>Current Repository: </label>
+      <select id="project" name="project">
+        {% for folder in project%}
+      	<option value="{{folder}}">{{folder}}</option>
+      	{% endfor %}
+      </select>
+      <a id="switchtoclone" class="lshare">&nbsp;New repository&nbsp;</a>
+      <br/><br/>
+      <div id="contentInfo">
+      	<div id="status" style="margin-bottom:20px;">
+      		<h2>Please select one project...</h2>
+      	</div>
+      	<div id="branchlist" style="margin-bottom:20px;">
+      	<h2>Your Repository Branches</h2>
+      	<div style="margin-left:15px;">
+      	<label for='activebranch'>Select your active Branch: </label>
+      	<select name="activebranch" id="activebranch">
+      	</select>
+      	&nbsp;&nbsp;<label for='branchname'>Branch Name: </label>
+      	<input type="text" name="branchname" id="branchname" size='22' value="Enter the branch name..." />
+      	<input type="submit" name="addbranch" id ="addbranch" value="Add" class="button" title='add new branch: git checkout -b branch'/>
+      	<input type="submit" name="docheckout" id ="docheckout" value="Checkout" class="button" title='add existing branch: git checkout branch'/>
+      	<br/>
+      	<!--<label for='pullbranch'>Update your local repository: </label>-->
+      	<!--<input type="submit" name="pullbranch" id ="pullbranch" value="Pull" class="button"/>-->
+      	<!--<img class="waitting" id="pullimgwaitting" src="{{ url_for('static', filename='images/waiting.gif') }}" alt="" />-->
+      	</div>
+      	</div>
+      	<div id="push" style="margin-bottom:20px;">
+      	<h2>Commit All your changes (On active branch)</h2>
+      	<div style="margin-left:15px;">
+      	<label for='commitmsg'>Commit message: </label>
+      	<input type="text" name="commitmsg" id="commitmsg" size='40' value="Enter message..." />
+      	<input type="submit" name="commit" id ="commit" value="Commit" class="button"/>
+      	<img class="waitting" id="imgwaitting" src="{{ url_for('static', filename='images/waiting.gif') }}" alt="" />
+      	</div>
+      	</div>
+      	<br/>
+      </div>
+      </div>
+      </form>
+    </div>
+    <div id="tab3" class="tabContents">
       <div id="fileNavigator"></div>
     </div>
 </div>

@@ -17,7 +17,7 @@
 	overflow:hidden;
 	height:34px;
 	position:absolute;
-	z-index:100;
+	z-index:80;
 }
 #tabContaier > ul > li{
 	float:left;

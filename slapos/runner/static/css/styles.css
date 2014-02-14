@@ -110,7 +110,7 @@ body {
     height: 22px;
     text-align: center;
     color: #4c6172;
-    text-shadow: 0 1px 1px #fff;
+    text-shadow: 0 1px 1px #F1F1F1;
     overflow: hidden;
 }
 #header .line{
@@ -145,25 +145,6 @@ body {
     margin-left: 28px;
 }
 
-#wmenu a.slapos_run{
-  background: url(../images/run_button.png) center no-repeat;
-}
-#wmenu a.slapos_run:hover{
-  background: #c2c2c2 url(../images/run_button2.png) center no-repeat;
-}
-#wmenu a.slapos_stop{
-  background: url(../images/stop_button.png) center no-repeat;
-}
-#wmenu a.slapos_stop:hover{
-  background: #c2c2c2 url(../images/stop_button2.png) center no-repeat;
-}
-#wmenu a.main_menu{
-  background: url(../images/main_menu.png) center no-repeat;
-}
-#wmenu a.main_menu:hover{
-  background: #c2c2c2 url(../images/main_menu_hover.png) center no-repeat;
-}
-
 #main
 {
     background: url(../images/main_bg_all.png) repeat-y;
@@ -174,9 +155,9 @@ body {
 
 .main_content{
     position:relative;
-    width: 99.6%;
+    /*width: 99.6%;*/
     height: 430px;
-    margin-top:10px;
+    margin-top:2px;
     border:1px solid #4c6172;
     overflow:auto;
 }
@@ -191,8 +172,8 @@ body {
     background: url(../images/content.png) repeat-y;
     width: 936px;
     padding: 15px;
-    padding-top:0;
-    padding-bottom:0;
+    padding-top:1px;
+    padding-bottom:2px;
     min-height: 400px;
 }
 
@@ -434,7 +415,7 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 .software_details{float: left;}
 #details_box{
     display:block;
-    margin-top:10px;
+    margin-top:2px;
 }
 #code{
     float: right;
@@ -443,7 +424,7 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 #details_head{margin-bottom: 10px;}
 
 #contentInfo{
-    width: 926px;
+    width: 882px;
     border: solid 1px #678dad;
     background: #fff;
     overflow: auto;
@@ -599,7 +580,6 @@ h2.hight:hover{
     color: #737373;
     font-weight: bold;
     text-shadow: 0px 1px #FFF;
-    margin-bottom: 9px;
     font-size: 14px;
     cursor:default;
     word-wrap: break-word
@@ -651,7 +631,8 @@ select {
   overflow: hidden;
   padding: 4px;
   text-overflow: ellipsis;
-  white-space: nowrap;}
+  white-space: nowrap;
+  min-width: 80px;}
 
 a.lshare{
     background: #fff;
@@ -679,6 +660,25 @@ a.no-right-border:focus{border-right:none}
 a.lshare img{
     margin: 5px;
 }
+.box_header{
+  background: #E4E4E4;
+  width: 100%;
+  height: 30px;
+  padding-top: 2px;
+  text-indent: 5px;
+  color: #737373;
+  text-shadow: 0px 1px #F1F1F1;
+  border-bottom: 3px solid #6DB9DD;
+}
+.box_header li{float: left;border: 1px solid #AAB8C2;padding: 1px 5px 1px 0;margin-left: 5px;}
+.box_header li:last-child{border:none}
+.box_header li h2{padding-top: 2px;}
+.box_header li > span{cursor: pointer; height: 22px; display: block;line-height: 22px;font-weight: bold;padding: 1px;}
+.box_header li:hover{border: 1px solid #57A1D6;background: #C7C7C7;}
+.box_header li:last-child:hover{background:none; border: none}
+.box_header li>a{font-weight: bold; font-size:15px;display: block;padding: 2px;}
+.save_btn{background: url(../images/icon_save.png) center right no-repeat;width: 60px;}
+.swith_btn{background: url(../images/gnome-session-switch.png) center right no-repeat;width: 105px;}
 
 #error{
     padding: 0px;
