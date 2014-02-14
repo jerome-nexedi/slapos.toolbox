@@ -23,7 +23,8 @@ from slapos.runner.utils import (checkSoftwareFolder, configNewSR, getProfilePat
                                  readFileFrom, readParameters, realpath,
                                  removeInstanceRoot, removeProxyDb,
                                  removeSoftwareByName, runInstanceWithLock,
-                                 runSoftwareWithLock, saveSession,
+                                 runSoftwareWithLock, runSlapgridUntilSuccess,
+                                 saveSession, saveBuildAndRunParams,
                                  svcStartStopProcess, svcStopAll, tail,
                                  updateInstanceParameter)
 
@@ -210,23 +211,15 @@ def runInstanceProfile():
     return jsonify(result=False)
 
 
-<<<<<<< HEAD
-def viewInstanceLog():
-  if os.path.exists(app.config['instance_log']):
-    result = open(app.config['instance_log']).read()
-=======
-@login_required()
 def viewLog():
   return render_template('viewLog.html')
 
-@login_required()
 def getFileLog():
   logfile = request.form.get('filename', '').encode('utf-8')
   if logfile == "instance.log":
     file_path = app.config['instance_log']
   elif logfile == "software.log":
     file_path = app.config['software_log']
->>>>>>> 7beebdd... Update log management, add custom log file...
   else:
     file_path = realpath(app.config, logfile)
   try:
@@ -540,6 +533,28 @@ def getParameterXml(request):
     return jsonify(code=1, result=parameters)
 
 
+#update user-defined slapgrid parameters
+def updateBuildAndRun():
+  code = 1
+  try:
+    max_run_instance = int(request.form['max_run_instance'].strip())
+    max_run_software = int(request.form['max_run_software'].strip())
+  except ValueError:
+    code = 0
+    result = "Error! You should have provided an integer"
+  run_instance = (True if request.form['run_instance']=="true" else False)
+  run_software = (True if request.form['run_software']=="true" else False)
+  if code:
+    params =  {}
+    params['run_instance'] = run_instance 
+    params['run_software'] = run_software 
+    params['max_run_instance'] = max_run_instance 
+    params['max_run_software'] = max_run_software 
+    saveBuildAndRunParams(params) 
+    result = "Your parameters have correctly been updated"
+  return jsonify(code=code, result=result)
+
+
 #update user account data
 def updateAccount():
   code = request.form['rcode'].strip()
@@ -746,6 +761,8 @@ app.add_url_rule("/saveParameterXml", 'saveParameterXml', saveParameterXml,
 app.add_url_rule("/getPath", 'getPath', getPath, methods=['POST'])
 app.add_url_rule("/myAccount", 'myAccount', myAccount)
 app.add_url_rule("/updateAccount", 'updateAccount', updateAccount,
+                 methods=['POST'])
+app.add_url_rule("/updateBuildAndRun", 'updateBuildAndRun', updateBuildAndRun,
                  methods=['POST'])
 app.add_url_rule("/fileBrowser", 'fileBrowser', fileBrowser,
                  methods=['GET', 'POST'])
