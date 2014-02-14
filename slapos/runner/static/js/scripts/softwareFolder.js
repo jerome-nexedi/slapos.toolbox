@@ -628,6 +628,16 @@ $(document).ready(function () {
       readOnly: false // false if this command should not apply in readOnly mode
     });
 
+    editor.commands.addCommand({
+      name: 'Fullscreen',
+      bindKey: {win: 'Ctrl-E',  mac: 'Command-E'},
+      exec: function(editor) {
+          $("body").toggleClass("fullScreen");
+          $("#editor").toggleClass("fullScreen-editor");
+          editor.resize();
+      }
+    });
+
     $("#save").click(function () {
         beforeunload_warning_set = false;
         window.onbeforeunload = function() { return; };
