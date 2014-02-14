@@ -144,15 +144,6 @@ def runSoftwareProfile():
     return jsonify(result=False)
 
 
-def viewSoftwareLog():
-  if os.path.exists(app.config['software_log']):
-    result = tail(open(app.config['software_log']), lines=1500)
-  else:
-    result = 'Not found yet'
-  return render_template('viewLog.html', type='software',
-      result=result.encode("utf-8"))
-
-
 # instance views
 def editInstanceProfile():
   profile = getProfilePath(app.config['etc_dir'], app.config['instance_profile'])
@@ -217,13 +208,37 @@ def runInstanceProfile():
     return jsonify(result=False)
 
 
+<<<<<<< HEAD
 def viewInstanceLog():
   if os.path.exists(app.config['instance_log']):
     result = open(app.config['instance_log']).read()
+=======
+@login_required()
+def viewLog():
+  return render_template('viewLog.html')
+
+@login_required()
+def getFileLog():
+  logfile = request.form.get('filename', '').encode('utf-8')
+  if logfile == "instance.log":
+    file_path = app.config['instance_log']
+  elif logfile == "software.log":
+    file_path = app.config['software_log']
+>>>>>>> 7beebdd... Update log management, add custom log file...
   else:
-    result = 'Not found yet'
-  return render_template('viewLog.html', type='instance',
-      result=result.encode("utf-8"))
+    file_path = realpath(app.config, logfile)
+  try:
+    if not isText(file_path):
+      return jsonify(code=0,
+            result="Can not open binary file, please select a text file!")
+    if 'truncate' in request.form:
+      content = tail(open(file_path), int(request.form['truncate']))
+      return jsonify(code=1, result=content)
+    else:
+      with open(file_path) as f:
+        return jsonify(code=1, result=f.read())
+  except:
+    return jsonify(code=0, result="Warning: Log file doesn't exist yet or empty log!!")
 
 
 def stopAllPartition():
@@ -349,12 +364,13 @@ def getFileContent():
 
 
 def saveFileContent():
-  file_path = realpath(app.config, request.form['file'])
+  file_path = realpath(app.config, request.form['file'], False)
   if file_path:
-    open(file_path, 'w').write(request.form['content'].encode("utf-8"))
+    with open(file_path, 'w') as f:
+      f.write(request.form['content'].encode("utf-8"))
     return jsonify(code=1, result="")
   else:
-    return jsonify(code=0, result="Error: No such file!")
+    return jsonify(code=0, result="Rejected!! Cannot access to this location.")
 
 
 def changeBranch():
@@ -657,8 +673,6 @@ app.add_url_rule('/inspectSoftware', 'inspectSoftware', inspectSoftware)
 app.add_url_rule('/removeSoftware', 'removeSoftware', removeSoftware)
 app.add_url_rule('/runSoftwareProfile', 'runSoftwareProfile',
                  runSoftwareProfile, methods=['GET', 'POST'])
-app.add_url_rule('/viewSoftwareLog', 'viewSoftwareLog',
-                 viewSoftwareLog, methods=['GET'])
 app.add_url_rule('/editInstanceProfile', 'editInstanceProfile',
                  editInstanceProfile)
 app.add_url_rule('/inspectInstance', 'inspectInstance',
@@ -668,8 +682,10 @@ app.add_url_rule('/supervisordStatus', 'supervisordStatus',
 app.add_url_rule('/runInstanceProfile', 'runInstanceProfile',
                  runInstanceProfile, methods=['GET', 'POST'])
 app.add_url_rule('/removeInstance', 'removeInstance', removeInstance)
-app.add_url_rule('/viewInstanceLog', 'viewInstanceLog',
-                 viewInstanceLog, methods=['GET'])
+app.add_url_rule('/viewLog', 'viewLog',
+                 viewLog, methods=['GET'])
+app.add_url_rule("/getFileLog", 'getFileLog', getFileLog,
+                 methods=['POST'])
 app.add_url_rule('/stopAllPartition', 'stopAllPartition',
                  stopAllPartition, methods=['GET'])
 app.add_url_rule('/tailProcess/name/<process>', 'tailProcess',

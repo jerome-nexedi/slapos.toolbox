@@ -1,12 +1,17 @@
 {% extends "layout.html" %}
-{% block title %}View {{ type }} log{% endblock %}
+{% block title %}View log{% endblock %}
 {% block head %}
   {{ super() }}
   <script src="{{ url_for('static', filename='js/scripts/viewlog.js') }}" type="text/javascript" charset="utf-8"></script>
+  <link href="{{ url_for('static', filename='css/ui.fancytree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='js/jquery/jquery.fancytree.min.js') }}" type="text/javascript" charset="utf-8"></script>
+  <link href="{{ url_for('static', filename='css/colorbox.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
+  <script src="{{ url_for('static', filename='js/jquery/jquery.colorbox-min.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
-<input type="hidden" name="type" value="{{type}}" id="type" />
-<h2 class="hight hide" id="logheader">Slapgrid result for {{ type }}</h2>
+
+
+<h2 class="hight hide" id="logheader">Inspecting current slapgrid log - Click for more options</h2>
 <div class="log_btn" id="logconfigbox" style="display:none">
 <span style="margin-left:15px; font-size: 18px;"> Update parameters </span>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -20,37 +25,67 @@
 <div class='space'></div>
 <div class="log_content">
   <div class="log" id="salpgridLog"></div>
-  <textarea class="log" readonly id="manualLog" style="display:none">{{result}}</textarea>
+  <div class="log" id="manualLog" style="display:none"></div>
 </div>
 <div class="log_information">
   <div class="log_info_box">
-    <h2 class="software">Building State</h2>
-    <div class="log_content_box">
-      <div id="sr_run_state" class="state_running">
-        <span class="legend"></span>
-        <p>Processing</p>
-        <div class="clear"></div>
+    <div id="slapstate">
+      <h2 class="software">Building State</h2>
+      <div class="log_content_box">
+        <div id="software_run_state" class="state_running">
+          <span class="legend"></span>
+          <p>Processing</p>
+          <div class="clear"></div>
+        </div>
+        <p>SlapOS rebuild your software from source, allowing you to easily patch or add any free software. <a href="#">Lean how!</a></p>
       </div>
-      <p>SlapOS rebuild your software from source, allowing you to easily patch or add any free software. <a href="#">Lean how!</a></p>
-    </div>
 
-    <h2 class="instance">Running State</h2>
-    <div class="log_content_box">
-      <!--<div id="instance_run_state" class="state_terminated">-->
-      <!--<div id="instance_run_state" class="state_stopped">-->
-      <div id="instance_run_state" class="state_waiting">
-        <span class="legend"></span>
-        <p>Waiting for starting</p>
-        <div class="clear"></div>
+      <h2 class="instance">Running State</h2>
+      <div class="log_content_box">
+        <!--<div id="instance_run_state" class="state_terminated">-->
+        <!--<div id="instance_run_state" class="state_stopped">-->
+        <div id="instance_run_state" class="state_waiting">
+          <span class="legend"></span>
+          <p>Waiting for starting</p>
+          <div class="clear"></div>
+        </div>
+        <p>SlapOS configure your running environment to match your needs. <a href="#">Lean how!</a></p>
       </div>
-      <p>SlapOS configure your running environment to match your needs. <a href="#">Lean how!</a></p>
-    </div>
 
-    <div class="separator"></div>
-    <div style="height: 38px; text-align: center; padding-top: 25px;">
-      <a href="#" id="switch" class="lshare" rel="stop">STOP PROCESS</a>
+      <div class="separator"></div>
+      <div style="height: 38px; text-align: center; padding-top: 25px;">
+        <a href="#" id="slapswitch" class="lshare" rel="stop">STOP PROCESS</a>
+      </div>
+    </div>
+    <div id="openloglist">
+      <h2 class="boxtitle">Select log file to view</h2>
+      <div style="height: 340px; margin-bottom: 10px;">
+        <div id='addbox' style="display:none">
+          <a href="#inline_content" id="inlineViewer" class="add_btn">ADD FILE</a>
+          <div class="separator"></div>
+        </div>
+        <ul>
+          <li rel='software.log'>Software.log</li>
+          <li rel='instance.log' class='checked'>Instance.log</li>
+        </ul>
+      </div>
+      <div class="separator"></div>
+      <div style="height: 38px; text-align: left; padding: 20px 0 0 15px;">
+        <a id="logEdit" class="lshare no-right-border" style="float:left">Edit list</a>
+        <a id="refreshlog" class="lshare" style="float:left">Refresh log</a>
+      </div>
     </div>
   </div>
 </div>
 <div class='clear'></div>
+
+<!-- This contains the hidden content for inline calls -->
+<div style='display:none'>
+  <div id='inline_content' style='padding:10px; background:#fff;'>
+    <div style='border: solid 1px #678dad; height: 300px; overflow: auto;'>
+      <div id="fileTree"></div>
+    </div>
+    <input type=submit value="Add file" id="addfile" class="button">
+  </div>
+</div>
 {% endblock %}
