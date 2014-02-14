@@ -384,7 +384,7 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 
 .file_tree {
     width: 923px;
-    height: 300px;
+    height: 250px;
     border: solid 1px #678dad;
     background: #fff;
     overflow: auto;
@@ -556,7 +556,7 @@ h2.hight:hover{
 .log_info_box div.state_terminated span{
   background: #00C800;
 }
-.log_info_box div.state_waiting span, .log_info_box div.state_stopped{
+.log_info_box div.state_waiting span, .log_info_box div.state_stopped span{
   background: #FF3131;
 }
 

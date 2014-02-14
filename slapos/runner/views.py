@@ -278,11 +278,6 @@ def setCurrentProject():
     return jsonify(code=0, result=("Can not setup this Software Release"))
 
 
-def manageProject():
-  return render_template('manageProject.html', workDir='workspace',
-                         project=getProjectList(app.config['workspace']))
-
-
 def getProjectStatus():
   path = realpath(app.config, request.form['project'])
   if path:
@@ -717,7 +712,6 @@ app.add_url_rule("/getProjectStatus", 'getProjectStatus', getProjectStatus,
                  methods=['POST'])
 app.add_url_rule('/openProject/<method>', 'openProject', openProject,
                  methods=['GET'])
-app.add_url_rule("/manageProject", 'manageProject', manageProject, methods=['GET'])
 app.add_url_rule("/setCurrentProject", 'setCurrentProject', setCurrentProject,
                  methods=['POST'])
 app.add_url_rule("/checkFolder", 'checkFolder', checkFolder, methods=['POST'])

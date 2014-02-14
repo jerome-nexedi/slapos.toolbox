@@ -68,7 +68,8 @@
                     <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
 		    <div class="run">
           <div id="running">
-            <p id="running_info" class='instance'>Building software...</p>
+            <p id="running_info" class='software'>Building software...</p>
+            <!--<p id="running_info" class='instance'>Running instance...</p>-->
             <img alt="" src="{{ url_for('static', filename='images/ajax_roller.gif') }}" height='26' title="slapgrid is currently running"/>
             <div class="clear"></div>
           </div>
@@ -88,14 +89,17 @@
                             <li><a href="{{ url_for('openProject', method='open')}}">Open Software Release</a></li>
                             <li><a href="{{ url_for('openProject', method='new')}}">Create Software Release</a></li>
                             <li class='sep'></li>
+                            <li><a href="{{ url_for('removeInstance') }}" id="removeIst">Destroy All Services</a></li>
+                            <li><a href="{{ url_for('runInstanceProfile') }}">Redeploy Services</a></li>
+                            <li class='sep'></li>
                             <li><a href="{{ url_for('browseWorkspace') }}">Browse Workspace</a></li>
                             <li><a href="{{ url_for('inspectSoftware') }}">My Softwares Releases</a></li>
                             <li class='sep'></li>
                             <li><a href="{{ url_for('dologout') }}">Log out</a></li>
                          </ul>
                         </li>
-                        <li class='right_menu slapos_run'><a href="{{ url_for('runInstanceProfile') }}" id="instrun"></a>
-                        <!--<li><a href="{{ url_for('viewInstanceLog') }}" id="softrun">Logs</a></li>-->
+                        <li class='right_menu slapos_run'><a href="{{ url_for('runSoftwareProfile') }}" id="instrun"></a>
+                        <!--<li class='right_menu slapos_top'><a href="{{ url_for('runInstanceProfile') }}" id="instrun"></a>-->
                         </li>
                     </ul>
                 </div>
