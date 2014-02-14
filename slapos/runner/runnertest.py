@@ -98,6 +98,7 @@ class SlaprunnerTestCase(unittest.TestCase):
       PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=31),
       auto_deploy = True,
       autorun = False,
+      instance_monitoring_url = 'https://[' + config.ipv6_address + ']:9684',
     )
     self.app = views.app.test_client()
     self.app.config = views.app.config
