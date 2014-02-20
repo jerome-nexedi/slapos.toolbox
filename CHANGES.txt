@@ -1,3 +1,13 @@
+0.39 (2014-02-20)
+-----------------
+
+ * Slaprunner: new web interface design
+ * Slaprunner: one function handle both "run software" and "run instance" [9c660c0]
+ * Slaprunner: building and deploying can be customized [0db1f6b, b33bd1f]
+ * Slaprunner: adds a multi-user feature [efad6d]
+ * Slaprunner: add fullscreen mode for text edition [83d1dc]
+ * Slaprunner: direct access to monitoring of running instance, if it exists [f8e7bf3]
+
 0.38.1 (2013-12-06)
 -------------------
 
