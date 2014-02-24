@@ -16,7 +16,7 @@ from slapos.runner.process import killRunningProcess
 from slapos.runner.utils import (checkSoftwareFolder, configNewSR,
                                  createNewUser, getProfilePath,
                                  listFolder, getBuildAndRunParams,
-                                 getProjectTitle, getSession,
+                                 getProjectTitle, getRcode, getSession,
                                  getSlapStatus, getSvcStatus,
                                  getSvcTailProcess, isInstanceRunning,
                                  isSoftwareRunning, isSoftwareReleaseReady, isText,
@@ -552,7 +552,7 @@ def updateBuildAndRunConfig():
 #update user account data
 def updateAccount():
   code = request.form['rcode'].strip()
-  recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"), "r").read()
+  recovery_code = getRcode(app.config)
   if code != recovery_code:
     return jsonify(code=0, result="Your password recovery code is not valid!")
 
@@ -583,8 +583,7 @@ def configAccount():
   account.append(request.form['email'].strip())
   account.append(request.form['name'].strip())
   code = request.form['rcode'].strip()
-  recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"),
-                      "r").read().strip()
+  recovery_code = getRcode(app.config)
   if code != recovery_code:
     return jsonify(code=0, result="Your password recovery code is not valid!")
   result = saveSession(app.config, account)
@@ -595,8 +594,7 @@ def configAccount():
 
 def addUser():
   code = request.form['rcode'].strip()
-  recovery_code = open(os.path.join(app.config['etc_dir'], ".rcode"),
-                      "r").read().strip()
+  recovery_code = getRcode(app.config)
   if code != recovery_code:
     return jsonify(code=0, result="Your password recovery code is not valid!")
   if createNewUser(app.config, request.form['username'],

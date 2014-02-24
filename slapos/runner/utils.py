@@ -2,6 +2,7 @@
 # vim: set et sts=2:
 # pylint: disable-msg=W0311,C0301,C0103,C0111,W0141,W0142
 
+import ConfigParser
 import json
 import logging
 import md5
@@ -110,6 +111,15 @@ def saveSession(config, account):
     except:
       pass
     return str(e)
+
+
+def getRcode(config):
+  parser = ConfigParser.ConfigParser()
+  try:
+    parser.read(config['knowledge0_cfg'])
+    return parser.get('public', 'recovery-code')
+  except (ConfigParser.NoSectionError, IOError) as e:
+    return None
 
 
 def createNewUser(config, name, passwd):
