@@ -34,7 +34,7 @@ class Config:
     configuration_parser.read(self.configuration_file_path)
 
     for section in ("slaprunner", "slapos", "slapproxy", "slapformat",
-                    "sshkeys_authority", "gitclient", "cloud9_IDE"):
+                    "sshkeys_authority", "gitclient"):
       configuration_dict = dict(configuration_parser.items(section))
       for key in configuration_dict:
         if not getattr(self, key, None):
