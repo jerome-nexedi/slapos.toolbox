@@ -20,7 +20,8 @@ import shutil
 import time
 import unittest
 
-from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning,
+from slapos.runner.utils import (getProfilePath, getRcode,
+                                 getSession, isInstanceRunning,
                                  isSoftwareRunning, startProxy,
                                  isSoftwareReleaseReady,
                                  runSlapgridUntilSuccess,
@@ -103,8 +104,9 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.app = views.app.test_client()
     self.app.config = views.app.config
     #Create password recover code
-    with open(os.path.join(views.app.config['etc_dir'], '.rcode'), 'w') as rpwd:
-      rpwd.write(self.rcode)
+    parser = ConfigParser.ConfigParser()
+    parser.read(self.app.config['knowledge0_cfg'])
+    parser.set('public', 'recovery-code', self.rcode)
     #Create config.json
     json_file = os.path.join(views.app.config['etc_dir'], 'config.json')
     if not os.path.exists(json_file):
@@ -118,7 +120,6 @@ class SlaprunnerTestCase(unittest.TestCase):
 
   def tearDown(self):
     """Remove all test data"""
-    os.unlink(os.path.join(self.app.config['etc_dir'], '.rcode'))
     project = os.path.join(self.app.config['etc_dir'], '.project')
     users = os.path.join(self.app.config['etc_dir'], '.users')
 
