@@ -70,7 +70,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     views.app.config['TESTING'] = True
     self.users = ["slapuser", "slappwd", "slaprunner@nexedi.com", "SlapOS web runner"]
     self.updateUser = ["newslapuser", "newslappwd", "slaprunner@nexedi.com", "SlapOS web runner"]
-    self.rcode = "41bf2657"
     self.repo = 'http://git.erp5.org/repos/slapos.git'
     self.software = "workspace/slapos/software/"  # relative directory fo SR
     self.project = 'slapos'  # Default project name
@@ -106,7 +105,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     #Create password recover code
     parser = ConfigParser.ConfigParser()
     parser.read(self.app.config['knowledge0_cfg'])
-    parser.set('public', 'recovery-code', self.rcode)
+    self.rcode = parser.get('public', 'recovery-code')
     #Create config.json
     json_file = os.path.join(views.app.config['etc_dir'], 'config.json')
     if not os.path.exists(json_file):
