@@ -117,7 +117,7 @@ def getRcode(config):
   parser = ConfigParser.ConfigParser()
   try:
     parser.read(config['knowledge0_cfg'])
-    return parser.get('private', 'recovery-code')
+    return parser.get('public', 'recovery-code')
   except (ConfigParser.NoSectionError, IOError) as e:
     return None
 
