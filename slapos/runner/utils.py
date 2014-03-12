@@ -2,18 +2,23 @@
 # vim: set et sts=2:
 # pylint: disable-msg=W0311,C0301,C0103,C0111,W0141,W0142
 
+import ConfigParser
+import json
 import logging
 import md5
 import multiprocessing
+import os
 import re
 import shutil
-import os
+import thread
 import time
 import urllib
 from xml.dom import minidom
 
 import xml_marshaller
 from flask import jsonify
+
+from slapos.runner.gittools import cloneRepo
 
 from slapos.runner.process import Popen, isRunning, killRunningProcess
 from slapos.htpasswd import HtpasswdFile
@@ -23,6 +28,7 @@ import slapos.slap
 
 logger = logging.getLogger('werkzeug')
 
+TRUE_VALUES = (1, '1', True, 'true', 'True')
 
 html_escape_table = {
   "&": "&amp;",
@@ -31,6 +37,19 @@ html_escape_table = {
   ">": "&gt;",
   "<": "&lt;",
 }
+
+def getBuildAndRunParams(config):
+  json_file = os.path.join(config['etc_dir'], 'config.json')
+  json_params = json.load(open(json_file))
+  return json_params
+
+
+def saveBuildAndRunParams(config, params):
+  """XXX-Nico parameters have to be correct.
+  Works like that because this function do not care
+  about how you got the parameters"""
+  json_file = os.path.join(config['etc_dir'], 'config.json')
+  open(json_file, "w").write(json.dumps(params))
 
 
 def html_escape(text):
@@ -92,6 +111,25 @@ def saveSession(config, account):
     except:
       pass
     return str(e)
+
+
+def getRcode(config):
+  parser = ConfigParser.ConfigParser()
+  try:
+    parser.read(config['knowledge0_cfg'])
+    return parser.get('public', 'recovery-code')
+  except (ConfigParser.NoSectionError, IOError) as e:
+    return None
+
+
+def createNewUser(config, name, passwd):
+  htpasswdfile = os.path.join(config['etc_dir'], '.htpasswd')
+  if os.path.exists(htpasswdfile):
+    htpasswd = HtpasswdFile(htpasswdfile)
+    htpasswd.update(name, passwd)
+    htpasswd.save()
+    return True
+  return False
 
 
 def getCurrentSoftwareReleaseProfile(config):
@@ -231,7 +269,7 @@ def isSoftwareRunning(config=None):
   return isRunning('slapgrid-sr')
 
 
-def runSoftwareWithLock(config):
+def runSoftwareWithLock(config, lock=True):
   """
     Use Slapgrid to compile current Software Release and wait until
     compilation is done
@@ -243,24 +281,21 @@ def runSoftwareWithLock(config):
   if not os.path.exists(config['software_root']):
     os.mkdir(config['software_root'])
   stopProxy(config)
-  removeProxyDb(config)
   startProxy(config)
   logfile = open(config['software_log'], 'w')
   if not updateProxy(config):
     return False
-  # Accelerate compilation by setting make -jX
-  # XXX-Marco can have issues with implicit dependencies or recursive makefiles. should be configurable.
-  environment = os.environ.copy()
-  environment['MAKEFLAGS'] = '-j%r' % multiprocessing.cpu_count()
   slapgrid = Popen([config['slapgrid_sr'], '-vc',
                     '--pidfile', slapgrid_pid,
                     config['configuration_file_path'], '--now', '--develop'],
-                   stdout=logfile, env=environment,
-                   name='slapgrid-sr')
-  slapgrid.wait()
-  #Saves the current compile software for re-use
-  config_SR_folder(config)
-  return True
+                   stdout=logfile, name='slapgrid-sr')
+  if lock:
+    slapgrid.wait()
+    #Saves the current compile software for re-use
+    config_SR_folder(config)
+    return ( True if slapgrid.returncode == 0 else False )
+  else:
+    return False
 
 
 def config_SR_folder(config):
@@ -276,12 +311,16 @@ def config_SR_folder(config):
       if len(cfg) != 2:
         continue  # there is a broken config file
       list.append(cfg[1])
-  folder_list = os.listdir(config['software_root'])
+  if os.path.exists(config['software_root']):
+    folder_list = os.listdir(config['software_root'])
+  else:
+    return
   if not folder_list:
     return
   current_project = open(os.path.join(config['etc_dir'], ".project")).read()
-  projects = current_project.split('/')
-  name = projects[-2]
+  if current_project[-1] == '/':
+     current_project = current_project[:-1]
+  name = current_project.split('/')[-1]
   for folder in folder_list:
     if folder in list:
       continue  # this folder is already registered
@@ -321,7 +360,7 @@ def isInstanceRunning(config=None):
   return isRunning('slapgrid-cp')
 
 
-def runInstanceWithLock(config):
+def runInstanceWithLock(config, lock=True):
   """
     Use Slapgrid to deploy current Software Release and wait until
     deployment is done.
@@ -337,9 +376,12 @@ def runInstanceWithLock(config):
   slapgrid = Popen([config['slapgrid_cp'], '-vc',
                     '--pidfile', slapgrid_pid,
                     config['configuration_file_path'], '--now'],
-                   stdout=logfile, name='slapgrid-cp')
-  slapgrid.wait()
-  return True
+                    stdout=logfile, name='slapgrid-cp')
+  if lock:
+    slapgrid.wait()
+    return ( True if slapgrid.returncode == 0 else False )
+  else:
+    return False
 
 
 def getProfilePath(projectDir, profile):
@@ -692,6 +734,7 @@ def realpath(config, path, check_exist=True):
     'software_root': config['software_root'],
     'instance_root': config['instance_root'],
     'workspace': config['workspace'],
+    'runner_workdir': config['runner_workdir'],
     'software_link': config['software_link']
   }
   if key not in allow_list:
@@ -731,3 +774,101 @@ def readParameters(path):
       return str(e)
   else:
     return "No such file or directory: %s" % path
+
+
+def isSoftwareReleaseReady(config):
+  """Return 1 if the Software Release has
+  correctly been deployed, 0 if not,
+  and 2 if it is currently deploying"""
+  project = os.path.join(config['etc_dir'], '.project')
+  if not os.path.exists(project):
+    return "0"
+  path = open(project, 'r').readline().strip()
+  software_name = path
+  if software_name[-1] == '/':
+    software_name = software_name[:-1]
+  software_name = software_name.split('/')[-1]
+  config_SR_folder(config)
+  if os.path.exists(os.path.join(config['runner_workdir'],
+      'softwareLink', software_name, '.completed')):
+    if config['autorun'] in TRUE_VALUES:
+      runSlapgridUntilSuccess(config, 'instance')
+    return "1"
+  else:
+    if isSoftwareRunning(config):
+      return "2"
+    elif config['auto_deploy'] in TRUE_VALUES:
+      configNewSR(config, path)
+      runSoftwareWithLock(config)
+      config_SR_folder(config)
+      time.sleep(15)
+      if config['autorun'] in TRUE_VALUES:
+        runSlapgridUntilSuccess(config, 'instance')
+      return "2"
+    else:
+      return "0"
+
+
+def cloneDefaultGit(config):
+  """Test if the default git has been downloaded yet
+  If not, download it in read-only mode"""
+  default_git = os.path.join(config['runner_workdir'],
+    'project', 'default_repo')
+  if not os.path.exists(default_git):
+    data = {'path': default_git,
+            'repo': config['default_repo'],
+    }
+    cloneRepo(data)
+
+
+def buildAndRun(config):
+  runSoftwareWithLock(config)
+  runInstanceWithLock(config)
+
+
+def runSlapgridUntilSuccess(config, step):
+  """Run slapgrid-sr or slapgrid-cp several times,
+  in the maximum of the constant MAX_RUN_~~~~"""
+  params = getBuildAndRunParams(config)
+  if step == "instance":
+    max_tries = (params['max_run_instance'] if params['run_instance'] else 0)
+    runSlapgridWithLock = runInstanceWithLock
+  elif step == "software":
+    max_tries = (params['max_run_software'] if params['run_software'] else 0)
+    runSlapgridWithLock = runSoftwareWithLock
+  else:
+    return -1
+  counter_file = os.path.join(config['runner_workdir'], '.turn-left')
+  open(counter_file, 'w+').write(str(max_tries))
+  counter = max_tries
+  slapgrid = True
+  # XXX-Nico runSoftwareWithLock can return 0 or False (0==False)
+  while counter > 0:
+    counter -= 1
+    slapgrid = runSlapgridWithLock(config)
+    if slapgrid:
+      break
+    times_left = int(open(counter_file).read()) - 1
+    if times_left > 0 :
+      open(counter_file, 'w+').write(str(times_left))
+      counter = times_left
+    else :
+      counter = 0
+  max_tries -= counter
+  # run instance only if we are deploying the software release,
+  # if it is defined so, and sr is correctly deployed
+  if step == "software" and params['run_instance'] and slapgrid:
+    return (max_tries, runSlapgridUntilSuccess(config, "instance"))
+  else:
+    return max_tries
+
+
+def setupDefaultSR(config):
+  """If a default_sr is in the parameters,
+  and no SR is deployed yet, setup it
+  also run SR and Instance if required"""
+  project = os.path.join(config['etc_dir'], '.project')
+  if not os.path.exists(project) and config['default_sr'] != '':
+    configNewSR(config, config['default_sr'])
+  if config['auto_deploy']:
+    thread.start_new_thread(buildAndRun, (config,))

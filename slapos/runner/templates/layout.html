@@ -36,6 +36,7 @@
     {% if request.path != '/login' %}
     <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{ url_for('static', filename='js/ace/ext-modelist.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/ext-language_tools.js') }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{ url_for('static', filename='js/scripts/process.js') }}" type="text/javascript" charset="utf-8"></script>
     <script type="text/javascript">
   		$(document).ready(function() {
@@ -66,8 +67,6 @@
         <div class="block_header">
           <a href="{{ url_for('home') }}" style="float:left;" id="home" title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
 	        <div class="line"></div>
-	        <a href="{{ url_for('dologout') }}" style="float:left" title="Close your session"><img alt="" src="{{ url_for('static', filename='images/logout.png') }}" /></a>
-	        <div class="line"></div>
           <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
     	    <div class="run">
             <div id="running" style="display:none">
@@ -81,7 +80,7 @@
             <li><a href="{{ url_for('editCurrentProject') }}">Editor</a></li>
             <li><a href="{{ url_for('inspectInstance') }}">Services</a></li>
             <li><a href="{{ url_for('viewLog') }}">Logs</a></li>
-            <li><a href="{{ url_for('viewLog') }}">Terminal</a></li>
+            <li><a href="{{ url_for('shell') }}">Terminal</a></li>
             <li><a href="{{ url_for('manageRepository')}}#tab2">Git</a></li>
             <li class='right_menu main_menu'><a href="#"></a>
               <ul>
@@ -94,9 +93,7 @@
                 <li><a href="{{ url_for('runInstanceProfile') }}" id="instrun">Redeploy Services</a></li>
                 <li class='sep'></li>
                 <li><a href="{{ url_for('browseWorkspace') }}">Browse Workspace</a></li>
-                <li><a href="{{ url_for('inspectSoftware') }}">My Softwares Releases</a></li>
-                <li class='sep'></li>
-                <li><a href="{{ url_for('dologout') }}">Log out</a></li>
+                <li><a href="{{ url_for('inspectSoftware') }}">My Software Releases</a></li>
              </ul>
             </li>
             <li class='right_menu slapos_run' id="softrun"><a href="{{ url_for('runSoftwareProfile') }}"></a>

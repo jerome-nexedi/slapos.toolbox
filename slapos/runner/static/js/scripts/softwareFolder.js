@@ -15,7 +15,7 @@ $(document).ready(function () {
         softwareDisplay = true,
         projectDir = $("input#project").val(),
         workdir = $("input#workdir").val(),
-        currentProject = workdir + "/" + projectDir.replace(workdir, "").split('/')[1],
+        currentProject = "workspace/" + projectDir.replace(workdir, "").split('/')[1],
         send = false,
         edit = false,
         ajaxResult = false,
@@ -30,6 +30,7 @@ $(document).ready(function () {
     var TAB_EXTRA_WIDTH = 25;
     var MIN_TABITEM_WIDTH = 61; //The minimum size of tabItem
     var MAX_TAB_NUMBER = 10; //The maximum number of tab that could be opened
+
 
     function alertStatus (jqXHR) {
       if (jqXHR.status == 404) {
@@ -264,14 +265,25 @@ $(document).ready(function () {
           editorlist[activeToken].changed = true;
           $(activeSpan).html("*" + $(activeSpan).html());
         }
+        if (!beforeunload_warning_set) {
+          window.onbeforeunload = function() { return "You have unsaved changes"; };
+          beforeunload_warning_set = true;
+        }
       });
       editor.commands.addCommand({
-        name: 'myCommand',
+        name: 'SaveText',
         bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
         exec: function(editor) {
           $("#save").click();
         },
         readOnly: false // false if this command should not apply in readOnly mode
+      });
+      editor.commands.addCommand({
+        name: 'Fullscreen',
+        bindKey: {win: 'Ctrl-E',  mac: 'Command-E'},
+        exec: function(editor) {
+            $("#fullscreen").click();
+        }
       });
     }
 
@@ -302,7 +314,7 @@ $(document).ready(function () {
     function switchContent() {
         if (!softwareDisplay) {
             $("span.swith_btn").empty();
-            $("span.swith_btn").append("Workspace");
+            $("span.swith_btn").append("Working dir");
             $('#fileTreeFull').show();
             $('#fileTree').hide();
         } else {
@@ -814,7 +826,7 @@ $(document).ready(function () {
     modelist = require("ace/ext/modelist");
     config = require("ace/config");
     initTree('#fileTree', currentProject, 'pfolder');
-    initTree('#fileTreeFull', 'workspace');
+    initTree('#fileTreeFull', 'runner_workdir');
     //bindContextMenu('#fileTree');
     $("#info").append("Current work tree: " + base_path());
 
@@ -827,6 +839,8 @@ $(document).ready(function () {
       if ($("#tabControl div.item").length === 0) {
         return false;
       }
+      beforeunload_warning_set = false;
+      window.onbeforeunload = function() { return; };
       var hash = getActiveToken();
       if (editorlist[hash].busy) {
           return false;
@@ -901,6 +915,17 @@ $(document).ready(function () {
       $("#option").click();
       return false;
     });
+    $("a#addflist").click(function(){
+      addToFavourite(current_file);
+      $("#option").click();
+      return false;
+    });
+
+    $("a#find").click(function(){
+      config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor)});
+      $("#option").click();
+      return false;
+    });
 
     $("a#find").click(function () {
       if ($("#tabControl div.item").length === 0) {
@@ -922,6 +947,12 @@ $(document).ready(function () {
       });
       $("#option").click();
       return false;
+    });
+
+    $("#fullscreen").click(function(){
+          $("body").toggleClass("fullScreen");
+          $("#editor").toggleClass("fullScreen-editor");
+          editor.resize();
     });
 
 });

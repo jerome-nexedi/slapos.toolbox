@@ -28,7 +28,10 @@
 
 from .resiliencytestsuite import ResiliencyTestSuite
 
+import base64
 import cookielib
+import json
+from lxml import etree
 import random
 import string
 import time
@@ -63,6 +66,7 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
         300
     )
 
+
   def _connectToSlaprunner(self, resource, data=None):
     """
     Utility.
@@ -81,41 +85,49 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
 
   def _login(self):
     self.logger.debug('Logging in...')
-    self._connectToSlaprunner('doLogin', data='clogin=%s&cpwd=%s' % (
-        self.slaprunner_user,
-        self.slaprunner_password)
-    )
+    b64string = base64.encodestring('%s:%s' % (self.slaprunner_user, self.slaprunner_password))[:-1]
+    self._opener_director.addheaders = [('Authorization', 'Basic %s'%b64string)]
 
   def _retrieveInstanceLogFile(self):
     """
     Store the logfile (=data) of the instance, check it is not empty nor it is
     html.
     """
+    time.sleep(30)
     data = self._connectToSlaprunner(
-        resource='fileBrowser',
-        data='opt=9&filename=log.log&dir=instance_root%252Fslappart0%252Fvar%252Flog%252F'
+        resource='getFileContent',
+        data="file=instance_root/slappart0/var/log/log.log"
     )
-    self.logger.info('Retrieved data are:\n%s' % data)
-
-    if data.find('<') is not -1:
-      raise IOError(
-          'Could not retrieve logfile content: retrieved content is html.'
-      )
-    if data.find('Could not load') is not -1:
-      raise IOError(
-          'Could not retrieve logfile content: server could not load the file.'
-      )
-    if data.find('Hello') is -1:
-      raise IOError(
-          'Could not retrieve logfile content: retrieve content does not match "Hello".'
-      )
+    try:
+        data = json.loads(data)['result']
+        self.logger.info('Retrieved data are:\n%s' % data)
+    except (ValueError, KeyError):
+        if data.find('<') is not -1:
+          raise IOError(
+              'Could not retrieve logfile content: retrieved content is html.'
+          )
+        if data.find('Could not load') is not -1:
+          raise IOError(
+              'Could not retrieve logfile content: server could not load the file.'
+          )
+        if data.find('Hello') is -1:
+          raise IOError(
+              'Could not retrieve logfile content: retrieve content does not match "Hello".'
+          )
     return data
 
   def _waitForSoftwareBuild(self):
-    while self._connectToSlaprunner(resource='slapgridResult', data='position=0&log=').find('"software": true') is not -1:
-      self.logger.info('Software release is still building. Sleeping...')
-      time.sleep(15)
-    self.logger.info('Software Release has been built / is no longer building.')
+    #while self._connectToSlaprunner(resource='slapgridResult', data='position=0&log=').find('"software": true') is not -1:
+    #  self.logger.info('Software release is still building. Sleeping...')
+    #  time.sleep(15)
+    #self.logger.info('Software Release has been built / is no longer building.')
+    try:
+      while self._connectToSlaprunner(resource='isSRReady') != "1":
+         self.logger.info('Software release is still building. Sleeping...')
+         time.sleep(15)
+    except (NotHttpOkException, urllib2.HTTPError):
+      # The nginx frontend might timeout before software release is finished.
+      self._waitForSoftwareBuild()
 
   def _buildSoftwareRelease(self):
     self.logger.info('Building the Software Release...')
@@ -158,6 +170,20 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
         data='path=workspace/slapos/software/%s/' % software_name
     )
 
+  def _getRcode(self):
+    #XXX-Nicolas: hardcoded url. Best way right now to automate the tests...
+    monitor_url = self.monitor_url + "?script=zero-knowledge%2Fsettings.cgi"
+    result = self._opener_director.open(monitor_url, 
+                                       "password=passwordtochange")
+
+    if result.getcode() is not 200:
+      raise NotHttpOkException(result.getcode())
+
+    page = result.read().strip()
+    html = etree.HTML(page)
+
+    input = html.xpath("//input[@name='recovery-code']")
+    return input[0].get('value')
 
   def generateData(self):
     self.slaprunner_password = ''.join(
@@ -180,7 +206,8 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     parameter_dict = self._getPartitionParameterDict()
     self.slaprunner_backend_url = parameter_dict['backend_url']
     self.logger.info('backend_url is %s.' % self.slaprunner_backend_url)
-    slaprunner_recovery_code = parameter_dict['password_recovery_code']
+    self.monitor_url = parameter_dict['monitor_url']
+    slaprunner_recovery_code = self._getRcode()
 
     self.logger.debug('Creating the slaprunner account...')
     self._connectToSlaprunner(
@@ -199,6 +226,7 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     self._openSoftwareRelease('helloworld')
 
     self._buildSoftwareRelease()
+    time.sleep(15)
     self._deployInstance()
 
     self.data = self._retrieveInstanceLogFile()
@@ -219,9 +247,7 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     )
     self._login()
     self._waitForSoftwareBuild()
-    # XXX: in theory, it should be done automatically by slaprunner.
-    #      In practice, it is still too dangerous for ERP5 instances.
-    self._deployInstance()
+    time.sleep(15)
     new_data = self._retrieveInstanceLogFile()
 
     if new_data == self.data:

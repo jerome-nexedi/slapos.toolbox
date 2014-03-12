@@ -32,6 +32,7 @@ import slapos.slap
 
 import logging
 import time
+import os
 
 class ResiliencyTestSuite(object):
   """
@@ -104,6 +105,14 @@ class ResiliencyTestSuite(object):
     """
     raise NotImplementedError('Overload me, I am an abstract method.')
 
+  def deleteTimestamp():
+    """
+    XXX-Nicolas delete .timestamp in test partition to force the full processing
+    by slapgrid, to force the good parameters to be passed to the instances of the tree
+    """
+    home = os.getenv('HOME')
+    timestamp = os.path.join(home, '.timestamp')
+    os.remove(timestamp)
 
   def _getPartitionParameterDict(self):
     """
@@ -115,6 +124,7 @@ class ResiliencyTestSuite(object):
         software_type='resilient',
         partition_reference=self.root_instance_name
     ).getConnectionParameterDict()
+    self.deleteTimestamp()
 
   def _returnNewInstanceParameter(self, parameter_key, old_parameter_value):
     """
@@ -126,8 +136,8 @@ class ResiliencyTestSuite(object):
     new_parameter_value = None
     while not new_parameter_value or new_parameter_value == 'None' or  new_parameter_value == old_parameter_value:
       self.logger.info('Not ready yet. SlapOS says new parameter value is %s' % new_parameter_value)
-      time.sleep(60)
       new_parameter_value = self._getPartitionParameterDict().get(parameter_key, None)
+      time.sleep(120)
     self.logger.info('New parameter value of instance is %s' % new_parameter_value)
 
     return new_parameter_value

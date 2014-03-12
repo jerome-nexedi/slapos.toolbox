@@ -2,6 +2,14 @@
 # vim: set et sts=2:
 # pylint: disable-msg=W0311,C0301,C0103,C0111,R0904
 
+#############################################
+# !!! Attention !!!
+# You now have to comment the last line
+# in __init__py, wich starts the functiun
+# run() in order to start the tests,
+# or it will NOT work
+#############################################
+
 import argparse
 import ConfigParser
 import datetime
@@ -12,11 +20,16 @@ import shutil
 import time
 import unittest
 
-from slapos.runner.utils import (getProfilePath, getSession, isInstanceRunning,
-                                 isSoftwareRunning, startProxy)
+from slapos.runner.utils import (getProfilePath, getRcode,
+                                 getSession, isInstanceRunning,
+                                 isSoftwareRunning, startProxy,
+                                 isSoftwareReleaseReady,
+                                 runSlapgridUntilSuccess,
+                                 getBuildAndRunParams, saveBuildAndRunParams)
 from slapos.runner.process import killRunningProcess, isRunning
 from slapos.runner import views
 import slapos.slap
+from slapos.htpasswd import  HtpasswdFile
 
 
 #Helpers
@@ -43,7 +56,7 @@ class Config:
     # Merges the arguments and configuration
 
     for section in ("slaprunner", "slapos", "slapproxy", "slapformat",
-                    "sshkeys_authority", "gitclient", "cloud9_IDE"):
+                    "sshkeys_authority", "gitclient"):
       configuration_dict = dict(configuration_parser.items(section))
       for key in configuration_dict:
         if not getattr(self, key, None):
@@ -57,13 +70,11 @@ class SlaprunnerTestCase(unittest.TestCase):
     views.app.config['TESTING'] = True
     self.users = ["slapuser", "slappwd", "slaprunner@nexedi.com", "SlapOS web runner"]
     self.updateUser = ["newslapuser", "newslappwd", "slaprunner@nexedi.com", "SlapOS web runner"]
-    self.rcode = "41bf2657"
     self.repo = 'http://git.erp5.org/repos/slapos.git'
     self.software = "workspace/slapos/software/"  # relative directory fo SR
     self.project = 'slapos'  # Default project name
     self.template = 'template.cfg'
     self.partitionPrefix = 'slappart'
-    self.slaposBuildout = "1.6.0-dev-SlapOS-010"
     #create slaprunner configuration
     config = Config()
     config.setConfig()
@@ -85,16 +96,29 @@ class SlaprunnerTestCase(unittest.TestCase):
       software_profile='software.cfg',
       SECRET_KEY="123456",
       PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=31),
+      auto_deploy = True,
+      autorun = False,
+      instance_monitoring_url = 'https://[' + config.ipv6_address + ']:9684',
     )
     self.app = views.app.test_client()
     self.app.config = views.app.config
     #Create password recover code
-    with open(os.path.join(views.app.config['etc_dir'], '.rcode'), 'w') as rpwd:
-      rpwd.write(self.rcode)
+    parser = ConfigParser.ConfigParser()
+    parser.read(self.app.config['knowledge0_cfg'])
+    self.rcode = parser.get('public', 'recovery-code')
+    #Create config.json
+    json_file = os.path.join(views.app.config['etc_dir'], 'config.json')
+    if not os.path.exists(json_file):
+      params = {
+        'run_instance' : True,
+        'run_software' : True,
+        'max_run_instance' : 3,
+        'max_run_software' : 2
+      }
+      open(json_file, "w").write(json.dumps(params))
 
   def tearDown(self):
     """Remove all test data"""
-    os.unlink(os.path.join(self.app.config['etc_dir'], '.rcode'))
     project = os.path.join(self.app.config['etc_dir'], '.project')
     users = os.path.join(self.app.config['etc_dir'], '.users')
 
@@ -110,7 +134,6 @@ class SlaprunnerTestCase(unittest.TestCase):
       shutil.rmtree(self.app.config['instance_root'])
     if os.path.exists(self.app.config['software_link']):
       shutil.rmtree(self.app.config['software_link'])
-    self.logout()
     #Stop process
     killRunningProcess('slapproxy', recursive=True)
     killRunningProcess('slapgrid-cp', recursive=True)
@@ -128,26 +151,11 @@ class SlaprunnerTestCase(unittest.TestCase):
                          ),
                          follow_redirects=True)
 
-  def login(self, username, password):
-    """Helper for Login method"""
-    return self.app.post('/doLogin',
-                         data=dict(
-                           clogin=username,
-                           cpwd=password
-                         ),
-                         follow_redirects=True)
-
   def setAccount(self):
     """Initialize user account and log user in"""
     response = loadJson(self.configAccount(self.users[0], self.users[1],
                   self.users[2], self.users[3], self.rcode))
-    response2 = loadJson(self.login(self.users[0], self.users[1]))
     self.assertEqual(response['result'], "")
-    self.assertEqual(response2['result'], "")
-
-  def logout(self):
-    """Helper for Logout current user"""
-    return self.app.get('/dologout', follow_redirects=True)
 
   def updateAccount(self, newaccount, rcode):
     """Helper for update user account data"""
@@ -186,8 +194,7 @@ class SlaprunnerTestCase(unittest.TestCase):
       sr += "find-links += http://www.nexedi.org/static/packages/source/slapos.buildout/\n\n"
       sr += "[networkcache]\ndownload-cache-url = http://www.shacache.org/shacache"
       sr += "\ndownload-dir-url = http://www.shacache.org/shadir\n\n"
-      sr += "[command]\nrecipe = zc.recipe.egg\neggs = plone.recipe.command\n\n"
-      sr += "[versions]\nzc.buildout = %s\n" % self.slaposBuildout
+      sr += "[command]\nrecipe = zc.recipe.egg\neggs = plone.recipe.command\n  zc.buildout\n\n"
       os.mkdir(testSoftware)
       open(os.path.join(testSoftware, self.app.config['software_profile']),
                           'w').write(sr)
@@ -216,13 +223,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     """Kill slapproxy process"""
     killRunningProcess('slapproxy', recursive=True)
 
-  #Begin test case here
-  def test_wrong_login(self):
-    """Test Login user before create session. This should return an error value"""
-    response = self.login(self.users[0], self.users[1])
-    #redirect to config account page
-    assert "<h2 class='title'>Your personal information</h2><br/>" in response.data
-
   def test_configAccount(self):
     """For the first lauch of slaprunner user need do create first account"""
     result = self.configAccount(self.users[0], self.users[1], self.users[2],
@@ -232,34 +232,16 @@ class SlaprunnerTestCase(unittest.TestCase):
     account = getSession(self.app.config)
     self.assertEqual(account, self.users)
 
-  def test_login_logout(self):
-    """test login with good and wrong values, test logout"""
-    response = loadJson(self.configAccount(self.users[0], self.users[1],
-                  self.users[2], self.users[3], self.rcode))
-    self.assertEqual(response['result'], "")
-    result = loadJson(self.login(self.users[0], "wrongpwd"))
-    self.assertEqual(result['result'], "Login or password is incorrect, please check it!")
-    resultwr = loadJson(self.login("wronglogin", "wrongpwd"))
-    self.assertEqual(resultwr['result'], "Login or password is incorrect, please check it!")
-    #try now with true values
-    resultlg = loadJson(self.login(self.users[0], self.users[1]))
-    self.assertEqual(resultlg['result'], "")
-    #after login test logout
-    result = self.logout()
-    assert "<h2>Login to Slapos Web Runner</h2>" in result.data
-
   def test_updateAccount(self):
     """test Update accound, this needs the user to log in"""
     self.setAccount()
+    htpasswd = os.path.join(self.app.config['etc_dir'], '.htpasswd')
+    assert self.users[0] in open(htpasswd).read()
     response = loadJson(self.updateAccount(self.updateUser, self.rcode))
     self.assertEqual(response['code'], 1)
-    result = self.logout()
-    assert "<h2>Login to Slapos Web Runner</h2>" in result.data
-    #retry login with new values
-    response = loadJson(self.login(self.updateUser[0], self.updateUser[1]))
-    self.assertEqual(response['result'], "")
-    #log out now!
-    self.logout()
+    encode = HtpasswdFile(htpasswd, False)
+    encode.update(self.updateUser[0], self.updateUser[1])
+    assert self.updateUser[0] in open(htpasswd).read()
 
   def test_startProxy(self):
     """Test slapproxy"""
@@ -301,7 +283,6 @@ class SlaprunnerTestCase(unittest.TestCase):
                                       ),
                                       follow_redirects=True))
     self.assertEqual(response['result'], "")
-    self.logout()
 
   def test_createSR(self):
     """Scenario 2: Create a new software release"""
@@ -315,13 +296,10 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertEqual(response['result'], "")
     currentSR = self.getCurrentSR()
     assert newSoftware in currentSR
-    self.logout()
 
   def test_openSR(self):
     """Scenario 3: Open software release"""
     self.test_cloneProject()
-    #Login
-    self.login(self.users[0], self.users[1])
     software = os.path.join(self.software, 'drupal')  # Drupal SR must exist in SR folder
     response = loadJson(self.app.post('/setCurrentProject',
                                       data=dict(path=software),
@@ -336,7 +314,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     # newSoftware = os.path.join(self.software, 'slaprunner-test')
     self.proxyStatus(True)
     self.stopSlapproxy()
-    self.logout()
 
   def test_runSoftware(self):
     """Scenario 4: CReate empty SR and save software.cfg file
@@ -345,8 +322,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     #Call config account
     #call create software Release
     self.test_createSR()
-    #Login
-    self.login(self.users[0], self.users[1])
     newSoftware = self.getCurrentSR()
     softwareRelease = "[buildout]\n\nparts =\n  test-application\n"
     softwareRelease += "#Test download git web repos éè@: utf-8 caracters\n"
@@ -362,10 +337,9 @@ class SlaprunnerTestCase(unittest.TestCase):
 
     # Compile software and wait until slapgrid ends
     # this is supposed to use current SR
-    response = loadJson(self.app.post('/runSoftwareProfile',
-                                      data=dict(),
-                                      follow_redirects=True))
-    self.assertTrue(response['result'])
+    while self.app.get('/isSRReady').data == "2":
+      time.sleep(2)
+    self.assertEqual(self.app.get('/isSRReady').data, "1")
     self.assertTrue(os.path.exists(self.app.config['software_root']))
     self.assertTrue(os.path.exists(self.app.config['software_log']))
     assert "test-application" in open(self.app.config['software_log']).read()
@@ -376,7 +350,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertTrue(os.path.exists(createdFile))
     self.proxyStatus(True)
     self.stopSlapproxy()
-    self.logout()
 
   def test_updateInstanceParameter(self):
     """Scenarion 5: Update parameters of current sofware profile"""
@@ -419,24 +392,25 @@ class SlaprunnerTestCase(unittest.TestCase):
     response = loadJson(self.app.get('/getParameterXml/dict'))
     self.assertEqual(parameterDict, response['result']['instance'])
     self.stopSlapproxy()
-    self.logout()
 
   def test_requestInstance(self):
     """Scenarion 6: request software instance"""
     self.test_updateInstanceParameter()
-    #Login
-    self.login(self.users[0], self.users[1])
     self.proxyStatus(False, sleep_time=1)
     #run Software profile
     response = loadJson(self.app.post('/runSoftwareProfile',
                                       data=dict(),
                                       follow_redirects=True))
-    self.assertTrue(response['result'])
+    while self.app.get('/isSRReady').data == "2":
+      time.sleep(2)
+    self.assertEqual(self.app.get('/isSRReady').data, "1")
     #run instance profile
     response = loadJson(self.app.post('/runInstanceProfile',
                                       data=dict(),
                                       follow_redirects=True))
     self.assertTrue(response['result'])
+    # lets some time to the Instance to be deployed
+    time.sleep(5)
     #Check that all partitions has been created
     assert "create-file" in open(self.app.config['instance_log']).read()
     instanceDir = os.listdir(self.app.config['instance_root'])
@@ -453,7 +427,96 @@ class SlaprunnerTestCase(unittest.TestCase):
     assert 'simple file' in open(createdFile).read()
     self.proxyStatus(True)
     self.stopSlapproxy()
-    self.logout()
+
+  def test_safeAutoDeploy(self):
+    """Scenario 7: isSRReady won't overwrite the existing
+    Sofware Instance if it has been deployed yet"""
+    # Test that SR won't be deployed with auto_deploy=False
+    self.app.config['auto_deploy'] = False
+    project = open(os.path.join(self.app.config['etc_dir'],
+                  '.project'), "w")
+    project.write(self.software + 'slaprunner-test')
+    project.close()
+    response = isSoftwareReleaseReady(self.app.config)
+    self.assertEqual(response, "0")
+    # Test if auto_deploy parameter starts the deployment of SR
+    self.app.config['auto_deploy'] = True
+    self.setupSoftwareFolder()
+    response = isSoftwareReleaseReady(self.app.config)
+    self.assertEqual(response, "2")
+    # Test that the new call to isSoftwareReleaseReady
+    # doesn't overwrite the previous installed one
+    completed_path = os.path.join(self.app.config['runner_workdir'],
+        'softwareLink', 'slaprunner-test', '.completed')
+    completed_text = ".completed file: test"
+    completed = open(completed_path, "w")
+    completed.write(completed_text)
+    completed.close()
+    response = isSoftwareReleaseReady(self.app.config)
+    self.assertEqual(response, "1")
+    assert completed_text in open(completed_path).read()
+
+  def test_maximumRunOfSlapgrid(self):
+    """Scenario 8: runSlapgridUntilSucces run until a defined maximum of time
+    slapgrid-sr and slapgrid-cp if it fails. It can also run only one or both
+    of them if it is defined so
+    We directly calls runSlapgridUntilSuccess, because we want
+    to test the return code of the function"""
+    # Installs a wrong buildout which will fail
+    MAX_RUN_SOFTWARE = getBuildAndRunParams(self.app.config)['max_run_software']
+    MAX_RUN_INSTANCE = getBuildAndRunParams(self.app.config)['max_run_instance']
+    self.test_createSR()
+    newSoftware = self.getCurrentSR()
+    softwareRelease = "[buildout]\n\nparts =\n  test-application\n"
+    softwareRelease += "#Test download git web repos éè@: utf-8 caracters\n"
+    softwareRelease += "[test-application]\nrecipe = slapos.cookbook:mkdirectory\n"
+    softwareRelease += "test = /root/test\n"
+    response = loadJson(self.app.post('/saveFileContent',
+                                      data=dict(file=newSoftware,
+                                                content=softwareRelease),
+                                      follow_redirects=True))
+    response = runSlapgridUntilSuccess(self.app.config, 'software')
+    self.assertEqual(response, MAX_RUN_SOFTWARE)
+    # clean folders for other tests
+    workdir = os.path.join(self.app.config['runner_workdir'], 'project')
+    git_repo = os.path.join(workdir, 'slapos')
+    if os.path.exists(git_repo):
+      shutil.rmtree(git_repo)
+    # Installs a software which deploys, but fails while instanciating
+    # preparation
+    base = os.path.join(self.app.config['workspace'], 'slapos')
+    software = os.path.join(base, 'software')
+    testSoftware = os.path.join(software, 'slaprunner-test')
+    if not os.path.exists(testSoftware):
+      os.makedirs(testSoftware)
+    software_cfg = os.path.join(testSoftware, 'software.cfg')
+    instance_cfg = os.path.join(testSoftware, 'instance.cfg')
+    # software.cfg
+    softwareRelease = "[buildout]\n\nparts =\n  failing-template\n\n"
+    softwareRelease += "[failing-template]\nrecipe = hexagonit.recipe.download\n"
+    softwareRelease += "url = %s\n" % (instance_cfg)
+    softwareRelease += "destination = ${buildout:directory}\n"
+    softwareRelease += "download-only = true\n"
+    open(software_cfg, 'w+').write(softwareRelease)
+    # instance.cfg
+    content = "[buildout]\n\nparts =\n fail\n"
+    content += "[fail]\nrecipe=plone.recipe.command\n"
+    content += "command = exit 1"
+    open(instance_cfg, 'w+').write(content)
+    project = open(os.path.join(self.app.config['etc_dir'],
+                  '.project'), "w")
+    project.write(self.software + 'slaprunner-test')
+    project.close()
+    # Build and Run
+    parameters = getBuildAndRunParams(self.app.config)
+    parameters['run_instance'] = False
+    saveBuildAndRunParams(self.app.config, parameters)
+    response = runSlapgridUntilSuccess(self.app.config, 'software')
+    self.assertEqual(response, 1)
+    parameters['run_instance'] = True
+    saveBuildAndRunParams(self.app.config, parameters)
+    response = runSlapgridUntilSuccess(self.app.config, 'software')
+    self.assertEqual(response, (1, MAX_RUN_INSTANCE))
 
 
 def main():

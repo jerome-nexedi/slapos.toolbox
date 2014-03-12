@@ -1,3 +1,46 @@
+0.39 (2014-02-20)
+-----------------
+
+ * Slaprunner: new web interface design
+ * Slaprunner: one function handle both "run software" and "run instance" [9c660c0]
+ * Slaprunner: building and deploying can be customized [0db1f6b, b33bd1f]
+ * Slaprunner: adds a multi-user feature [efad6d]
+ * Slaprunner: add fullscreen mode for text edition [83d1dc]
+ * Slaprunner: direct access to monitoring of running instance, if it exists [f8e7bf3]
+
+0.38.1 (2013-12-06)
+-------------------
+
+ * Slaprunner: do not delete proxy.db on each run software [71777fc0]
+
+0.38 (2013-12-03)
+-----------------
+
+ * Slaprunner: adds an integrated shell [ca6a670a]
+ * Slaprunner: uses basic authentification [05913751]
+ * Slaprunner: adds automated deployment of a Software Release [c8ab1273]
+ * Slaprunner: flask development server replaced by Gunicorn, a WSGI server [48d60d0f]
+ * Slaprunner: new test scenario for auto-deployment [c6007954]
+ * Runner resiliencytestsuite: adds basic auth support [3c03f12b]
+ * Runner resiliencytestsuite: tests can be done on only one Slapos node [07198d87]
+ 
+0.37.4 (2013-10-15)
+-------------------
+
+ * Improve QEMU QMP wrapper by adding drive-backup method and other helpers. [0afb7d6, 95d0c8b]
+
+0.37.3 (2013-10-10)
+-------------------
+
+* pubsub: don't swallow output of subprocess to allow debug. [c503484]
+
+0.37.2 (2013-10-10)
+-------------------
+
+ * Add QEMU QMP wrapper. [9e819a8]
+ * KVM resiliency test: update docstring about how to setup disk image. [dbe347f]
+ * KVM resiliency test: change key for each clone. [7ef1db3]
+
 0.37.1 (2013-10-03)
 -------------------
 

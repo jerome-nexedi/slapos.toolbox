@@ -3,10 +3,13 @@ service (usually deployed using "test" software type).
 
 One entry point, if the service has been deployed
 from a "scalability" test node, so with special parameters, will automatically
-communicate to an ERP5 TestNode Master, and start the test.
+communicate when the instance is started to an ERP5 TestNode Master, and start the test.
 
-The other entry point is supposed to be run manually from a simple "test"
-instance without special parameter, and will manually run the test.
+The other entry point, "bin/runStandaloneTest", is supposed to be run manually from a simple "test"
+instance without special parameter (just request an instance of your software
+release using the dedicated test software-type made for the occasion).
+This is quite useful if you simply want to run the resiliency tests without having the whole
+dedicated test infrastructure.
 
 
 
@@ -44,3 +47,17 @@ For reference: How-to deploy the whole test system
 Note: the slapos nodes are currently deployed using slapos-in-partition.
 Note: you have to manually kill -10 the erp5testnode process to start deployment of test because it doesn't know when SR installation is finished.
 Note: you have to manually run slapos-node-software --all on the slapos nodes if you are developping the SR you are testing.
+
+------------
+STANDALONE TESTS
+
+Here is an example on how to deploy standalone tests on the webrunner, which means without using erp5.
+
+1/ Deploy a SlapRunner software instance using the type test.
+2/ In slapos.org, you should tell on which server you want to deploy your instances. You can adapt to your case the parameter.xml above. For the first time, you can deploy all the instances on the same node, it will run the tests faster, and it will be easier to debug :
+	<?xml version='1.0' encoding='utf-8'?>
+	<instance>
+	  <parameter id="_">{"cluster": {"-sla-0-computer_guid": "COMP-XXXX", "-sla-1-computer_guid": "COMP-XXXX", "-sla-2-computer_guid": "COMP-XXXX"}}</parameter>
+	</instance>
+3/ Then go to the root instance folder : it is the one who has only "runStandaloneResiliencyTestSuite" in its bin folder.
+4/ Run ./bin/runStandaloneResiliencyTestSuite and wait :) it would return "success" or "failure"

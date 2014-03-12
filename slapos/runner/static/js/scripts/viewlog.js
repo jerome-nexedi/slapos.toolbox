@@ -6,8 +6,19 @@
 $(document).ready(function () {
     "use strict";
 
+    function getQueryVariable(variable) {
+      var query = window.location.search.substring(1);
+      var vars = query.split("&");
+      for (var i=0;i<vars.length;i++) {
+        var pair = vars[i].split("=");
+        if (pair[0] == variable) {
+          return pair[1];
+        }
+      }
+    }
+
     // Current_log is not used for auto displaying mode, only for manual reload of log file!!!
-    var current_log = 'instance.log',
+    var current_log = (getQueryVariable("logfile") !== undefined)? getQueryVariable("logfile") : "instance.log",
         sending,
         state,
         selectedFile = "",

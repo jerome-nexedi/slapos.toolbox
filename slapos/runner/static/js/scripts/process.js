@@ -89,12 +89,6 @@ function getRunningState() {
             }
         }).error(function () {
             clearAll(false);
-        }).complete(function () {
-            if (running) {
-                setTimeout(function () {
-                    getRunningState();
-                }, speed);
-            }
         });
 }
 
@@ -147,7 +141,8 @@ function bindRun() {
         } else {
             if (!isRunning()) {
                 setCookie("slapgridCMD", "Instance");
-                window.location.href = $SCRIPT_ROOT + "/viewLog";
+                if (window.location.pathname === "/viewLog")
+                    window.location.href = $SCRIPT_ROOT + "/viewLog";
             }
         }
         return false;
@@ -173,6 +168,13 @@ function updateStatus(elt, val) {
       $(src).children('p').text("Processing");
       break;
   }
+  // in case of failure
+  if ($("#salpgridLog").text().indexOf("Failed to run buildout profile") !== -1) {
+    var src = '#' + elt + '_run_state', value = 'state_' + "stopped";
+    $(src).removeClass();
+    $(src).addClass(value);
+    $(src).children('p').text("Buildout Failed");
+  }
 }
 
 function setRunningState(data) {
@@ -197,6 +199,13 @@ function setRunningState(data) {
                   $("#softrun").addClass('slapos_stop');
                   $("#running img").before('<p id="running_info" class="instance">Running instance...</p>');
                 }
+            		if (processType === "Software") {
+                    running = false;
+                    $("#running_info").remove();
+                    $("#softrun").addClass('slapos_run');
+                    $("#softrun").removeClass('slapos_stop');
+                    $("#instrun").click();
+            		}
                 processType = "Instance";
             }
         }
@@ -215,6 +224,7 @@ function setRunningState(data) {
           $("#slapswitch").text('Access application');
         }
         $("#running").hide();
+        $("#running_info").remove();
         running = false; //nothing is currently running
         $("#softrun").removeClass('slapos_stop');
         $("#softrun").addClass('slapos_run');
@@ -238,9 +248,12 @@ function runProcess(urlfor, data) {
         if ( $("#running_info").children('span').length > 0 ) {
           $("#running_info").children('p').remove();
         }
-        setRunningState(data);
-        setTimeout(getRunningState, 6000);
     }
+}
+
+setInterval('GetStateRegularly()', 800);
+function GetStateRegularly() {
+    getRunningState();
 }
 
 function checkSavedCmd() {
