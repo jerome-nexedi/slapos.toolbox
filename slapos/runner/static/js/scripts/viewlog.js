@@ -102,7 +102,11 @@ $(document).ready(function () {
         })
         .always(function() {
           sending = false;
-          $("#logheader").html(info);
+          if (processState === "Stopped" || processState === "Checking" || $("#manual").is(":checked")) {
+              $("#logheader").html(info);
+          } else {
+              $("#logheader").html("Inspecting slapgrid log - Click for more options");
+          }
         });
     }
 

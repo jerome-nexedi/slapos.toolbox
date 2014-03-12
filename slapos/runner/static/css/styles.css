@@ -8,7 +8,7 @@ img{border:0}
 /*YAHOO RESET FONT*/
 html{color:#000;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,button,textarea,select,p,blockquote,th,td{margin:0;padding:0}table{border-collapse:collapse;border-spacing:0}fieldset,img{border:0}address,button,caption,cite,code,dfn,em,input,optgroup,option,select,strong,textarea,th,var{font:inherit}del,ins{text-decoration:none}li{list-style:none}caption,th{text-align:left}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal}q:before,q:after{content:''}abbr,acronym{border:0;font-variant:normal}sup{vertical-align:baseline}sub{vertical-align:baseline}legend{color:#000}body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small}select,input,textarea,button{font:99% arial,helvetica,clean,sans-serif}table{font-size:inherit;font:100%}pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%}
 body{
-  background: #A2BDC5;
+  background: #8DABB4;/* #A2BDC5;*/
   height:100%;
 }
 
@@ -125,15 +125,6 @@ body {
      margin-left:5px
 }
 
-#editor, #editorViewer {
-    margin: 0;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
-
 #wmenu{
   margin: 1px 11px 1px 10px;
 }
@@ -164,7 +155,7 @@ body {
 }
 
 .main_head{
-    height: 15px;
+    height: 14px;
     background: url(../images/main_top.png) no-repeat;
     width: 966px;
 }
@@ -551,12 +542,10 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 }
 
 .file_info{
-    margin-top:10px;
+    margin-top:5px;
     background: #e4e4e4;
     padding: 5px 10px 5px;
     box-shadow: 1px 1px 1px #888888;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
     color: #737373;
     font-weight: bold;
     text-shadow: 0px 1px #FFF;
@@ -640,26 +629,15 @@ a.no-right-border:focus{border-right:none}
 a.lshare img{
     margin: 5px;
 }
-.box_header{
-  background: #E4E4E4;
-  width: 100%;
-  height: 30px;
-  padding-top: 2px;
-  text-indent: 5px;
-  color: #737373;
-  text-shadow: 0px 1px #F1F1F1;
-  border-bottom: 3px solid #6DB9DD;
+
+#editor, #editorViewer {
+    margin: 0;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
-.box_header li{float: left;border: 1px solid #AAB8C2;padding: 1px 5px 1px 0;margin-left: 5px;}
-.box_header li:last-child{border:none}
-.box_header li > span{cursor: pointer; height: 22px; display: block;line-height: 22px;font-weight: bold;padding: 1px;}
-.box_header li:hover{border: 1px solid #57A1D6;background: #C7C7C7;}
-.box_header li:last-child:hover{background:none; border: none}
-.box_header li>a{font-weight: bold; font-size:15px;display: block;padding: 2px;}
-.save_btn{background: url(../images/icon_save.png) center right no-repeat;width: 60px;}
-.swith_btn{background: url(../images/gnome-session-switch.png) center right no-repeat;width: 105px;}
-.flist_btn{background: url(../images/list2_down.png) center right no-repeat;width: 26px;}
-.fmenu_btn{background: url(../images/ui_menu_blue.png) center right no-repeat;width: 58px;}
 
 #error{
     padding: 0px;
@@ -789,22 +767,6 @@ padding:10px; font-size:14px; color:#03406A}
 .login-input{width:220px;}
 .information{display:block; float:left; height:16px; margin-top:10px; margin-left:10px; font-weight:bold}
 .account{margin-left:60px;}
-
-.bt_close {
-    text-decoration: none;
-    color: #999;
-    font-weight: bold;
-    font-size: 16px;
-    padding: 0 4px;
-    -webkit-border-radius: .2em;
-    -moz-border-radius: .2em;
-    border-radius: .2em;
-    cursor: pointer;
-}
-.bt_close:hover {
-    background: #D6D6D6;
-    color: #333;
-}
 
 /*-------------------------ACE UPDATE------------------------*/
 .ace_search{

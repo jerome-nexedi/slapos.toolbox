@@ -7,9 +7,11 @@ $(document).ready(function () {
   "use strict";
 
     var viewer,
-        editor,
         modelist,
         config,
+        editorlist = Array(),
+        editorIndex = 0,
+        saveTimeOut = null,
         softwareDisplay = true,
         projectDir = $("input#project").val(),
         workdir = $("input#workdir").val(),
@@ -19,58 +21,283 @@ $(document).ready(function () {
         ajaxResult = false,
         clipboardNode = null,
         pasteMode = null,
-        selection = "",
-        edit_status = "",
-        current_file = null,
         favourite_list = new Array(),
+        editorWidth = $("#code").css("width"),
         base_path = function () {
             return softwareDisplay ? currentProject : 'workspace/';
         };
+    var MAX_TABITITLE_WIDTH = 126;
+    var TAB_EXTRA_WIDTH = 25;
+    var MIN_TABITEM_WIDTH = 61; //The minimum size of tabItem
+    var MAX_TAB_NUMBER = 10; //The maximum number of tab that could be opened
 
+    function alertStatus (jqXHR) {
+      if (jqXHR.status == 404) {
+          $("#error").Popup("Requested page not found. [404]", {type: 'error'});
+      } else if (jqXHR.status == 500) {
+          $("#error").Popup("Internal Error. Cannot respond to your request, please check your parameters", {type: 'error'});
+      } else {
+          $("#error").Popup("An Error occured: \n" + jqXHR.responseText, {type: 'error'});
+      }
+    }
+
+    // Open File in a new Tab and return status
     function openFile(file) {
-        if (send) {
-            return;
+      var status = false;
+      if (file.substr(-1) === "/" || send) {
+        return false;
+      }
+      var hash = addTab (file, true);
+      if (hash === "") {
+        return false;
+      }
+      var activeSpan = getActiveTabTitleSelector(hash);
+      $(activeSpan).html('Loading file...');
+      $.ajax({
+          type: "POST",
+          url: $SCRIPT_ROOT + '/getFileContent',
+          data: {file: file}
+        })
+        .done(function(data) {
+          var editor = editorlist[hash].editor;
+          if (data.code === 1) {
+            editor.getSession().setValue(data.result);
+            $(activeSpan).html(file.replace(/^.*(\\|\/|\:)/, ''));
+            var mode = modelist.getModeForPath(file);
+            editor.getSession().modeName = mode.name;
+            editor.getSession().setMode(mode.mode);
+            editorlist[hash].busy = false;
+            status = true;
+          } else {
+            $("#error").Popup(data.result, {type: 'error', duration: 5000});
+            $("#tabControl div.active span.bt_close").click();
+          }
+        })
+        .fail(function(jqXHR, exception) {
+          alertStatus (jqXHR);
+          $("#tabControl div.active span.bt_close").click();
+        })
+        .always(function() {
+          // always
+        });
+      return status;
+    }
+
+    function runSaveFile(hash){
+      if ( !editorlist[hash].changed ) {
+        return;
+      }
+      editorlist[hash].busy = true;
+      $.ajax({
+          type: "POST",
+          url: $SCRIPT_ROOT + '/saveFileContent',
+          data: {
+              file: editorlist[hash].path,
+              content: editorlist[hash].editor.getSession().getValue()
+          }})
+        .done(function(data) {
+          if (data.code === 1) {
+            var currentSpan = getActiveTabTitleSelector(hash),
+              title = $(currentSpan).html();
+            editorlist[hash].changed = false;
+            $(currentSpan).html(title.substr(1));
+          } else {
+              $("#error").Popup(data.result, {type: 'error', duration: 5000});
+          }
+        })
+        .fail(function(jqXHR, exception) {
+          alertStatus (jqXHR);
+        })
+        .always(function() {
+          editorlist[hash].busy = false;
+        });
+    }
+
+    /******* MANAGE TAB CONTROL *****/
+
+    function getTabList () {
+      var list = [];
+      for (var x in editorlist) {
+        list.push(editorlist[x].path);
+      }
+      return list;
+    }
+
+    function saveTabList () {
+      if (saveTimeOut) clearTimeout(saveTimeOut);
+      saveTimeOut = setTimeout(function () {
+          setCookie("OPENED_TAB_LIST", getTabList().join("#"));
+        }, 2000);
+    }
+
+    function getMaxTab () {
+      var tabBarWidth = $(".box_header").width() - $(".box_header ul").width();
+      var max = (tabBarWidth - (tabBarWidth % MIN_TABITEM_WIDTH))/MIN_TABITEM_WIDTH;
+      return ( max > MAX_TAB_NUMBER ) ? MAX_TAB_NUMBER : max;
+    }
+
+    //Reduce TabItem title to have the minimal or maximal width
+    function resizeTabItems (addTab) {
+      var numberTab = $("#tabControl div.item").length;
+      var width = 0;
+      if (addTab) {
+        numberTab++;
+      }
+      if (numberTab == 0) {
+        return width;
+      }
+      var tabBarWidth = $(".box_header").width() - $(".box_header ul").width();
+      var rest = tabBarWidth % numberTab;
+      var averageWidth = ( tabBarWidth - rest )/numberTab;
+      if (averageWidth > MIN_TABITEM_WIDTH) {
+        averageWidth -= TAB_EXTRA_WIDTH;
+        width = averageWidth + rest;
+        if (averageWidth > MAX_TABITITLE_WIDTH) {
+          averageWidth = MAX_TABITITLE_WIDTH;
+          width = averageWidth;
         }
-        send = true;
-        edit = false;
-        if (file.substr(-1) !== "/") {
-          var info = $("#edit_info").html();
-          $("#edit_info").empty();
-          $("#edit_info").append("LOADING FILE... <img src='"+$SCRIPT_ROOT+"/static/images/loading.gif' />");
-          $.ajax({
-            type: "POST",
-            url: $SCRIPT_ROOT + '/getFileContent',
-            data: {file: file},
-            success: function (data) {
-                var name, start, path = file;
-                if (data.code === 1) {
-                    $("#edit_info").empty();
-                    name = file.split('/');
-                    if (file.length > 75) {
-                        //substring title.
-                        start = file.length - 75;
-                        path = "..." + file.substring(file.indexOf("/", (start + 1)));
-                    }
-                    $("#edit_info").append(" " + path);
-                    editor.getSession().setValue(data.result);
-                    var mode = modelist.getModeForPath(file);
-                    editor.getSession().modeName = mode.name;
-                    editor.getSession().setMode(mode.mode);
-                    edit = true;
-                    current_file = file;
-                    $("span#edit_status").html("");
-                    edit_status = "";
-                    setCookie("EDIT_CURRENT_FILE", file);
-                } else {
-                    $("#error").Popup(data.result, {type: 'error', duration: 5000});
-                    $("#edit_info").html(info);
-                }
-                send = false;
-            }
+        $("#tabControl div.item span:nth-child(1)").each(function () {
+          $(this).css('width', averageWidth);
+        });
+        if ( !addTab && (rest !== 0) ) {
+          $("#tabControl div.item:last-child span:nth-child(1)").each(function () {
+            $(this).css('width', width);
           });
         }
-        return;
+      }
+      return width;
     }
+
+    //Add new tabItem
+    function addTab (path, selected) {
+      var numberTab = $("#tabControl div.item").length;
+      if ( numberTab >= getMaxTab() ) {
+        $("#error").Popup("Sorry! We cannot add more item, please close unused tab",
+            {type: 'info', duration: 5000});
+        return "";
+      }
+      var title = path.replace(/^.*(\\|\/|\:)/, '');
+      var hash =  path.hashCode() + '';
+      if (editorlist.hasOwnProperty(hash)) {
+        //this file already exist in editor. Select file and exit!
+        $("#tabControl div.item").each( function () {
+          var rel = $(this).attr('rel').split('#');
+          if ( (rel.length === 2) && (rel[1] === hash) ) {
+            $(this).click();
+            return "";
+          }
+        });
+        return "";
+      }
+      var width = resizeTabItems(true);
+      var tab  = '<div class="item" rel="' + path + '#' + hash
+                + '"><span style="width: '+ width +'px" '
+                + 'title="' + path + '">' + title + '</span>'
+                + '<span class="bt_close" title="Close this tab">×</span></div>';
+      var editorhtml = '<pre class="editor" id="editor' + (++editorIndex)
+                + '" rel="' + hash + '"></pre>';
+
+      //Add Elements
+      $("#tabControl").append(tab);
+      $("#tabContent").append(editorhtml);
+      addEditor(path, hash, 'editor'+editorIndex);
+
+      /* Change selected tab*/
+      $("#tabControl div.item:last").click(function () {
+        if ( $(this).hasClass('active') ) {
+          return false;
+        }
+        var rel = $(this).attr('rel').split('#'),
+            current = $("#tabContent pre.active").attr('rel');
+        if (current && current !== undefined) {
+          editorlist[current].isOpened = false;
+        }
+        $("#tabControl div.active").removeClass('active');
+        $("#tabContent pre.active").removeClass('active');
+        $(this).addClass('active');
+        $("#tabContent pre[rel='" + rel[1] + "']").addClass('active');
+        editorlist[rel[1]].isOpened = true;
+        editorlist[rel[1]].editor.resize();
+        return false;
+      });
+
+      /*Close Selected Tab*/
+      $("#tabControl div.item:last span.bt_close").click(function () {
+        var $tab = $(this).parent(), position = 0;
+        var rel = $tab.attr('rel').split('#');
+        //Remove tab
+        if ( $tab.hasClass('active') && $("#tabControl div.item").length > 0 ) {
+          position = ($tab.index() == 0) ? 1 : $tab.index();
+          $("#tabControl div.item:nth-child("+position+")").click();
+        }
+        editorlist[ rel[1] ].editor.destroy();
+        delete editorlist[ rel[1] ];
+        $tab.remove();
+        $("#tabContent pre[rel='" + rel[1] + "']").remove();
+        resizeTabItems ();
+        saveTabList ();
+        return false;
+      });
+      if (selected) {
+        $("#tabControl div.item:last").click();
+      }
+
+      return hash;
+    }
+
+    function addEditor (path, hash, id) {
+      var editor = ace.edit(id);
+      //Init Ace editor!!
+
+      editor.setTheme("ace/theme/crimson_editor");
+      editor.getSession().setMode("ace/mode/text");
+      editor.getSession().setTabSize(2);
+      editor.getSession().setUseSoftTabs(true);
+      editor.renderer.setHScrollBarAlwaysVisible(false);
+
+      editorlist[hash] = {editor: editor, changed: false, path: path,
+                          isOpened: false, busy: true};
+      editor.on("change", function (e) {
+        var activeToken = getActiveToken(),
+            activeSpan = getActiveTabTitleSelector();
+        if (!editorlist[activeToken].busy && !editorlist[activeToken].changed) {
+          editorlist[activeToken].changed = true;
+          $(activeSpan).html("*" + $(activeSpan).html());
+        }
+      });
+      editor.commands.addCommand({
+        name: 'myCommand',
+        bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
+        exec: function(editor) {
+          $("#save").click();
+        },
+        readOnly: false // false if this command should not apply in readOnly mode
+      });
+    }
+
+    function getCurrentEditor () {
+      var hash = $("#tabContent pre.active").attr('rel');
+      if ( editorlist.hasOwnProperty(hash) ) {
+        return editorlist[hash].editor;
+      }
+      else { return null }
+    }
+
+    function getActiveToken () {
+      return $("#tabContent pre.active").attr('rel');
+    }
+
+    function getActiveTabTitleSelector (hash) {
+      var rel = (hash) ? hash : $("#tabContent pre.active").attr('rel');
+      if ( editorlist.hasOwnProperty(rel) ) {
+        return "#tabControl div[rel='" + editorlist[rel].path + "#" + rel +
+              "']  span:nth-child(1)";
+      }
+      else { return ""; }
+    }
+
+
+    /****** END ******/
 
     function switchContent() {
         if (!softwareDisplay) {
@@ -86,7 +313,6 @@ $(document).ready(function () {
         }
         $("#info").empty();
         $("#info").append("Current work tree: " + base_path());
-        selection = "";
         clipboardNode = null;
         pasteMode = null;
     }
@@ -119,9 +345,10 @@ $(document).ready(function () {
         if (developList === null || developList.length <= 0) {
             return;
         }
+        var editor = getCurrentEditor();
         editor.navigateFileStart();
         editor.find('buildout', {caseSensitive: true, wholeWord: true});
-        if (!editor.getSelectionRange().isEmpty()) {
+        if (!getCurrentEditor().getSelectionRange().isEmpty()) {
             //editor.find("",{caseSensitive: true,wholeWord: true,regExp: true});
             //if (!editor.getSelectionRange().isEmpty()) {
                     //alert("found");
@@ -129,7 +356,8 @@ $(document).ready(function () {
             //else{alert("no found");
             //}
         } else {
-            $("#error").Popup("Can not found part [buildout]! Please make sure that you have a cfg file", {type: 'alert', duration: 3000});
+            $("#error").Popup("Can not found part [buildout]! Please make sure that you have a cfg file",
+                {type: 'alert', duration: 3000});
             return;
         }
         editor.navigateLineEnd();
@@ -139,7 +367,7 @@ $(document).ready(function () {
                 result = data.result.split('#');
                 editor.insert("\ndevelop =\n\t" + result[0] + "\n");
                 for (i = 1; i < result.length; i += 1) {
-                    editor.insert("\t" + result[i] + "\n");
+                    getCurrentEditor().insert("\t" + result[i] + "\n");
                 }
             }
         })
@@ -150,6 +378,7 @@ $(document).ready(function () {
         $("#option").click();
     }
 
+    /***** FILE TREE MANAGEMENT ******/
     // --- Implement Cut/Copy/Paste --------------------------------------------
 
     function copyPaste(action, node) {
@@ -229,7 +458,7 @@ $(document).ready(function () {
       node.setFocus();
       node.setActive();
       if (srcElement.hasClass('fancytree-folder')){
-        menu.disableContextMenuItems("#edit,#editfull,#view,#md5sum,#favorite");
+        menu.disableContextMenuItems("#edit,#view,#md5sum,#favorite");
       }
       else{
         menu.disableContextMenuItems("#nfile,#nfolder,#refresh,#paste");
@@ -254,13 +483,7 @@ $(document).ready(function () {
           }
         })
         .fail(function(jqXHR, exception) {
-          if (jqXHR.status == 404) {
-              $("#error").Popup("Requested page not found. [404]", {type: 'error'});
-          } else if (jqXHR.status == 500) {
-              $("#error").Popup("Internal Error. Cannot respond to your request, please check your parameters", {type: 'error'});
-          } else {
-              $("#error").Popup("An Error occured: \n" + jqXHR.responseText, {type: 'error'});
-          }
+          alertStatus (jqXHR);
         })
         .always(function() {
           //return result;
@@ -283,7 +506,8 @@ $(document).ready(function () {
         case "paste":
           copyPaste(action, node);
           break;
-        case "edit": openFile(node.data.path); break;
+        case "edit": openFile(node.data.path);
+          saveTabList (); break;
         case "view":
           $.colorbox.remove();
           $.ajax({
@@ -309,11 +533,6 @@ $(document).ready(function () {
   			      $("#inlineViewer").click();
             }
           });
-          break;
-        case "editfull":
-          var url = $SCRIPT_ROOT+"/editFile?profile="+encodeURIComponent(node.data.path)+"&filename="+encodeURIComponent(node.title);
-          window.open(url, '_blank');
-          window.focus();
           break;
         case "md5sum":
           getmd5sum(node.data.path);
@@ -424,6 +643,7 @@ $(document).ready(function () {
         dblclick: function(event, data) {
           if (!data.node.isFolder()){
             openFile(data.node.data.path);
+            saveTabList ();
           }
         },
         source: {
@@ -487,10 +707,13 @@ $(document).ready(function () {
       });
     }
 
+    /******* END ******/
+
     function openOnFavourite($elt){
       var index = parseInt($elt.attr('rel')),
           file = favourite_list[index];
       openFile(file);
+      saveTabList ();
       $("#filelist").click();
     }
 
@@ -519,9 +742,12 @@ $(document).ready(function () {
 
     function initEditor(){
       var tmp, filename;
-      current_file = getCookie("EDIT_CURRENT_FILE");
-      if (current_file) {
-          openFile(current_file);
+      var strList = getCookie("OPENED_TAB_LIST"), tabList;
+      if (strList) {
+        tabList = strList.split("#");
+        for (var i=0; i< tabList.length; i++) {
+          openFile(tabList[i]);
+        }
       }
       tmp = getCookie("FAV_FILE_LIST");
       if(tmp){
@@ -547,6 +773,7 @@ $(document).ready(function () {
         removeFavourite($(this));
         return false;
       });
+      saveTabList ();
     }
 
     function addToFavourite(filepath){
@@ -582,17 +809,10 @@ $(document).ready(function () {
     }
 
 
+    /************ INITIALIZE FUNTIONS CALLS  ************************/
 
-    editor = ace.edit("editor");
     modelist = require("ace/ext/modelist");
     config = require("ace/config");
-
-    editor.setTheme("ace/theme/crimson_editor");
-    editor.getSession().setMode("ace/mode/text");
-    editor.getSession().setTabSize(2);
-    editor.getSession().setUseSoftTabs(true);
-    editor.renderer.setHScrollBarAlwaysVisible(false);
-
     initTree('#fileTree', currentProject, 'pfolder');
     initTree('#fileTreeFull', 'workspace');
     //bindContextMenu('#fileTree');
@@ -603,47 +823,37 @@ $(document).ready(function () {
     $("#option").Tooltip();
     $("#filelist").Tooltip();
 
-    editor.on("change", function (e) {
-        if (edit_status === "" && edit) {
-            $("span#edit_status").html("*");
-        }
-    });
-    editor.commands.addCommand({
-      name: 'myCommand',
-      bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
-      exec: function(editor) {
-        $("#save").click();
-      },
-      readOnly: false // false if this command should not apply in readOnly mode
+    $("#save").click(function () {
+      if ($("#tabControl div.item").length === 0) {
+        return false;
+      }
+      var hash = getActiveToken();
+      if (editorlist[hash].busy) {
+          return false;
+      }
+      runSaveFile(hash);
+      return false;
     });
 
-    $("#save").click(function () {
-        if (!edit) {
-            $("#error").Popup("Please select the file to edit", {type: 'alert', duration: 3000});
-            return false;
-        }
-        if (send) {
-            return false;
-        }
-        send = true;
-        $.ajax({
-            type: "POST",
-            url: $SCRIPT_ROOT + '/saveFileContent',
-            data: {
-                file: current_file,
-                content: editor.getSession().getValue()
-            },
-            success: function (data) {
-                if (data.code === 1) {
-                    $("#error").Popup("File saved succefuly!", {type: 'confirm', duration: 3000});
-                    $("span#edit_status").html("");
-                } else {
-                    $("#error").Popup(data.result, {type: 'error', duration: 5000});
-                }
-                send = false;
-            }
-        });
-        return false;
+    $( "#tabControl" ).resize(function() {
+      resizeTabItems ();
+    });
+
+    $("#expand").click( function () {
+      if ( !$("#expand span").hasClass('e_expanded') ) {
+        $("#details_box").hide();
+        $("#code").css("width", "100%");
+        $("#expand span").addClass('e_expanded');
+      }
+      else {
+        $("#expand span").removeClass('e_expanded');
+        $("#details_box").show();
+        $("#code").css("width", editorWidth);
+      }
+      if ($("#tabControl div.item").length !== 0) {
+        getCurrentEditor().resize();
+      }
+      return false;
     });
 
     /*$("#details_head").click(function () {
@@ -656,55 +866,62 @@ $(document).ready(function () {
         return false;
     });
     $("#getmd5").click(function () {
-        getmd5sum(current_file);
-        $("#option").click();
+      if ($("#tabControl div.item").length === 0) {
         return false;
+      }
+      getmd5sum(editorlist[getActiveToken()].path);
+      $("#option").click();
+      return false;
     });
 
-    $("#clearselect").click(function () {
-        edit = false;
-        $("#info").empty();
-        $("#info").append("Current work tree: " + base_path());
-        $("#edit_info").empty();
-        $("#edit_info").append("No file in editor");
-        editor.getSession().setValue("");
-        $("a#option").hide();
-        selection = "";
-        return false;
-    });
     $("#adddevelop").click(function () {
-        var developList = [],
-            i = 0;
-        $("#plist li").each(function (index) {
-            var elt = $(this).find("input:checkbox");
-            if (elt.is(":checked")) {
-                developList[i] = workdir + "/" + elt.val();
-                i += 1;
-                elt.attr("checked", false);
-            }
-        });
-        if (developList.length > 0) {
-            setDevelop(developList);
-        }
+      if ($("#tabControl div.item").length === 0) {
         return false;
+      }
+      var developList = [],
+          i = 0;
+      $("#plist li").each(function (index) {
+          var elt = $(this).find("input:checkbox");
+          if (elt.is(":checked")) {
+              developList[i] = workdir + "/" + elt.val();
+              i += 1;
+              elt.attr("checked", false);
+          }
+      });
+      if (developList.length > 0) {
+          setDevelop(developList);
+      }
+      return false;
     });
-    $("a#addflist").click(function(){
-      addToFavourite(current_file);
+    $("a#addflist").click(function () {
+      if ($("#tabControl div.item").length === 0) {
+        return false;
+      }
+      addToFavourite(editorlist[getActiveToken()].path);
       $("#option").click();
       return false;
     });
 
-    $("a#find").click(function(){
-      config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor)});
+    $("a#find").click(function () {
+      if ($("#tabControl div.item").length === 0) {
+        return false;
+      }
+      config.loadModule("ace/ext/searchbox", function(e) {
+        e.Search(getCurrentEditor())
+      });
       $("#option").click();
       return false;
     });
 
-    $("a#replace").click(function(){
-      config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
+    $("a#replace").click(function () {
+      if ($("#tabControl div.item").length === 0) {
+        return false;
+      }
+      config.loadModule("ace/ext/searchbox", function(e) {
+        e.Search(getCurrentEditor(), true)
+      });
       $("#option").click();
       return false;
     });
-
 
 });
