@@ -2,7 +2,7 @@
 /*global $, document, $SCRIPT_ROOT, ace, window */
 /*global path: true */
 /* vim: set et sts=4: */
-var beforeunload_warning_set = 0;
+
 $(document).ready(function () {
   "use strict";
 
@@ -23,7 +23,7 @@ $(document).ready(function () {
         pasteMode = null,
         favourite_list = new Array(),
         editorWidth = $("#code").css("width"),
-
+        beforeunload_warning_set = 0,
         base_path = function () {
             return softwareDisplay ? currentProject : 'workspace/';
         };
