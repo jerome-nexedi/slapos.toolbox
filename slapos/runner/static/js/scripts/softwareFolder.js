@@ -2,7 +2,7 @@
 /*global $, document, $SCRIPT_ROOT, ace, window */
 /*global path: true */
 /* vim: set et sts=4: */
-
+var beforeunload_warning_set = 0;
 $(document).ready(function () {
   "use strict";
 
@@ -23,6 +23,7 @@ $(document).ready(function () {
         pasteMode = null,
         favourite_list = new Array(),
         editorWidth = $("#code").css("width"),
+
         base_path = function () {
             return softwareDisplay ? currentProject : 'workspace/';
         };
@@ -88,6 +89,9 @@ $(document).ready(function () {
       if ( !editorlist[hash].changed ) {
         return;
       }
+      if (editorlist[hash].busy) {
+          return;
+      }
       editorlist[hash].busy = true;
       $.ajax({
           type: "POST",
@@ -102,6 +106,9 @@ $(document).ready(function () {
               title = $(currentSpan).html();
             editorlist[hash].changed = false;
             $(currentSpan).html(title.substr(1));
+            if(--beforeunload_warning_set === 0) {
+              window.onbeforeunload = function() { return; };
+            }
           } else {
               $("#error").Popup(data.result, {type: 'error', duration: 5000});
           }
@@ -264,10 +271,10 @@ $(document).ready(function () {
         if (!editorlist[activeToken].busy && !editorlist[activeToken].changed) {
           editorlist[activeToken].changed = true;
           $(activeSpan).html("*" + $(activeSpan).html());
-        }
-        if (!beforeunload_warning_set) {
-          window.onbeforeunload = function() { return "You have unsaved changes"; };
-          beforeunload_warning_set = true;
+          if(beforeunload_warning_set === 0) {
+            window.onbeforeunload = function() { return "You have unsaved changes. Your changes will be lost if you don't save them"; };
+          }
+          beforeunload_warning_set++;
         }
       });
       editor.commands.addCommand({
@@ -410,10 +417,13 @@ $(document).ready(function () {
             files: clipboardNode.data.path,
             dir: node.data.path
           };
+          // Copy mode: prevent duplicate keys:
+          var request, cb = clipboardNode.toDict(true, function(dict){
+            delete dict.key; // Remove key, so a new one will be created
+          });
           if( pasteMode == "cut" ) {
             // Cut mode: check for recursion and remove source
             dataForSend.opt = 7;
-            var cb = clipboardNode.toDict(true);
             if( node.isDescendantOf(clipboardNode) ) {
               $("#error").Popup("ERROR: Cannot move a node to it's sub node.", {type: 'error', duration: 5000});
               return;
@@ -430,6 +440,7 @@ $(document).ready(function () {
                 }
                 clipboardNode.remove();
               }
+              clipboardNode = pasteMode = null;
             });
           } else {
             if (node.key === clipboardNode.getParent().key){
@@ -441,10 +452,6 @@ $(document).ready(function () {
             request = fileBrowserOp(dataForSend);
             request.always(function() {
               if (ajaxResult){
-                // Copy mode: prevent duplicate keys:
-                var cb = clipboardNode.toDict(true, function(dict){
-                  delete dict.key; // Remove key, so a new one will be created
-                });
                 if (dataForSend.opt === 14){
                   node.lazyLoad(true);
                   node.toggleExpanded();
@@ -454,9 +461,9 @@ $(document).ready(function () {
                   node.render();
                 }
               }
+              clipboardNode = pasteMode = null;
             });
           }
-          clipboardNode = pasteMode = null;
           break;
       }
     };
@@ -839,12 +846,7 @@ $(document).ready(function () {
       if ($("#tabControl div.item").length === 0) {
         return false;
       }
-      beforeunload_warning_set = false;
-      window.onbeforeunload = function() { return; };
       var hash = getActiveToken();
-      if (editorlist[hash].busy) {
-          return false;
-      }
       runSaveFile(hash);
       return false;
     });
@@ -915,17 +917,6 @@ $(document).ready(function () {
       $("#option").click();
       return false;
     });
-    $("a#addflist").click(function(){
-      addToFavourite(current_file);
-      $("#option").click();
-      return false;
-    });
-
-    $("a#find").click(function(){
-      config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor)});
-      $("#option").click();
-      return false;
-    });
 
     $("a#find").click(function () {
       if ($("#tabControl div.item").length === 0) {
@@ -950,9 +941,13 @@ $(document).ready(function () {
     });
 
     $("#fullscreen").click(function(){
-          $("body").toggleClass("fullScreen");
-          $("#editor").toggleClass("fullScreen-editor");
-          editor.resize();
+      if ($("#tabControl div.item").length === 0) {
+        return false;
+      }
+      var hash = getActiveToken();
+      $("body").toggleClass("fullScreen");
+      $("#tabContent pre.active[rel='"+ hash + "']").toggleClass("fullScreen-editor");
+      editorlist[hash].editor.resize();
     });
 
 });

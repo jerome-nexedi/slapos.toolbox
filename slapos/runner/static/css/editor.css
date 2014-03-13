@@ -41,18 +41,5 @@ border-left:1px #E4E4E4 solid; cursor:pointer; color: #5C7077; text-shadow: 0px 
 #tabContent pre {display: none;}
 #tabContent pre.active {display: block;}
 .item-hide{display:none;}
-.bt_close {
-    text-decoration: none;
-    color: #999;
-    font-weight: bold;
-    font-size: 1em;
-    padding: 0 4px;
-    -webkit-border-radius: .2em;
-    -moz-border-radius: .2em;
-    border-radius: .2em;
-    cursor: pointer;
-}
-.bt_close:hover {
-    color: #333;
-}
+
 
