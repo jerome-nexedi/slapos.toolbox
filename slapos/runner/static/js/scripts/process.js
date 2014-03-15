@@ -251,7 +251,7 @@ function runProcess(urlfor, data) {
     }
 }
 
-setInterval('GetStateRegularly()', 800);
+setInterval('GetStateRegularly()', 5000);
 function GetStateRegularly() {
     getRunningState();
 }
