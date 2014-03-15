@@ -263,7 +263,7 @@ def removeProxyDb(config):
 
 def isSoftwareRunning(config=None):
   """
-    Return True if slapgrid-sr is still running and false if slapgrid if not
+    Return True if slapos is still running and false if slapos if not
   """
   # XXX-Marco what is 'config' for?
   return isRunning('slapgrid-sr')
@@ -285,9 +285,9 @@ def runSoftwareWithLock(config, lock=True):
   logfile = open(config['software_log'], 'w')
   if not updateProxy(config):
     return False
-  slapgrid = Popen([config['slapgrid_sr'], '-vc',
-                    '--pidfile', slapgrid_pid,
-                    config['configuration_file_path'], '--now', '--develop'],
+  slapgrid = Popen([config['slapos'], 'node', 'software', '--all',
+                   '--cfg', config['slapos_cfg'], '--pidfile', slapgrid_pid,
+                   '--verbose', '--logfile', config['software_log']],
                    stdout=logfile, name='slapgrid-sr')
   if lock:
     slapgrid.wait()
@@ -354,7 +354,7 @@ def loadSoftwareRList(config):
 
 def isInstanceRunning(config=None):
   """
-    Return True if slapgrid-cp is still running and False otherwise
+    Return True if slapos is still running and False otherwise
   """
   # XXX-Marco what is 'config' for?
   return isRunning('slapgrid-cp')
@@ -373,10 +373,10 @@ def runInstanceWithLock(config, lock=True):
   logfile = open(config['instance_log'], 'w')
   if not (updateProxy(config) and requestInstance(config)):
     return False
-  slapgrid = Popen([config['slapgrid_cp'], '-vc',
-                    '--pidfile', slapgrid_pid,
-                    config['configuration_file_path'], '--now'],
-                    stdout=logfile, name='slapgrid-cp')
+  slapgrid = Popen([config['slapos'], 'node', 'instance', '--all',
+                   '--cfg', config['slapos_cfg'], '--pidfile', slapgrid_pid,
+                   '--verbose', '--logfile', config['instance_log']],
+                   stdout=logfile, name='slapgrid-cp')
   if lock:
     slapgrid.wait()
     return ( True if slapgrid.returncode == 0 else False )
@@ -827,7 +827,7 @@ def buildAndRun(config):
 
 
 def runSlapgridUntilSuccess(config, step):
-  """Run slapgrid-sr or slapgrid-cp several times,
+  """Run slapos several times,
   in the maximum of the constant MAX_RUN_~~~~"""
   params = getBuildAndRunParams(config)
   if step == "instance":
