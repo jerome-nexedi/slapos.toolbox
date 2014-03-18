@@ -71,13 +71,16 @@ $(document).ready(function () {
             editorlist[hash].busy = false;
             status = true;
           } else {
-            $("#error").Popup(data.result, {type: 'error', duration: 5000});
-            $("#tabControl div.active span.bt_close").click();
+            $("#error").Popup("Unable to open file: " + file + "<br/>" + data.result,
+                              {type: 'error', duration: 5000});
+            //Close current tab
+            $("#tabControl div[rel='" + hash + "']  span.bt_close").click();
           }
         })
         .fail(function(jqXHR, exception) {
           alertStatus (jqXHR);
-          $("#tabControl div.active span.bt_close").click();
+          //Close current tab
+          $("#tabControl div[rel='" + hash + "']  span.bt_close").click();
         })
         .always(function() {
           // always
@@ -189,8 +192,8 @@ $(document).ready(function () {
       if (editorlist.hasOwnProperty(hash)) {
         //this file already exist in editor. Select file and exit!
         $("#tabControl div.item").each( function () {
-          var rel = $(this).attr('rel').split('#');
-          if ( (rel.length === 2) && (rel[1] === hash) ) {
+          var rel = $(this).attr('rel');
+          if ( rel && (rel === hash) ) {
             $(this).click();
             return "";
           }
@@ -198,7 +201,7 @@ $(document).ready(function () {
         return "";
       }
       var width = resizeTabItems(true);
-      var tab  = '<div class="item" rel="' + path + '#' + hash
+      var tab  = '<div class="item" rel="' + hash
                 + '"><span style="width: '+ width +'px" '
                 + 'title="' + path + '">' + title + '</span>'
                 + '<span class="bt_close" title="Close this tab">×</span></div>';
@@ -215,7 +218,7 @@ $(document).ready(function () {
         if ( $(this).hasClass('active') ) {
           return false;
         }
-        var rel = $(this).attr('rel').split('#'),
+        var rel = $(this).attr('rel'),
             current = $("#tabContent pre.active").attr('rel');
         if (current && current !== undefined) {
           editorlist[current].isOpened = false;
@@ -223,25 +226,25 @@ $(document).ready(function () {
         $("#tabControl div.active").removeClass('active');
         $("#tabContent pre.active").removeClass('active');
         $(this).addClass('active');
-        $("#tabContent pre[rel='" + rel[1] + "']").addClass('active');
-        editorlist[rel[1]].isOpened = true;
-        editorlist[rel[1]].editor.resize();
+        $("#tabContent pre[rel='" + rel + "']").addClass('active');
+        editorlist[rel].isOpened = true;
+        editorlist[rel].editor.resize();
         return false;
       });
 
       /*Close Selected Tab*/
       $("#tabControl div.item:last span.bt_close").click(function () {
         var $tab = $(this).parent(), position = 0;
-        var rel = $tab.attr('rel').split('#');
+        var rel = $tab.attr('rel');
         //Remove tab
         if ( $tab.hasClass('active') && $("#tabControl div.item").length > 0 ) {
           position = ($tab.index() == 0) ? 1 : $tab.index();
           $("#tabControl div.item:nth-child("+position+")").click();
         }
-        editorlist[ rel[1] ].editor.destroy();
-        delete editorlist[ rel[1] ];
+        editorlist[ rel ].editor.destroy();
+        delete editorlist[ rel ];
         $tab.remove();
-        $("#tabContent pre[rel='" + rel[1] + "']").remove();
+        $("#tabContent pre[rel='" + rel + "']").remove();
         resizeTabItems ();
         saveTabList ();
         return false;
@@ -309,8 +312,7 @@ $(document).ready(function () {
     function getActiveTabTitleSelector (hash) {
       var rel = (hash) ? hash : $("#tabContent pre.active").attr('rel');
       if ( editorlist.hasOwnProperty(rel) ) {
-        return "#tabControl div[rel='" + editorlist[rel].path + "#" + rel +
-              "']  span:nth-child(1)";
+        return "#tabControl div[rel='" + rel + "']  span:nth-child(1)";
       }
       else { return ""; }
     }
