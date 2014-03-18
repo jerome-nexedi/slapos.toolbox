@@ -48,7 +48,7 @@ class Config:
     """
     Set options given by parameters.
     """
-    self.configuration_file_path = os.path.abspath(os.environ.get('CONFIG_FILE_PATH'))
+    self.configuration_file_path = os.path.abspath(os.environ.get('RUNNER_CONFIG'))
 
     # Load configuration file
     configuration_parser = ConfigParser.SafeConfigParser()
