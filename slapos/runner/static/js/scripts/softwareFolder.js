@@ -215,11 +215,12 @@ $(document).ready(function () {
 
       /* Change selected tab*/
       $("#tabControl div.item:last").click(function () {
+        var rel = $(this).attr('rel'), current;
         if ( $(this).hasClass('active') ) {
+          editorlist[rel].editor.focus();
           return false;
         }
-        var rel = $(this).attr('rel'),
-            current = $("#tabContent pre.active").attr('rel');
+        current = $("#tabContent pre.active").attr('rel');
         if (current && current !== undefined) {
           editorlist[current].isOpened = false;
         }
@@ -229,6 +230,7 @@ $(document).ready(function () {
         $("#tabContent pre[rel='" + rel + "']").addClass('active');
         editorlist[rel].isOpened = true;
         editorlist[rel].editor.resize();
+        editorlist[rel].editor.focus();
         return false;
       });
 
@@ -236,6 +238,14 @@ $(document).ready(function () {
       $("#tabControl div.item:last span.bt_close").click(function () {
         var $tab = $(this).parent(), position = 0;
         var rel = $tab.attr('rel');
+        if (editorlist[ rel ].changed) {
+          if (!window.confirm("You have unsaved changes. Your changes will be lost if you don't save them")){
+            return false;
+          }
+          if(--beforeunload_warning_set === 0) {
+            window.onbeforeunload = function() { return; };
+          }
+        }
         //Remove tab
         if ( $tab.hasClass('active') && $("#tabControl div.item").length > 0 ) {
           position = ($tab.index() == 0) ? 1 : $tab.index();
@@ -965,6 +975,7 @@ $(document).ready(function () {
       }
       resizeTabItems ();
       editorlist[hash].editor.resize();
+      editorlist[hash].editor.focus();
       return false;
     });
 
