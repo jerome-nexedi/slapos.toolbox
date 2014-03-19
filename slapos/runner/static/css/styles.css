@@ -589,7 +589,6 @@ label.header {
     font-weight: normal;
 }
 select {
-  -webkit-appearance: button;
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
@@ -793,7 +792,8 @@ padding:10px; font-size:14px; color:#03406A}
     color: #333;
 }
 
-.fullScreen .fullScreen-editor{
+.fullScreen{
+  background: #fff;
   height: auto!important;
   width: auto!important;
   border: 0;
@@ -803,7 +803,26 @@ padding:10px; font-size:14px; color:#03406A}
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 10000;
+  z-index: 140;
+}
+.fullScreen-editor{
+  height: auto!important;
+  width: auto!important;
+  position: fixed !important;
+  top: 35px;
+  bottom: 0;
+  left: 244px;
+  right: 0;
+}
+
+.fullScreen-tree{
+  height: auto!important;
+  width: 238px;
+  position: fixed !important;
+  top: 37px;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .fullScreen {

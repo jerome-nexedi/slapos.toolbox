@@ -181,13 +181,6 @@ $(document).ready(function () {
 
     //Add new tabItem
     function addTab (path, selected) {
-      var numberTab = $("#tabControl div.item").length;
-      if ( numberTab >= getMaxTab() ) {
-        $("#error").Popup("Sorry! We cannot add more item, please close unused tab",
-            {type: 'info', duration: 5000});
-        return "";
-      }
-      var title = path.replace(/^.*(\\|\/|\:)/, '');
       var hash =  path.hashCode() + '';
       if (editorlist.hasOwnProperty(hash)) {
         //this file already exist in editor. Select file and exit!
@@ -198,6 +191,13 @@ $(document).ready(function () {
             return "";
           }
         });
+        return "";
+      }
+      var title = path.replace(/^.*(\\|\/|\:)/, '');
+      var numberTab = $("#tabControl div.item").length;
+      if ( numberTab >= getMaxTab() ) {
+        $("#error").Popup("Sorry! We cannot add more item, please close unused tab",
+            {type: 'info', duration: 5000});
         return "";
       }
       var width = resizeTabItems(true);
@@ -858,19 +858,25 @@ $(document).ready(function () {
     });
 
     $("#expand").click( function () {
-      if ( !$("#expand span").hasClass('e_expanded') ) {
+      var leftWith = $('#fileTree').width() + 6;
+      if ( $("#details_box").css("display") !== 'none' ) {
         $("#details_box").hide();
         $("#code").css("width", "100%");
-        $("#expand span").addClass('e_expanded');
+        if ( $("body").hasClass("fullScreen") ) {
+          $(".main_content").css('left', '0');
+        }
       }
       else {
-        $("#expand span").removeClass('e_expanded');
+        if ( $("body").hasClass("fullScreen") ) {
+          $(".main_content").css('left', leftWith + 'px');
+        }
         $("#details_box").show();
         $("#code").css("width", editorWidth);
       }
       if ($("#tabControl div.item").length !== 0) {
         getCurrentEditor().resize();
       }
+      $("#option").click();
       return false;
     });
 
@@ -943,13 +949,23 @@ $(document).ready(function () {
     });
 
     $("#fullscreen").click(function(){
+      var hash = getActiveToken();
+      $("#fullscreen span").toggleClass("e_expanded");
+      $("body").toggleClass("fullScreen");
+      $("#software_folder").toggleClass("fullScreen");
+      $(".main_content").toggleClass("fullScreen-editor");
+      $('#fileTree').toggleClass("fullScreen-tree");
+      $('#fileTreeFull').toggleClass("fullScreen-tree");
+      $(".main_content").css('left', '');
+      if ( $("#details_box").css("display") === 'none' ) {
+        $(".main_content").css('left', '0');
+      }
       if ($("#tabControl div.item").length === 0) {
         return false;
       }
-      var hash = getActiveToken();
-      $("body").toggleClass("fullScreen");
-      $("#tabContent pre.active[rel='"+ hash + "']").toggleClass("fullScreen-editor");
+      resizeTabItems ();
       editorlist[hash].editor.resize();
+      return false;
     });
 
 });
