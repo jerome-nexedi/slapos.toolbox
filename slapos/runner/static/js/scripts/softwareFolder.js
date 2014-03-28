@@ -236,7 +236,8 @@ $(document).ready(function () {
 
       /*Close Selected Tab*/
       $("#tabControl div.item:last span.bt_close").click(function () {
-        var $tab = $(this).parent(), position = 0;
+        var $tab = $(this).parent(), position = 0,
+            active = $tab.hasClass('active');
         var rel = $tab.attr('rel');
         if (editorlist[ rel ].changed) {
           if (!window.confirm("You have unsaved changes. Your changes will be lost if you don't save them")){
@@ -247,14 +248,14 @@ $(document).ready(function () {
           }
         }
         //Remove tab
-        if ( $tab.hasClass('active') && $("#tabControl div.item").length > 0 ) {
-          position = ($tab.index() == 0) ? 1 : $tab.index();
-          $("#tabControl div.item:nth-child("+position+")").click();
-        }
+        position = ($tab.index() === 0) ? 1 : $tab.index();
         editorlist[ rel ].editor.destroy();
         delete editorlist[ rel ];
         $tab.remove();
         $("#tabContent pre[rel='" + rel + "']").remove();
+        if ( active && $("#tabControl div.item").length > 0 ) {
+          $("#tabControl div.item:nth-child("+position+")").click();
+        }
         resizeTabItems ();
         saveTabList ();
         return false;

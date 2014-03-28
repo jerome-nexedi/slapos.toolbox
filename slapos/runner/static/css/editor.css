@@ -13,6 +13,7 @@
   height: 30px;
   color: #737373;
   border-bottom: 4px solid #7FAED3;
+  min-width: 936px;
 }
 .box_header ul{float: left; padding-top: 2px; text-shadow: 0px 1px #F1F1F1;}
 .box_header li{float: left;border: 1px solid #AAB8C2;padding: 1px 5px 1px 0;margin-left: 5px; text-indent: 5px;}
