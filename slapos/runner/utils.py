@@ -266,7 +266,7 @@ def isSoftwareRunning(config=None):
     Return True if slapos is still running and false if slapos if not
   """
   # XXX-Marco what is 'config' for?
-  return isRunning('slapgrid_sr')
+  return isRunning('slapgrid-sr')
 
 
 def runSoftwareWithLock(config, lock=True):
@@ -288,7 +288,7 @@ def runSoftwareWithLock(config, lock=True):
   slapgrid = Popen([config['slapos'], 'node', 'software', '--all',
                    '--cfg', config['slapos_cfg'], '--pidfile', slapgrid_pid,
                    '--verbose', '--logfile', config['software_log']],
-                   stdout=logfile, name='slapgrid_sr')
+                   stdout=logfile, name='slapgrid-sr')
   if lock:
     slapgrid.wait()
     #Saves the current compile software for re-use
@@ -357,7 +357,7 @@ def isInstanceRunning(config=None):
     Return True if slapos is still running and False otherwise
   """
   # XXX-Marco what is 'config' for?
-  return isRunning('slapgrid_cp')
+  return isRunning('slapgrid-cp')
 
 
 def runInstanceWithLock(config, lock=True):
@@ -376,7 +376,7 @@ def runInstanceWithLock(config, lock=True):
   slapgrid = Popen([config['slapos'], 'node', 'instance', '--all',
                    '--cfg', config['slapos_cfg'], '--pidfile', slapgrid_pid,
                    '--verbose', '--logfile', config['instance_log']],
-                   stdout=logfile, name='slapgrid_cp')
+                   stdout=logfile, name='slapgrid-cp')
   if lock:
     slapgrid.wait()
     return ( True if slapgrid.returncode == 0 else False )
