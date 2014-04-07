@@ -282,13 +282,15 @@ def runSoftwareWithLock(config, lock=True):
     os.mkdir(config['software_root'])
   stopProxy(config)
   startProxy(config)
-  logfile = open(config['software_log'], 'w')
+  # XXX Hackish and unreliable
+  if os.path.exists(config['software_log']):
+    os.remove(config['software_log'])
   if not updateProxy(config):
     return False
   slapgrid = Popen([config['slapos'], 'node', 'software', '--all',
                    '--cfg', config['slapos_cfg'], '--pidfile', slapgrid_pid,
                    '--verbose', '--logfile', config['software_log']],
-                   stdout=logfile, name='slapgrid-sr')
+                    name='slapgrid-sr')
   if lock:
     slapgrid.wait()
     #Saves the current compile software for re-use
@@ -370,13 +372,15 @@ def runInstanceWithLock(config, lock=True):
 
   slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-cp.pid')
   startProxy(config)
-  logfile = open(config['instance_log'], 'w')
+  # XXX Hackish and unreliable
+  if os.path.exists(config['instance_log']):
+    os.remove(config['instance_log'])
   if not (updateProxy(config) and requestInstance(config)):
     return False
   slapgrid = Popen([config['slapos'], 'node', 'instance', '--all',
                    '--cfg', config['slapos_cfg'], '--pidfile', slapgrid_pid,
                    '--verbose', '--logfile', config['instance_log']],
-                   stdout=logfile, name='slapgrid-cp')
+                   name='slapgrid-cp')
   if lock:
     slapgrid.wait()
     return ( True if slapgrid.returncode == 0 else False )
