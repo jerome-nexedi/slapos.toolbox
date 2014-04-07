@@ -166,6 +166,8 @@ function updateStatus(elt, val) {
       break;
     case "running":
       $(src).children('p').text("Processing");
+      processType = elt;
+      getRunningState()
       break;
   }
   // in case of failure
