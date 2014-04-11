@@ -156,7 +156,7 @@ function updateStatus(elt, val) {
   $(src).addClass(value);
   switch (val) {
     case "waiting":
-      $(src).children('p').text("Waiting for starting");
+      $(src).children('p').text("Queue");
       break;
     case "stopped":
       $(src).children('p').text("Stopped by user");

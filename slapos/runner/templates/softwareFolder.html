@@ -40,6 +40,7 @@
   <li class="paste"><a href="#paste">Paste</a></li>
   <li class="newfile separator"><a href="#nfile">New File</a></li>
   <li class="newdir"><a href="#nfolder">New Folder</a></li>
+  <li class="uploadfile"><a href="#ufile">Upload File</a></li>
 </ul>
 <div id="software_folder">
   <div class='box_header'>
@@ -107,6 +108,25 @@
 <div style='display:none'>
   <div id='inline_content' style='padding:10px; background:#fff;'>
 
+  </div>
+</div>
+
+<a id='inlineUpload' style='display:none' href="#uploadContent">Inline HTML</a>
+<div style='display:none'>
+  <div id="uploadContent" style="padding:10px; background:#fff;">
+    <h2 style="color: #4c6172; font: 18px \'Helvetica Neue\', Helvetica, Arial, sans-serif;">
+    Upload local file to your workspace</h2>
+    <p id="uploadlog" class="message"><br/></p>
+    <br/>
+    <form action="{{ url_for('fileBrowser') }}" id="uploadForm" enctype="multipart/form-data">
+      <div class="fileinputs">
+        <input type="file" name="filename" size="30" id="choosefiles" />
+        <input type="hidden" name="opt" value="11" />
+        <input type="hidden" name="dir" value="" />
+        <br/>
+        <input type=submit value="Upload" id="submitUpload" class="button" />
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}

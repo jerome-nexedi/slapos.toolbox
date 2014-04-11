@@ -9,6 +9,8 @@ $(document).ready(function () {
     var viewer,
         modelist,
         config,
+        files,
+        working_node = null,
         editorlist = Array(),
         editorIndex = 0,
         saveTimeOut = null,
@@ -434,6 +436,7 @@ $(document).ready(function () {
           var request, cb = clipboardNode.toDict(true, function(dict){
             delete dict.key; // Remove key, so a new one will be created
           });
+          cb.data.path = node.data.path + '/' + clipboardNode.title;
           if( pasteMode == "cut" ) {
             // Cut mode: check for recursion and remove source
             dataForSend.opt = 7;
@@ -449,7 +452,7 @@ $(document).ready(function () {
                   node.render();
                 }
                 else{
-                  node.lazyLoad()
+                  node.load(true);
                 }
                 clipboardNode.remove();
               }
@@ -466,7 +469,7 @@ $(document).ready(function () {
             request.always(function() {
               if (ajaxResult){
                 if (dataForSend.opt === 14){
-                  node.lazyLoad(true);
+                  node.load(true);
                   node.toggleExpanded();
                 }
                 else if (node.isExpanded()){
@@ -493,7 +496,7 @@ $(document).ready(function () {
         menu.disableContextMenuItems("#edit,#view,#md5sum,#favorite");
       }
       else{
-        menu.disableContextMenuItems("#nfile,#nfolder,#refresh,#paste");
+        menu.disableContextMenuItems("#nfile,#nfolder,#refresh,#paste,#ufile");
       }
       return true;
     }
@@ -570,7 +573,7 @@ $(document).ready(function () {
           getmd5sum(node.data.path);
           break;
         case "refresh":
-          node.lazyLoad(true);
+          node.load(true);
           node.toggleExpanded();
           break;
         case "nfolder":
@@ -586,7 +589,7 @@ $(document).ready(function () {
           request = fileBrowserOp(dataForSend)
           request.always(function() {
             if (ajaxResult){
-              node.lazyLoad(true);
+              node.load(true);
               node.toggleExpanded();
             }
           });
@@ -604,7 +607,7 @@ $(document).ready(function () {
           request = fileBrowserOp(dataForSend)
           request.always(function() {
             if (ajaxResult){
-              node.lazyLoad(true);
+              node.load(true);
               node.toggleExpanded();
             }
           });
@@ -639,16 +642,34 @@ $(document).ready(function () {
           request = fileBrowserOp(dataForSend);
           request.always(function() {
             if (ajaxResult){
-              var copy = node.toDict(true, function(dict){
-                dict.title = newName;
-              });
-              node.applyPatch(copy);
+              if (node.getParent().isRoot()) {
+                if ($('#fileTreeFull').css('display') === 'none'){
+                  $('#fileTree').fancytree("getTree").reload();
+                }
+                else {
+                  $('#fileTreeFull').fancytree("getTree").reload();
+                }
+              }
+              else {
+                node.getParent().load(true);
+                node.toggleExpanded();
+              }
             }
           });
 
           break;
         case "favorite":
           addToFavourite(node.data.path);
+          break;
+        case "ufile":
+          $.colorbox.remove();
+          $("#uploadForm input[name=dir]").val(node.data.path);
+          $("#inlineUpload").colorbox({inline:true,
+                width: "480px", height: "200px", onComplete:function(){
+                //nothing
+          }});
+          $("#inlineUpload").click();
+          working_node = node;
           break;
         default:
           return;
@@ -683,7 +704,7 @@ $(document).ready(function () {
           data:{opt: 20, dir: path, key: key, listfiles: 'yes'},
           cache: false
         },
-        lazyload: function(event, data) {
+        lazyLoad: function(event, data) {
           var node = data.node;
           data.result = {
             url: $SCRIPT_ROOT + "/fileBrowser",
@@ -979,5 +1000,35 @@ $(document).ready(function () {
       editorlist[hash].editor.focus();
       return false;
     });
+
+    $('#choosefiles').on('change', function (event) {
+      files = event.target.files;
+    });
+
+    $("#submitUpload").click( function (){
+      jQuery('#uploadForm').submit();
+      $("#cboxClose").click();
+      return false;
+    });
+
+    jQuery('#uploadForm').ajaxForm({
+      beforeSubmit: function () {
+        $("#error").Popup("We are uploading your file...", {type: 'info', duration: 3000});
+      },
+      success: function (data, statusText, xhr, $form) {
+        if (data.indexOf("{result: '1'}") === -1) {
+          var msg = (data === "{result: '0'}") ? "ERROR: Please check your file or folder location!" : data;
+          $("#error").Popup("Error: " + msg, {type: 'error', duration: 5000});
+        } else {
+          $("#error").Popup("Your file has been uploaded!", {type: 'confirm', duration: 5000});
+          working_node.load(true);
+        }
+      },
+      error: function (xhr, ajaxOptions, thrownError) {
+        alertStatus (xhr);
+      },
+      dataType: 'script'
+    });
+
 
 });
