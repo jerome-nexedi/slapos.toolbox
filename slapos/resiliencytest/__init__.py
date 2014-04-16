@@ -35,7 +35,10 @@ import sys
 import time
 import traceback
 from erp5.util import taskdistribution
-from erp5.util.testnode import Utils
+try:
+  from erp5.util.testnode import Utils
+except ImportError:
+  pass
 
 def importFrom(name):
   """
