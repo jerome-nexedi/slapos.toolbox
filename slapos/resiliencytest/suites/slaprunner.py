@@ -63,7 +63,7 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
         computer_id, partition_id, software,
         namebase,
         slaprunner_rootinstance_name,
-        300
+        1000
     )
 
 
