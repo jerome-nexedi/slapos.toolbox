@@ -130,7 +130,7 @@ function bindRun() {
         } else {
             if (!isRunning()) {
                 setCookie("slapgridCMD", "Software");
-                window.location.href = $SCRIPT_ROOT + "/viewLog";
+                window.location.href = $SCRIPT_ROOT + "/viewLog?logfile=software.log";
             }
         }
         return false;
@@ -142,7 +142,7 @@ function bindRun() {
             if (!isRunning()) {
                 setCookie("slapgridCMD", "Instance");
                 if (window.location.pathname === "/viewLog")
-                    window.location.href = $SCRIPT_ROOT + "/viewLog";
+                     window.location.href = $SCRIPT_ROOT + "/viewLog?logfile=instance.log";
             }
         }
         return false;
@@ -166,6 +166,8 @@ function updateStatus(elt, val) {
       break;
     case "running":
       $(src).children('p').text("Processing");
+      processType = elt;
+      getRunningState()
       break;
   }
   // in case of failure
@@ -251,7 +253,7 @@ function runProcess(urlfor, data) {
     }
 }
 
-setInterval('GetStateRegularly()', 800);
+setInterval('GetStateRegularly()', 5000);
 function GetStateRegularly() {
     getRunningState();
 }
