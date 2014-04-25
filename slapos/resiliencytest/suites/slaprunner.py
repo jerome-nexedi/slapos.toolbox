@@ -133,18 +133,29 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
           )
     return data
 
-  def _waitForSoftwareBuild(self):
-    #while self._connectToSlaprunner(resource='slapgridResult', data='position=0&log=').find('"software": true') is not -1:
-    #  self.logger.info('Software release is still building. Sleeping...')
-    #  time.sleep(15)
-    #self.logger.info('Software Release has been built / is no longer building.')
-    try:
-      while self._connectToSlaprunner(resource='isSRReady') != "1":
-         self.logger.info('Software release is still building. Sleeping...')
-         time.sleep(15)
-    except (NotHttpOkException, urllib2.HTTPError):
-      # The nginx frontend might timeout before software release is finished.
-      self._waitForSoftwareBuild()
+
+  def _waitForSoftwareBuild(self, limit=5000):
+    """
+    Wait until SR is built or limit reach 0
+    """
+    def getSRStatus():
+      """
+      Return current status (-1 in case of connection problem)
+      """
+      try:
+        return self._connectToSlaprunner(resource='isSRReady')
+      except (NotHttpOkException, urllib2.HTTPError) as error:
+        # The nginx frontend might timeout before software release is finished.
+        self.logger.warning('Problem occured when contacting the server: %s' % error)
+        return -1
+
+    status = getSRStatus()
+    while limit > 0 and status != '1':
+      status = getSRStatus()
+      limit -= 1
+      self.logger.info('Software release is still building. Sleeping...')
+      time.sleep(15)
+
 
   def _buildSoftwareRelease(self):
     self.logger.info('Building the Software Release...')
