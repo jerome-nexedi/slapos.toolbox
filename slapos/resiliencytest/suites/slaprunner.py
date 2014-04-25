@@ -66,6 +66,23 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
         1000
     )
 
+  def _getPartitionParameterDict(self):
+    """
+    Helper.
+    Return the partition parameter dict of the main root ("resilient") instance.
+    """
+    # XXX Hardcoded parameters, should be obtained dynamically
+    return self.partition.request(
+      software_release=self.software,
+      software_type='resilient',
+      partition_reference=self.root_instance_name,
+      partition_parameter_kw={
+        'resiliency-backup-periodicity': '*/6 * * * *',
+        'auto-deploy-instance': 'false',
+        'auto-deploy': 'true'
+        }
+    ).getConnectionParameterDict()
+    self.deleteTimestamp()
 
   def _connectToSlaprunner(self, resource, data=None):
     """
