@@ -104,3 +104,18 @@ def setHandler(sig_list=None):
     sig_list = [signal.SIGTERM]
   for sig in sig_list:
     signal.signal(sig, handler)
+
+
+def isPidFileProcessRunning(pidfile):
+  """
+  Test if the pidfile exist and if the process is still active
+  """
+  if os.path.exists(pidfile):
+    try:
+      pid = int(open(pidfile, 'r').readline())
+    except ValueError:
+      pid = None
+    # XXX This could use psutil library.
+    if pid and os.path.exists("/proc/%s" % pid):
+      return True
+    return False

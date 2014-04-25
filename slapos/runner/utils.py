@@ -20,7 +20,7 @@ from flask import jsonify
 
 from slapos.runner.gittools import cloneRepo
 
-from slapos.runner.process import Popen, isRunning, killRunningProcess
+from slapos.runner.process import Popen, isRunning, killRunningProcess, isPidFileProcessRunning
 from slapos.htpasswd import HtpasswdFile
 import slapos.slap
 
@@ -278,6 +278,8 @@ def runSoftwareWithLock(config, lock=True):
     return False
 
   slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-sr.pid')
+  if isPidFileProcessRunning(slapgrid_pid):
+    return False
   if not os.path.exists(config['software_root']):
     os.mkdir(config['software_root'])
   stopProxy(config)
