@@ -160,15 +160,16 @@ class ResiliencyTestSuite(object):
     # So first clone starts from 1.
     current_clone = 1
 
-    # Test each clone
-    while current_clone <= clone_count:
-      # Wait for XX minutes so that replication is done
-      self.logger.info('Sleeping for %s seconds before testing clone %s.' % (
+    # Wait for XX minutes so that replication is done
+    self.logger.info(
+      'Sleeping for %s seconds before testing clone %s.' % (
           self.sleep_time_between_test,
           current_clone
-      ))
-      time.sleep(self.sleep_time_between_test)
+        ))
+    time.sleep(self.sleep_time_between_test)
 
+    # Test each clone
+    while current_clone <= clone_count:
       self._doTakeover(current_clone)
       self.logger.info('Testing %s%s instance.' % (self.namebase, current_clone))
       success = self.checkDataOnCloneInstance()
