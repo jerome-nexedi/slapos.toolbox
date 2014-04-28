@@ -23,6 +23,7 @@ from slapos.runner.gittools import cloneRepo
 from slapos.runner.process import Popen, isRunning, killRunningProcess, isPidFileProcessRunning
 from slapos.htpasswd import HtpasswdFile
 import slapos.slap
+from slapos.grid.utils import md5digest
 
 # Setup default flask (werkzeug) parser
 
@@ -306,9 +307,31 @@ def runSoftwareWithLock(config, lock=True):
 def config_SR_folder(config):
   """Create a symbolik link for each folder in software folder. That allows
     the user to customize software release folder"""
-  list = []
-  # XXX-Marco do not shadow 'list'
   config_name = 'slaprunner.config'
+  def link_to_folder(name, folder):
+    destination = os.path.join(config['software_link'], name)
+    source = os.path.join(config['software_root'], folder)
+    cfg = os.path.join(destination, config_name)
+        #create symlink
+    if os.path.lexists(destination):
+      os.remove(destination)
+    os.symlink(source, destination)
+        #write config file
+    if os.path.exists(source):
+      with open(cfg, 'w') as cf:
+        cf.write(current_project + '#' + folder)
+
+  # First create the link for current project
+  current_project = open(os.path.join(config['etc_dir'], ".project")).read()
+  profile = getCurrentSoftwareReleaseProfile(config)
+  if current_project[-1] == '/':
+     current_project = current_project[:-1]
+  name = current_project.split('/')[-1]
+  md5sum = md5digest(profile)
+  link_to_folder(name, md5sum)
+  # check other links
+  # XXX-Marco do not shadow 'list'
+  list = []
   for path in os.listdir(config['software_link']):
     cfg_path = os.path.join(config['software_link'], path, config_name)
     if os.path.exists(cfg_path):
@@ -322,26 +345,11 @@ def config_SR_folder(config):
     return
   if not folder_list:
     return
-  current_project = open(os.path.join(config['etc_dir'], ".project")).read()
-  if current_project[-1] == '/':
-     current_project = current_project[:-1]
-  name = current_project.split('/')[-1]
   for folder in folder_list:
     if folder in list:
       continue  # this folder is already registered
     else:
-      if not os.path.exists(os.path.join(config['software_link'], name)):
-        destination = os.path.join(config['software_link'], name)
-      else:
-        destination = os.path.join(config['software_link'], folder)
-      source = os.path.join(config['software_root'], folder)
-      cfg = os.path.join(destination, config_name)
-      #create symlink
-      os.symlink(source, destination)
-      #write config file
-      with open(cfg, 'w') as cf:
-        cf.write(current_project + '#' + folder)
-
+      link_to_folder(folder, folder)
 
 def loadSoftwareRList(config):
   """Return list (of dict) of Software Release from symbolik SR folder"""
