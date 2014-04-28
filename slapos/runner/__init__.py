@@ -126,7 +126,8 @@ def serve(config):
   if not os.path.exists(software_link):
     os.mkdir(software_link)
   setHandler()
-  config.logger.info('Running slapgrid...')
+  app.logger.addHandler(config.logger)
+  app.logger.info('Running slapgrid...')
   if app.config['auto_deploy_instance'] in TRUE_VALUES:
     runInstanceWithLock(app.config)
   config.logger.info('Done.')
