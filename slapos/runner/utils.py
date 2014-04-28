@@ -183,6 +183,7 @@ def updateProxy(config):
   Configure Slapos Node computer and partitions.
   Send current Software Release to Slapproxy for compilation and deployment.
   """
+  startProxy(config)
   if not os.path.exists(config['instance_root']):
     os.mkdir(config['instance_root'])
   slap = slapos.slap.slap()
