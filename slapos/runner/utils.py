@@ -142,8 +142,9 @@ def getCurrentSoftwareReleaseProfile(config):
         os.path.join(config['etc_dir'], ".project")).read()
     return realpath(
         config, os.path.join(software_folder, config['software_profile']))
+  # XXXX No Comments
   except:
-    return False
+    return ''
 
 
 def requestInstance(config, software_type=None):
@@ -753,7 +754,7 @@ def realpath(config, path, check_exist=True):
     'software_link': config['software_link']
   }
   if key not in allow_list:
-    return False
+    return ''
 
   del split_path[0]
   path = os.path.join(allow_list[key], *split_path)
@@ -761,7 +762,7 @@ def realpath(config, path, check_exist=True):
     if os.path.exists(path):
       return path
     else:
-      return False
+      return ''
   else:
     return path
 
@@ -798,7 +799,7 @@ def isSoftwareReleaseReady(config):
   auto_deploy = config['auto_deploy'] in TRUE_VALUES
   auto_run = config['autorun'] in TRUE_VALUES
   project = os.path.join(config['etc_dir'], '.project')
-  if not ( os.path.exists(project) or auto_run or auto_deploy ):
+  if not ( os.path.exists(project) and (auto_run or auto_deploy) ):
     return "0"
   path = open(project, 'r').readline().strip()
   software_name = path
