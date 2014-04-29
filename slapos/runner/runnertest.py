@@ -243,8 +243,9 @@ class SlaprunnerTestCase(unittest.TestCase):
     encode.update(self.updateUser[0], self.updateUser[1])
     assert self.updateUser[0] in open(htpasswd).read()
 
-  def test_startProxy(self):
+  def test_startStopProxy(self):
     """Test slapproxy"""
+    self.stopSlapproxy()
     self.proxyStatus(False)
     startProxy(self.app.config)
     self.proxyStatus(True)
