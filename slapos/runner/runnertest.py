@@ -434,6 +434,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     Sofware Instance if it has been deployed yet"""
     # Test that SR won't be deployed with auto_deploy=False
     self.app.config['auto_deploy'] = False
+    self.app.config['autorun'] = False
     project = open(os.path.join(self.app.config['etc_dir'],
                   '.project'), "w")
     project.write(self.software + 'slaprunner-test')
@@ -447,6 +448,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertEqual(response, "2")
     # Test that the new call to isSoftwareReleaseReady
     # doesn't overwrite the previous installed one
+    killRunningProcess('slapgrid-sr')
     completed_path = os.path.join(self.app.config['runner_workdir'],
         'softwareLink', 'slaprunner-test', '.completed')
     completed_text = ".completed file: test"
