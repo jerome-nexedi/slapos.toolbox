@@ -795,8 +795,10 @@ def isSoftwareReleaseReady(config):
   """Return 1 if the Software Release has
   correctly been deployed, 0 if not,
   and 2 if it is currently deploying"""
+  auto_deploy = config['auto_deploy'] in TRUE_VALUES
+  auto_run = config['autorun'] in TRUE_VALUES
   project = os.path.join(config['etc_dir'], '.project')
-  if not os.path.exists(project):
+  if not ( os.path.exists(project) or auto_run or auto_deploy ):
     return "0"
   path = open(project, 'r').readline().strip()
   software_name = path
@@ -807,17 +809,17 @@ def isSoftwareReleaseReady(config):
   config_SR_folder(config)
   if os.path.exists(os.path.join(config['runner_workdir'],
       'softwareLink', software_name, '.completed')):
-    if config['autorun'] in TRUE_VALUES:
+    if auto_run:
       runSlapgridUntilSuccess(config, 'instance')
     return "1"
   else:
     if isSoftwareRunning(config):
       return "2"
-    elif config['auto_deploy'] in TRUE_VALUES:
+    elif auto_deploy:
       runSoftwareWithLock(config)
       config_SR_folder(config)
       time.sleep(15)
-      if config['autorun'] in TRUE_VALUES:
+      if auto_run:
         runSlapgridUntilSuccess(config, 'instance')
       return "2"
     else:
