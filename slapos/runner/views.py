@@ -290,18 +290,19 @@ def getProjectStatus():
 
 #view for current software release files
 def editCurrentProject():
-  project = os.path.join(app.config['etc_dir'], ".project")
+  project_file = os.path.join(app.config['etc_dir'], ".project")
+  # XXX hardcoded default project
+  project = "workspace/slapos"
+  if os.path.exists(project_file):
+    project = open(project_file).read()
   projectList = listFolder(app.config, 'workspace')
-  if os.path.exists(project) and projectList:
+  if projectList:
     return render_template('softwareFolder.html', workDir='runner_workdir',
-                           project=open(project).read(),
+                           project=project,
                            projectList=projectList)
-  elif not projectList:
+  else:
     flash('Please clone slapos repository, or your own repository')
     return redirect(url_for('manageRepository'))
-  else:
-    flash('Please, <br/>open or create a software to start with your project!!')
-    return redirect(url_for('openProject', method='open'))
 
 #create file or directory
 def createFile():
