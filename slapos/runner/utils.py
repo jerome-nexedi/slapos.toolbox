@@ -295,7 +295,7 @@ def runSoftwareWithLock(config, lock=True):
   slapgrid = Popen([config['slapos'], 'node', 'software', '--all',
                    '--cfg', config['slapos_cfg'], '--pidfile', slapgrid_pid,
                    '--verbose', '--logfile', config['software_log']],
-                    name='slapgrid-sr')
+                    name='slapgrid-sr', stdout=None)
   if lock:
     slapgrid.wait()
     #Saves the current compile software for re-use
@@ -392,7 +392,7 @@ def runInstanceWithLock(config, lock=True):
   slapgrid = Popen([config['slapos'], 'node', 'instance', '--all',
                    '--cfg', config['slapos_cfg'], '--pidfile', slapgrid_pid,
                    '--verbose', '--logfile', config['instance_log']],
-                   name='slapgrid-cp')
+                   name='slapgrid-cp', stdout=None)
   if lock:
     slapgrid.wait()
     return ( True if slapgrid.returncode == 0 else False )
