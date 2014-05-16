@@ -1,3 +1,11 @@
+0.39.2 (2014-05-16)
+-----------------
+
+ * Slaprunner: Add tab support [Alain T.]
+ * Slaprunner: Add upload file [Alain T.]
+ * Slaprunner: Improve editor full window [Alain T.]
+ * Slaprunner: Various fixes
+
 0.39.1 (2014-04-30)
 -----------------
 
