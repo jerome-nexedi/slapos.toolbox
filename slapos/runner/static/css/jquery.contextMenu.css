@@ -69,3 +69,4 @@
 .contextMenu LI.md5sum A { background-image: url(images/selection-select.png); }
 .contextMenu LI.refresh A { background-image: url(images/refresh.png); }
 .contextMenu LI.favorite A { background-image: url(images/knewstuff.png); }
+.contextMenu LI.uploadfile A { background-image: url(images/upload_folder.png); }

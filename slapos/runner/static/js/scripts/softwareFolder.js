@@ -7,9 +7,13 @@ $(document).ready(function () {
   "use strict";
 
     var viewer,
-        editor,
         modelist,
         config,
+        files,
+        working_node = null,
+        editorlist = Array(),
+        editorIndex = 0,
+        saveTimeOut = null,
         softwareDisplay = true,
         projectDir = $("input#project").val(),
         workdir = $("input#workdir").val(),
@@ -19,61 +23,315 @@ $(document).ready(function () {
         ajaxResult = false,
         clipboardNode = null,
         pasteMode = null,
-        selection = "",
-        edit_status = "",
-        current_file = null,
         favourite_list = new Array(),
-        beforeunload_warning_set = false,
+        editorWidth = $("#code").css("width"),
+        beforeunload_warning_set = 0,
         base_path = function () {
-            return softwareDisplay ? currentProject : 'runner_workdir/';
+            return softwareDisplay ? currentProject : 'workspace/';
         };
+    var MAX_TABITITLE_WIDTH = 126;
+    var TAB_EXTRA_WIDTH = 25;
+    var MIN_TABITEM_WIDTH = 61; //The minimum size of tabItem
+    var MAX_TAB_NUMBER = 10; //The maximum number of tab that could be opened
 
+
+    function alertStatus (jqXHR) {
+      if (jqXHR.status == 404) {
+          $("#error").Popup("Requested page not found. [404]", {type: 'error'});
+      } else if (jqXHR.status == 500) {
+          $("#error").Popup("Internal Error. Cannot respond to your request, please check your parameters", {type: 'error'});
+      } else {
+          $("#error").Popup("An Error occured: \n" + jqXHR.responseText, {type: 'error'});
+      }
+    }
+
+    // Open File in a new Tab and return status
     function openFile(file) {
-        if (send) {
-            return;
-        }
-        send = true;
-        edit = false;
-        if (file.substr(-1) !== "/") {
-          var info = $("#edit_info").html();
-          $("#edit_info").empty();
-          $("#edit_info").append("LOADING FILE... <img src='"+$SCRIPT_ROOT+"/static/images/loading.gif' />");
-          $.ajax({
-            type: "POST",
-            url: $SCRIPT_ROOT + '/getFileContent',
-            data: {file: file},
-            success: function (data) {
-                var name, start, path = file;
-                if (data.code === 1) {
-                    $("#edit_info").empty();
-                    name = file.split('/');
-                    if (file.length > 75) {
-                        //substring title.
-                        start = file.length - 75;
-                        path = "..." + file.substring(file.indexOf("/", (start + 1)));
-                    }
-                    $("#edit_info").append(" " + path);
-                    editor.getSession().setValue(data.result);
-                    var mode = modelist.getModeForPath(file);
-                    editor.getSession().modeName = mode.name;
-                    editor.getSession().setMode(mode.mode);
-                    beforeunload_warning_set = false;
-                    window.onbeforeunload = function() { return; };
-                    edit = true;
-                    current_file = file;
-                    $("span#edit_status").html("");
-                    edit_status = "";
-                    setCookie("EDIT_CURRENT_FILE", file);
-                } else {
-                    $("#error").Popup(data.result, {type: 'error', duration: 5000});
-                    $("#edit_info").html(info);
-                }
-                send = false;
+      var status = false;
+      if (file.substr(-1) === "/" || send) {
+        return false;
+      }
+      var hash = addTab (file, true);
+      if (hash === "") {
+        return false;
+      }
+      var activeSpan = getActiveTabTitleSelector(hash);
+      $(activeSpan).html('Loading file...');
+      $.ajax({
+          type: "POST",
+          url: $SCRIPT_ROOT + '/getFileContent',
+          data: {file: file}
+        })
+        .done(function(data) {
+          var editor = editorlist[hash].editor;
+          if (data.code === 1) {
+            editor.getSession().setValue(data.result);
+            $(activeSpan).html(file.replace(/^.*(\\|\/|\:)/, ''));
+            var mode = modelist.getModeForPath(file);
+            editor.getSession().modeName = mode.name;
+            editor.getSession().setMode(mode.mode);
+            editorlist[hash].busy = false;
+            status = true;
+          } else {
+            $("#error").Popup("Unable to open file: " + file + "<br/>" + data.result,
+                              {type: 'error', duration: 5000});
+            //Close current tab
+            $("#tabControl div[rel='" + hash + "']  span.bt_close").click();
+          }
+        })
+        .fail(function(jqXHR, exception) {
+          alertStatus (jqXHR);
+          //Close current tab
+          $("#tabControl div[rel='" + hash + "']  span.bt_close").click();
+        })
+        .always(function() {
+          // always
+        });
+      return status;
+    }
+
+    function runSaveFile(hash){
+      if ( !editorlist[hash].changed ) {
+        return;
+      }
+      if (editorlist[hash].busy) {
+          return;
+      }
+      editorlist[hash].busy = true;
+      $.ajax({
+          type: "POST",
+          url: $SCRIPT_ROOT + '/saveFileContent',
+          data: {
+              file: editorlist[hash].path,
+              content: editorlist[hash].editor.getSession().getValue()
+          }})
+        .done(function(data) {
+          if (data.code === 1) {
+            var currentSpan = getActiveTabTitleSelector(hash),
+              title = $(currentSpan).html();
+            editorlist[hash].changed = false;
+            $(currentSpan).html(title.substr(1));
+            if(--beforeunload_warning_set === 0) {
+              window.onbeforeunload = function() { return; };
             }
+          } else {
+              $("#error").Popup(data.result, {type: 'error', duration: 5000});
+          }
+        })
+        .fail(function(jqXHR, exception) {
+          alertStatus (jqXHR);
+        })
+        .always(function() {
+          editorlist[hash].busy = false;
+        });
+    }
+
+    /******* MANAGE TAB CONTROL *****/
+
+    function getTabList () {
+      var list = [];
+      for (var x in editorlist) {
+        list.push(editorlist[x].path);
+      }
+      return list;
+    }
+
+    function saveTabList () {
+      if (saveTimeOut) clearTimeout(saveTimeOut);
+      saveTimeOut = setTimeout(function () {
+          setCookie("OPENED_TAB_LIST", getTabList().join("#"));
+        }, 2000);
+    }
+
+    function getMaxTab () {
+      var tabBarWidth = $(".box_header").width() - $(".box_header ul").width();
+      var max = (tabBarWidth - (tabBarWidth % MIN_TABITEM_WIDTH))/MIN_TABITEM_WIDTH;
+      return ( max > MAX_TAB_NUMBER ) ? MAX_TAB_NUMBER : max;
+    }
+
+    //Reduce TabItem title to have the minimal or maximal width
+    function resizeTabItems (addTab) {
+      var numberTab = $("#tabControl div.item").length;
+      var width = 0;
+      if (addTab) {
+        numberTab++;
+      }
+      if (numberTab == 0) {
+        return width;
+      }
+      var tabBarWidth = $(".box_header").width() - $(".box_header ul").width();
+      var rest = tabBarWidth % numberTab;
+      var averageWidth = ( tabBarWidth - rest )/numberTab;
+      if (averageWidth > MIN_TABITEM_WIDTH) {
+        averageWidth -= TAB_EXTRA_WIDTH;
+        width = averageWidth + rest;
+        if (averageWidth > MAX_TABITITLE_WIDTH) {
+          averageWidth = MAX_TABITITLE_WIDTH;
+          width = averageWidth;
+        }
+        $("#tabControl div.item span:nth-child(1)").each(function () {
+          $(this).css('width', averageWidth);
+        });
+        if ( !addTab && (rest !== 0) ) {
+          $("#tabControl div.item:last-child span:nth-child(1)").each(function () {
+            $(this).css('width', width);
           });
         }
-        return;
+      }
+      return width;
     }
+
+    //Add new tabItem
+    function addTab (path, selected) {
+      var hash =  path.hashCode() + '';
+      if (editorlist.hasOwnProperty(hash)) {
+        //this file already exist in editor. Select file and exit!
+        $("#tabControl div.item").each( function () {
+          var rel = $(this).attr('rel');
+          if ( rel && (rel === hash) ) {
+            $(this).click();
+            return "";
+          }
+        });
+        return "";
+      }
+      var title = path.replace(/^.*(\\|\/|\:)/, '');
+      var numberTab = $("#tabControl div.item").length;
+      if ( numberTab >= getMaxTab() ) {
+        $("#error").Popup("Sorry! We cannot add more item, please close unused tab",
+            {type: 'info', duration: 5000});
+        return "";
+      }
+      var width = resizeTabItems(true);
+      var tab  = '<div class="item" rel="' + hash
+                + '"><span style="width: '+ width +'px" '
+                + 'title="' + path + '">' + title + '</span>'
+                + '<span class="bt_close" title="Close this tab">×</span></div>';
+      var editorhtml = '<pre class="editor" id="editor' + (++editorIndex)
+                + '" rel="' + hash + '"></pre>';
+
+      //Add Elements
+      $("#tabControl").append(tab);
+      $("#tabContent").append(editorhtml);
+      addEditor(path, hash, 'editor'+editorIndex);
+
+      /* Change selected tab*/
+      $("#tabControl div.item:last").click(function () {
+        var rel = $(this).attr('rel'), current;
+        if ( $(this).hasClass('active') ) {
+          editorlist[rel].editor.focus();
+          return false;
+        }
+        current = $("#tabContent pre.active").attr('rel');
+        if (current && current !== undefined) {
+          editorlist[current].isOpened = false;
+        }
+        $("#tabControl div.active").removeClass('active');
+        $("#tabContent pre.active").removeClass('active');
+        $(this).addClass('active');
+        $("#tabContent pre[rel='" + rel + "']").addClass('active');
+        editorlist[rel].isOpened = true;
+        editorlist[rel].editor.resize();
+        editorlist[rel].editor.focus();
+        return false;
+      });
+
+      /*Close Selected Tab*/
+      $("#tabControl div.item:last span.bt_close").click(function () {
+        var $tab = $(this).parent(), position = 0,
+            active = $tab.hasClass('active');
+        var rel = $tab.attr('rel');
+        if (editorlist[ rel ].changed) {
+          if (!window.confirm("You have unsaved changes. Your changes will be lost if you don't save them")){
+            return false;
+          }
+          if(--beforeunload_warning_set === 0) {
+            window.onbeforeunload = function() { return; };
+          }
+        }
+        //Remove tab
+        position = ($tab.index() === 0) ? 1 : $tab.index();
+        editorlist[ rel ].editor.destroy();
+        delete editorlist[ rel ];
+        $tab.remove();
+        $("#tabContent pre[rel='" + rel + "']").remove();
+        if ( active && $("#tabControl div.item").length > 0 ) {
+          $("#tabControl div.item:nth-child("+position+")").click();
+        }
+        resizeTabItems ();
+        saveTabList ();
+        return false;
+      });
+      if (selected) {
+        $("#tabControl div.item:last").click();
+      }
+
+      return hash;
+    }
+
+    function addEditor (path, hash, id) {
+      var editor = ace.edit(id);
+      //Init Ace editor!!
+
+      editor.setTheme("ace/theme/crimson_editor");
+      editor.getSession().setMode("ace/mode/text");
+      editor.getSession().setTabSize(2);
+      editor.getSession().setUseSoftTabs(true);
+      editor.renderer.setHScrollBarAlwaysVisible(false);
+
+      editorlist[hash] = {editor: editor, changed: false, path: path,
+                          isOpened: false, busy: true};
+      editor.on("change", function (e) {
+        var activeToken = getActiveToken(),
+            activeSpan = getActiveTabTitleSelector();
+        if (!editorlist[activeToken].busy && !editorlist[activeToken].changed) {
+          editorlist[activeToken].changed = true;
+          $(activeSpan).html("*" + $(activeSpan).html());
+          if(beforeunload_warning_set === 0) {
+            window.onbeforeunload = function() { return "You have unsaved changes. Your changes will be lost if you don't save them"; };
+          }
+          beforeunload_warning_set++;
+        }
+      });
+      editor.commands.addCommand({
+        name: 'SaveText',
+        bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
+        exec: function(editor) {
+          $("#save").click();
+        },
+        readOnly: false // false if this command should not apply in readOnly mode
+      });
+      editor.commands.addCommand({
+        name: 'Fullscreen',
+        bindKey: {win: 'Ctrl-E',  mac: 'Command-E'},
+        exec: function(editor) {
+            $("#fullscreen").click();
+        }
+      });
+    }
+
+    function getCurrentEditor () {
+      var hash = $("#tabContent pre.active").attr('rel');
+      if ( editorlist.hasOwnProperty(hash) ) {
+        return editorlist[hash].editor;
+      }
+      else { return null }
+    }
+
+    function getActiveToken () {
+      return $("#tabContent pre.active").attr('rel');
+    }
+
+    function getActiveTabTitleSelector (hash) {
+      var rel = (hash) ? hash : $("#tabContent pre.active").attr('rel');
+      if ( editorlist.hasOwnProperty(rel) ) {
+        return "#tabControl div[rel='" + rel + "']  span:nth-child(1)";
+      }
+      else { return ""; }
+    }
+
+
+    /****** END ******/
 
     function switchContent() {
         if (!softwareDisplay) {
@@ -89,7 +347,6 @@ $(document).ready(function () {
         }
         $("#info").empty();
         $("#info").append("Current work tree: " + base_path());
-        selection = "";
         clipboardNode = null;
         pasteMode = null;
     }
@@ -122,9 +379,10 @@ $(document).ready(function () {
         if (developList === null || developList.length <= 0) {
             return;
         }
+        var editor = getCurrentEditor();
         editor.navigateFileStart();
         editor.find('buildout', {caseSensitive: true, wholeWord: true});
-        if (!editor.getSelectionRange().isEmpty()) {
+        if (!getCurrentEditor().getSelectionRange().isEmpty()) {
             //editor.find("",{caseSensitive: true,wholeWord: true,regExp: true});
             //if (!editor.getSelectionRange().isEmpty()) {
                     //alert("found");
@@ -132,7 +390,8 @@ $(document).ready(function () {
             //else{alert("no found");
             //}
         } else {
-            $("#error").Popup("Can not found part [buildout]! Please make sure that you have a cfg file", {type: 'alert', duration: 3000});
+            $("#error").Popup("Can not found part [buildout]! Please make sure that you have a cfg file",
+                {type: 'alert', duration: 3000});
             return;
         }
         editor.navigateLineEnd();
@@ -142,7 +401,7 @@ $(document).ready(function () {
                 result = data.result.split('#');
                 editor.insert("\ndevelop =\n\t" + result[0] + "\n");
                 for (i = 1; i < result.length; i += 1) {
-                    editor.insert("\t" + result[i] + "\n");
+                    getCurrentEditor().insert("\t" + result[i] + "\n");
                 }
             }
         })
@@ -153,6 +412,7 @@ $(document).ready(function () {
         $("#option").click();
     }
 
+    /***** FILE TREE MANAGEMENT ******/
     // --- Implement Cut/Copy/Paste --------------------------------------------
 
     function copyPaste(action, node) {
@@ -172,10 +432,14 @@ $(document).ready(function () {
             files: clipboardNode.data.path,
             dir: node.data.path
           };
+          // Copy mode: prevent duplicate keys:
+          var request, cb = clipboardNode.toDict(true, function(dict){
+            delete dict.key; // Remove key, so a new one will be created
+          });
+          cb.data.path = node.data.path + '/' + clipboardNode.title;
           if( pasteMode == "cut" ) {
             // Cut mode: check for recursion and remove source
             dataForSend.opt = 7;
-            var cb = clipboardNode.toDict(true);
             if( node.isDescendantOf(clipboardNode) ) {
               $("#error").Popup("ERROR: Cannot move a node to it's sub node.", {type: 'error', duration: 5000});
               return;
@@ -188,10 +452,11 @@ $(document).ready(function () {
                   node.render();
                 }
                 else{
-                  node.lazyLoad()
+                  node.load(true);
                 }
                 clipboardNode.remove();
               }
+              clipboardNode = pasteMode = null;
             });
           } else {
             if (node.key === clipboardNode.getParent().key){
@@ -203,12 +468,8 @@ $(document).ready(function () {
             request = fileBrowserOp(dataForSend);
             request.always(function() {
               if (ajaxResult){
-                // Copy mode: prevent duplicate keys:
-                var cb = clipboardNode.toDict(true, function(dict){
-                  delete dict.key; // Remove key, so a new one will be created
-                });
                 if (dataForSend.opt === 14){
-                  node.lazyLoad(true);
+                  node.load(true);
                   node.toggleExpanded();
                 }
                 else if (node.isExpanded()){
@@ -216,9 +477,9 @@ $(document).ready(function () {
                   node.render();
                 }
               }
+              clipboardNode = pasteMode = null;
             });
           }
-          clipboardNode = pasteMode = null;
           break;
       }
     };
@@ -232,10 +493,10 @@ $(document).ready(function () {
       node.setFocus();
       node.setActive();
       if (srcElement.hasClass('fancytree-folder')){
-        menu.disableContextMenuItems("#edit,#editfull,#view,#md5sum,#favorite");
+        menu.disableContextMenuItems("#edit,#view,#md5sum,#favorite");
       }
       else{
-        menu.disableContextMenuItems("#nfile,#nfolder,#refresh,#paste");
+        menu.disableContextMenuItems("#nfile,#nfolder,#refresh,#paste,#ufile");
       }
       return true;
     }
@@ -257,13 +518,7 @@ $(document).ready(function () {
           }
         })
         .fail(function(jqXHR, exception) {
-          if (jqXHR.status == 404) {
-              $("#error").Popup("Requested page not found. [404]", {type: 'error'});
-          } else if (jqXHR.status == 500) {
-              $("#error").Popup("Internal Error. Cannot respond to your request, please check your parameters", {type: 'error'});
-          } else {
-              $("#error").Popup("An Error occured: \n" + jqXHR.responseText, {type: 'error'});
-          }
+          alertStatus (jqXHR);
         })
         .always(function() {
           //return result;
@@ -286,7 +541,8 @@ $(document).ready(function () {
         case "paste":
           copyPaste(action, node);
           break;
-        case "edit": openFile(node.data.path); break;
+        case "edit": openFile(node.data.path);
+          saveTabList (); break;
         case "view":
           $.colorbox.remove();
           $.ajax({
@@ -313,16 +569,11 @@ $(document).ready(function () {
             }
           });
           break;
-        case "editfull":
-          var url = $SCRIPT_ROOT+"/editFile?profile="+encodeURIComponent(node.data.path)+"&filename="+encodeURIComponent(node.title);
-          window.open(url, '_blank');
-          window.focus();
-          break;
         case "md5sum":
           getmd5sum(node.data.path);
           break;
         case "refresh":
-          node.lazyLoad(true);
+          node.load(true);
           node.toggleExpanded();
           break;
         case "nfolder":
@@ -338,7 +589,7 @@ $(document).ready(function () {
           request = fileBrowserOp(dataForSend)
           request.always(function() {
             if (ajaxResult){
-              node.lazyLoad(true);
+              node.load(true);
               node.toggleExpanded();
             }
           });
@@ -356,7 +607,7 @@ $(document).ready(function () {
           request = fileBrowserOp(dataForSend)
           request.always(function() {
             if (ajaxResult){
-              node.lazyLoad(true);
+              node.load(true);
               node.toggleExpanded();
             }
           });
@@ -391,16 +642,34 @@ $(document).ready(function () {
           request = fileBrowserOp(dataForSend);
           request.always(function() {
             if (ajaxResult){
-              var copy = node.toDict(true, function(dict){
-                dict.title = newName;
-              });
-              node.applyPatch(copy);
+              if (node.getParent().isRoot()) {
+                if ($('#fileTreeFull').css('display') === 'none'){
+                  $('#fileTree').fancytree("getTree").reload();
+                }
+                else {
+                  $('#fileTreeFull').fancytree("getTree").reload();
+                }
+              }
+              else {
+                node.getParent().load(true);
+                node.toggleExpanded();
+              }
             }
           });
 
           break;
         case "favorite":
           addToFavourite(node.data.path);
+          break;
+        case "ufile":
+          $.colorbox.remove();
+          $("#uploadForm input[name=dir]").val(node.data.path);
+          $("#inlineUpload").colorbox({inline:true,
+                width: "480px", height: "200px", onComplete:function(){
+                //nothing
+          }});
+          $("#inlineUpload").click();
+          working_node = node;
           break;
         default:
           return;
@@ -427,6 +696,7 @@ $(document).ready(function () {
         dblclick: function(event, data) {
           if (!data.node.isFolder()){
             openFile(data.node.data.path);
+            saveTabList ();
           }
         },
         source: {
@@ -434,7 +704,7 @@ $(document).ready(function () {
           data:{opt: 20, dir: path, key: key, listfiles: 'yes'},
           cache: false
         },
-        lazyload: function(event, data) {
+        lazyLoad: function(event, data) {
           var node = data.node;
           data.result = {
             url: $SCRIPT_ROOT + "/fileBrowser",
@@ -490,10 +760,13 @@ $(document).ready(function () {
       });
     }
 
+    /******* END ******/
+
     function openOnFavourite($elt){
       var index = parseInt($elt.attr('rel')),
           file = favourite_list[index];
       openFile(file);
+      saveTabList ();
       $("#filelist").click();
     }
 
@@ -522,9 +795,12 @@ $(document).ready(function () {
 
     function initEditor(){
       var tmp, filename;
-      current_file = getCookie("EDIT_CURRENT_FILE");
-      if (current_file) {
-          openFile(current_file);
+      var strList = getCookie("OPENED_TAB_LIST"), tabList;
+      if (strList) {
+        tabList = strList.split("#");
+        for (var i=0; i< tabList.length; i++) {
+          openFile(tabList[i]);
+        }
       }
       tmp = getCookie("FAV_FILE_LIST");
       if(tmp){
@@ -550,6 +826,7 @@ $(document).ready(function () {
         removeFavourite($(this));
         return false;
       });
+      saveTabList ();
     }
 
     function addToFavourite(filepath){
@@ -585,20 +862,10 @@ $(document).ready(function () {
     }
 
 
+    /************ INITIALIZE FUNTIONS CALLS  ************************/
 
-    editor = ace.edit("editor");
     modelist = require("ace/ext/modelist");
-    ace.require("ace/ext/language_tools");
     config = require("ace/config");
-
-    editor.setOptions({ enableBasicAutocompletion: true, enableSnippets: true });
-
-    editor.setTheme("ace/theme/crimson_editor");
-    editor.getSession().setMode("ace/mode/text");
-    editor.getSession().setTabSize(2);
-    editor.getSession().setUseSoftTabs(true);
-    editor.renderer.setHScrollBarAlwaysVisible(false);
-
     initTree('#fileTree', currentProject, 'pfolder');
     initTree('#fileTreeFull', 'runner_workdir');
     //bindContextMenu('#fileTree');
@@ -609,62 +876,40 @@ $(document).ready(function () {
     $("#option").Tooltip();
     $("#filelist").Tooltip();
 
-    editor.on("change", function (e) {
-        if (edit_status === "" && edit) {
-            $("span#edit_status").html("*");
-        }
-        if (!beforeunload_warning_set) {
-            window.onbeforeunload = function() { return "You have unsaved changes"; };
-            beforeunload_warning_set = true;
-        }
-    });
-
-    editor.commands.addCommand({
-      name: 'myCommand',
-      bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
-      exec: function(editor) {
-        $("#save").click();
-      },
-      readOnly: false // false if this command should not apply in readOnly mode
-    });
-
-    editor.commands.addCommand({
-      name: 'Fullscreen',
-      bindKey: {win: 'Ctrl-E',  mac: 'Command-E'},
-      exec: function(editor) {
-          $("#fullscreen").click();
-      }
-    });
-
     $("#save").click(function () {
-        beforeunload_warning_set = false;
-        window.onbeforeunload = function() { return; };
-        if (!edit) {
-            $("#error").Popup("Please select the file to edit", {type: 'alert', duration: 3000});
-            return false;
-        }
-        if (send) {
-            return false;
-        }
-        send = true;
-        $.ajax({
-            type: "POST",
-            url: $SCRIPT_ROOT + '/saveFileContent',
-            data: {
-                file: current_file,
-                content: editor.getSession().getValue()
-            },
-            success: function (data) {
-                if (data.code === 1) {
-                    $("#error").Popup("File saved succefuly!", {type: 'confirm', duration: 3000});
-                    $("span#edit_status").html("");
-                } else {
-                    $("#error").Popup(data.result, {type: 'error', duration: 5000});
-                }
-                send = false;
-            }
-        });
+      if ($("#tabControl div.item").length === 0) {
         return false;
+      }
+      var hash = getActiveToken();
+      runSaveFile(hash);
+      return false;
+    });
+
+    $( "#tabControl" ).resize(function() {
+      resizeTabItems ();
+    });
+
+    $("#expand").click( function () {
+      var leftWith = $('#fileTree').width() + 6;
+      if ( $("#details_box").css("display") !== 'none' ) {
+        $("#details_box").hide();
+        $("#code").css("width", "100%");
+        if ( $("body").hasClass("fullScreen") ) {
+          $(".main_content").css('left', '0');
+        }
+      }
+      else {
+        if ( $("body").hasClass("fullScreen") ) {
+          $(".main_content").css('left', leftWith + 'px');
+        }
+        $("#details_box").show();
+        $("#code").css("width", editorWidth);
+      }
+      if ($("#tabControl div.item").length !== 0) {
+        getCurrentEditor().resize();
+      }
+      $("#option").click();
+      return false;
     });
 
     /*$("#details_head").click(function () {
@@ -677,60 +922,113 @@ $(document).ready(function () {
         return false;
     });
     $("#getmd5").click(function () {
-        getmd5sum(current_file);
-        $("#option").click();
+      if ($("#tabControl div.item").length === 0) {
         return false;
+      }
+      getmd5sum(editorlist[getActiveToken()].path);
+      $("#option").click();
+      return false;
     });
 
-    $("#clearselect").click(function () {
-        edit = false;
-        $("#info").empty();
-        $("#info").append("Current work tree: " + base_path());
-        $("#edit_info").empty();
-        $("#edit_info").append("No file in editor");
-        editor.getSession().setValue("");
-        $("a#option").hide();
-        selection = "";
-        return false;
-    });
     $("#adddevelop").click(function () {
-        var developList = [],
-            i = 0;
-        $("#plist li").each(function (index) {
-            var elt = $(this).find("input:checkbox");
-            if (elt.is(":checked")) {
-                developList[i] = workdir + "/" + elt.val();
-                i += 1;
-                elt.attr("checked", false);
-            }
-        });
-        if (developList.length > 0) {
-            setDevelop(developList);
-        }
+      if ($("#tabControl div.item").length === 0) {
         return false;
+      }
+      var developList = [],
+          i = 0;
+      $("#plist li").each(function (index) {
+          var elt = $(this).find("input:checkbox");
+          if (elt.is(":checked")) {
+              developList[i] = workdir + "/" + elt.val();
+              i += 1;
+              elt.attr("checked", false);
+          }
+      });
+      if (developList.length > 0) {
+          setDevelop(developList);
+      }
+      return false;
     });
-    $("a#addflist").click(function(){
-      addToFavourite(current_file);
+    $("a#addflist").click(function () {
+      if ($("#tabControl div.item").length === 0) {
+        return false;
+      }
+      addToFavourite(editorlist[getActiveToken()].path);
       $("#option").click();
       return false;
     });
 
-    $("a#find").click(function(){
-      config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor)});
+    $("a#find").click(function () {
+      if ($("#tabControl div.item").length === 0) {
+        return false;
+      }
+      config.loadModule("ace/ext/searchbox", function(e) {
+        e.Search(getCurrentEditor())
+      });
       $("#option").click();
       return false;
     });
 
-    $("a#replace").click(function(){
-      config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
+    $("a#replace").click(function () {
+      if ($("#tabControl div.item").length === 0) {
+        return false;
+      }
+      config.loadModule("ace/ext/searchbox", function(e) {
+        e.Search(getCurrentEditor(), true)
+      });
       $("#option").click();
       return false;
     });
 
     $("#fullscreen").click(function(){
-          $("body").toggleClass("fullScreen");
-          $("#editor").toggleClass("fullScreen-editor");
-          editor.resize();
+      var hash = getActiveToken();
+      $("#fullscreen span").toggleClass("e_expanded");
+      $("body").toggleClass("fullScreen");
+      $("#software_folder").toggleClass("fullScreen");
+      $(".main_content").toggleClass("fullScreen-editor");
+      $('#fileTree').toggleClass("fullScreen-tree");
+      $('#fileTreeFull').toggleClass("fullScreen-tree");
+      $(".main_content").css('left', '');
+      if ( $("#details_box").css("display") === 'none' ) {
+        $(".main_content").css('left', '0');
+      }
+      if ($("#tabControl div.item").length === 0) {
+        return false;
+      }
+      resizeTabItems ();
+      editorlist[hash].editor.resize();
+      editorlist[hash].editor.focus();
+      return false;
     });
+
+    $('#choosefiles').on('change', function (event) {
+      files = event.target.files;
+    });
+
+    $("#submitUpload").click( function (){
+      jQuery('#uploadForm').submit();
+      $("#cboxClose").click();
+      return false;
+    });
+
+    jQuery('#uploadForm').ajaxForm({
+      beforeSubmit: function () {
+        $("#error").Popup("We are uploading your file...", {type: 'info', duration: 3000});
+      },
+      success: function (data, statusText, xhr, $form) {
+        if (data.indexOf("{result: '1'}") === -1) {
+          var msg = (data === "{result: '0'}") ? "ERROR: Please check your file or folder location!" : data;
+          $("#error").Popup("Error: " + msg, {type: 'error', duration: 5000});
+        } else {
+          $("#error").Popup("Your file has been uploaded!", {type: 'confirm', duration: 5000});
+          working_node.load(true);
+        }
+      },
+      error: function (xhr, ajaxOptions, thrownError) {
+        alertStatus (xhr);
+      },
+      dataType: 'script'
+    });
+
 
 });

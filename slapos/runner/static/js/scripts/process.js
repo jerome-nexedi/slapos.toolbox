@@ -156,7 +156,7 @@ function updateStatus(elt, val) {
   $(src).addClass(value);
   switch (val) {
     case "waiting":
-      $(src).children('p').text("Waiting for starting");
+      $(src).children('p').text("Queue");
       break;
     case "stopped":
       $(src).children('p').text("Stopped by user");
@@ -201,13 +201,13 @@ function setRunningState(data) {
                   $("#softrun").addClass('slapos_stop');
                   $("#running img").before('<p id="running_info" class="instance">Running instance...</p>');
                 }
-		if (processType === "Software") {
-                  running = false;
-                  $("#running_info").remove();
-                  $("#softrun").addClass('slapos_run');
-                  $("#softrun").removeClass('slapos_stop');
-                  $("#instrun").click();
-		}
+            		if (processType === "Software") {
+                    running = false;
+                    $("#running_info").remove();
+                    $("#softrun").addClass('slapos_run');
+                    $("#softrun").removeClass('slapos_stop');
+                    $("#instrun").click();
+            		}
                 processType = "Instance";
             }
         }
