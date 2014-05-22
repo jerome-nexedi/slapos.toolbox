@@ -139,7 +139,7 @@ def getCurrentSoftwareReleaseProfile(config):
   """
   try:
     software_folder = open(
-        os.path.join(config['etc_dir'], ".project")).read()
+        os.path.join(config['etc_dir'], ".project")).read().rstrip()
     return realpath(
         config, os.path.join(software_folder, config['software_profile']))
   # XXXX No Comments
