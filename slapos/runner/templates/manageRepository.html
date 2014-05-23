@@ -20,22 +20,25 @@
   </ul><!-- //Tab buttons -->
   <div class="tabDetails">
     <div id="tab1" class="tabContents">
+      <h2>Repository Informations</h2>
+      <br/>
       <div id="repository" style="margin-left:40px;">
-      <label for='name'>Project name: </label>
-      <input type="text" name="name" id="name" size='20' value="slapos" />
-      <label for='repo'>&nbsp;url: &nbsp;&nbsp;</label>
-      <input type="text" name="repo" id="repo" size='25' value="http://git.erp5.org/repos/slapos.git" /><br/>
-      <label for='user'>Your name: &nbsp;&nbsp;&nbsp;</label>
-      <input type="text" name="user" id="user" size='20' value="{{name}}" />
-      <label for='email'>Email: </label>
-      <input type="text" name="email" id="email" size='25' value="{% if not email %}Enter your email address...{% else %}{{email}}{%endif%}" />
-      <input type="hidden" name="workdir" id="workdir" value="{{workDir}}" />
-      <button class="button" id="clone">clone</button>
-      <img class="waitting" id="imgwaitting" src="{{ url_for('static', filename='images/waiting.gif') }}" alt="" />
-      <br/><br/>
+        <div class='form-elt'><label for='name'>Project name: </label></div>
+        <div class='form-elt'><input type="text" name="name" id="name" size='20' value="slapos" /></div>
+        <div class='form-elt'><label for='repo'>&nbsp;Project URL: &nbsp;&nbsp;</label></div>
+        <div class='form-elt'><input type="text" name="repo" id="repo" size='25' value="http://git.erp5.org/repos/slapos.git" /></div>
+        <div class='clear'></div>
+        <div class='form-elt'><label for='user'>Your name: &nbsp;&nbsp;&nbsp;</label></div>
+        <div class='form-elt'><input type="text" name="user" id="user" size='20' value="{{name}}" /></div>
+        <div class='form-elt'><label for='email'>Your Email: </label></div>
+        <div class='form-elt'><input type="text" name="email" id="email" size='25' value="{% if not email %}Enter your email address...{% else %}{{email}}{%endif%}" /></div>
+        <button class="button" id="clone">clone</button>
+        <img class="waitting" id="imgwaitting" src="{{ url_for('static', filename='images/waiting.gif') }}" alt="" />
+        <div class='clear'></div><br/>
+        <input type="hidden" name="workdir" id="workdir" value="{{workDir}}" />
       </div>
       <br/>
-      <h2>Set your Security Mode</h2>
+      <h2>Security Mode [Optional]</h2>
       <div class="menu-box-right">
         <div style="background:#fff; padding:10px; min-height:100px; font-size:14px;">
         <div id="box0">

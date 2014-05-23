@@ -183,6 +183,15 @@ body {
     color: #19485C;
 }
 
+.form-elt{
+  min-width: 100px;
+  display: block;
+  float:left;
+  margin-top: 10px;
+  margin-right: 10px;
+  line-height: 22px;
+}
+
 .main_foot{
     height: 15px;
     background: url(../images/main_bottom.png) no-repeat;

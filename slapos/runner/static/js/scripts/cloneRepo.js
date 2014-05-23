@@ -115,9 +115,6 @@ $(document).ready(function () {
                 $("#error").Popup("Please enter your password", {type: 'alert', duration: 3000});
                 return false;
             }
-        } else if (repo_url.indexOf("https://") !== -1) {
-            $("#error").Popup("Please select HTTPS Security Mode for this repository", {type: 'alert', duration: 3000});
-            return false;
         }
         $("#imgwaitting").fadeIn('normal');
         $("#clone").empty();
