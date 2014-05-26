@@ -11,7 +11,7 @@ $(document).ready(function () {
         config,
         files,
         working_node = null,
-        editorlist = Array(),
+        editorlist = [],
         editorIndex = 0,
         saveTimeOut = null,
         softwareDisplay = true,
@@ -23,7 +23,7 @@ $(document).ready(function () {
         ajaxResult = false,
         clipboardNode = null,
         pasteMode = null,
-        favourite_list = new Array(),
+        favourite_list = [],
         editorWidth = $("#code").css("width"),
         beforeunload_warning_set = 0,
         base_path = function () {
@@ -65,11 +65,12 @@ $(document).ready(function () {
         .done(function(data) {
           var editor = editorlist[hash].editor;
           if (data.code === 1) {
-            editor.getSession().setValue(data.result);
+            editor.session.setValue(data.result);
             $(activeSpan).html(file.replace(/^.*(\\|\/|\:)/, ''));
             var mode = modelist.getModeForPath(file);
-            editor.getSession().modeName = mode.name;
-            editor.getSession().setMode(mode.mode);
+            editor.session.modeName = mode.name;
+            editor.session.setMode(mode.mode);
+            editor.session.getUndoManager().reset();
             editorlist[hash].busy = false;
             status = true;
           } else {
@@ -103,7 +104,7 @@ $(document).ready(function () {
           url: $SCRIPT_ROOT + '/saveFileContent',
           data: {
               file: editorlist[hash].path,
-              content: editorlist[hash].editor.getSession().getValue()
+              content: editorlist[hash].editor.session.getValue()
           }})
         .done(function(data) {
           if (data.code === 1) {
@@ -123,6 +124,7 @@ $(document).ready(function () {
         })
         .always(function() {
           editorlist[hash].busy = false;
+          editorlist[hash].editor.session.getUndoManager().markClean();
         });
     }
 
@@ -156,7 +158,7 @@ $(document).ready(function () {
       if (addTab) {
         numberTab++;
       }
-      if (numberTab == 0) {
+      if (numberTab === 0) {
         return width;
       }
       var tabBarWidth = $(".box_header").width() - $(".box_header ul").width();
@@ -274,16 +276,19 @@ $(document).ready(function () {
       //Init Ace editor!!
 
       editor.setTheme("ace/theme/crimson_editor");
-      editor.getSession().setMode("ace/mode/text");
-      editor.getSession().setTabSize(2);
-      editor.getSession().setUseSoftTabs(true);
+      editor.session.setMode("ace/mode/text");
+      editor.session.setTabSize(2);
+      editor.session.setUseSoftTabs(true);
       editor.renderer.setHScrollBarAlwaysVisible(false);
 
       editorlist[hash] = {editor: editor, changed: false, path: path,
                           isOpened: false, busy: true};
-      editor.on("change", function (e) {
+      editor.on('input', function (e) {
         var activeToken = getActiveToken(),
             activeSpan = getActiveTabTitleSelector();
+        if (editorlist[activeToken].editor.session.getUndoManager().isClean()){
+          return;
+        }
         if (!editorlist[activeToken].busy && !editorlist[activeToken].changed) {
           editorlist[activeToken].changed = true;
           $(activeSpan).html("*" + $(activeSpan).html());
@@ -482,7 +487,7 @@ $(document).ready(function () {
           }
           break;
       }
-    };
+    }
 
     function manageMenu (srcElement, menu){
       /*if (!srcElement.hasClass('fancytree-node')){
@@ -551,21 +556,21 @@ $(document).ready(function () {
             data: {opt: 9, filename: node.title, dir: directory},
             success: function (data) {
               $("#inline_content").empty();
-        			$("#inline_content").append('<div class="main_content"><pre id="editorViewer"></pre></div>');
+              $("#inline_content").append('<div class="main_content"><pre id="editorViewer"></pre></div>');
               viewer = ace.edit("editorViewer");
               viewer.setTheme("ace/theme/crimson_editor");
 
               var mode = modelist.getModeForPath(node.data.path);
-              viewer.getSession().modeName = mode.name;
-              viewer.getSession().setMode(mode.mode);
-              viewer.getSession().setTabSize(2);
-              viewer.getSession().setUseSoftTabs(true);
+              viewer.session.modeName = mode.name;
+              viewer.session.setMode(mode.mode);
+              viewer.session.setTabSize(2);
+              viewer.session.setUseSoftTabs(true);
               viewer.renderer.setHScrollBarAlwaysVisible(false);
               viewer.setReadOnly(true);
-        			$("#inlineViewer").colorbox({inline:true, width: "847px", onComplete:function(){
-        				viewer.getSession().setValue(data);
-        			}, title: "Content of file: " + node.title});
-  			      $("#inlineViewer").click();
+              $("#inlineViewer").colorbox({inline:true, width: "847px", onComplete:function(){
+                viewer.session.setValue(data);
+              }, title: "Content of file: " + node.title});
+              $("#inlineViewer").click();
             }
           });
           break;
@@ -578,7 +583,7 @@ $(document).ready(function () {
           break;
         case "nfolder":
           var newName = window.prompt('Please Enter the folder name: ');
-          if (newName == null || newName.length < 1) {
+          if (newName === null || newName.length < 1) {
               return;
           }
           var dataForSend = {
@@ -596,7 +601,7 @@ $(document).ready(function () {
           break;
         case "nfile":
           var newName = window.prompt('Please Enter the file name: ');
-          if (newName == null || newName.length < 1) {
+          if (newName === null || newName.length < 1) {
               return;
           }
           var dataForSend = {
@@ -675,7 +680,7 @@ $(document).ready(function () {
           return;
         }
       }, manageMenu);
-    };
+    }
 
     // --- Init fancytree during startup ----------------------------------------
     function initTree(tree, path, key){
@@ -963,7 +968,7 @@ $(document).ready(function () {
         return false;
       }
       config.loadModule("ace/ext/searchbox", function(e) {
-        e.Search(getCurrentEditor())
+        e.Search(getCurrentEditor());
       });
       $("#option").click();
       return false;
@@ -974,7 +979,7 @@ $(document).ready(function () {
         return false;
       }
       config.loadModule("ace/ext/searchbox", function(e) {
-        e.Search(getCurrentEditor(), true)
+        e.Search(getCurrentEditor(), true);
       });
       $("#option").click();
       return false;
