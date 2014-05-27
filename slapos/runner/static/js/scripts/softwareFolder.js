@@ -29,6 +29,7 @@ $(document).ready(function () {
         base_path = function () {
             return softwareDisplay ? currentProject : 'workspace/';
         };
+    
     var MAX_TABITITLE_WIDTH = 126;
     var TAB_EXTRA_WIDTH = 25;
     var MIN_TABITEM_WIDTH = 61; //The minimum size of tabItem
@@ -124,7 +125,6 @@ $(document).ready(function () {
         })
         .always(function() {
           editorlist[hash].busy = false;
-          editorlist[hash].editor.session.getUndoManager().markClean();
         });
     }
 
@@ -286,10 +286,10 @@ $(document).ready(function () {
       editor.on('input', function (e) {
         var activeToken = getActiveToken(),
             activeSpan = getActiveTabTitleSelector();
-        if (editorlist[activeToken].editor.session.getUndoManager().isClean()){
-          return;
-        }
         if (!editorlist[activeToken].busy && !editorlist[activeToken].changed) {
+          if (!editorlist[activeToken].editor.session.getUndoManager().hasUndo()){
+            return;
+          }
           editorlist[activeToken].changed = true;
           $(activeSpan).html("*" + $(activeSpan).html());
           if(beforeunload_warning_set === 0) {
@@ -370,8 +370,14 @@ $(document).ready(function () {
             success: function (data) {
                 if (data.code === 1) {
                     filename = path.replace(/^.*(\\|\/|\:)/, '');
-                    $("#info").empty();
-                    $("#info").html("Md5sum for file [" + filename + "]: " + data.result);
+                    if ( $("body").hasClass("fullScreen") ) {
+                      $("#error").Popup("Md5sum for file [" + filename + "]:<br/>" 
+                              + "<b>" + data.result + "</b>", {type: 'confirm'});
+                    }
+                    else {
+                      $("#info").empty();
+                      $("#info").html("Md5sum for file [" + filename + "]: " + data.result);
+                    }
                 } else {
                     $("#error").Popup(data.result, {type: 'error', duration: 5000});
                 }
@@ -475,7 +481,7 @@ $(document).ready(function () {
               if (ajaxResult){
                 if (dataForSend.opt === 14){
                   node.load(true);
-                  node.toggleExpanded();
+                  expandAfterLoad (node, true);
                 }
                 else if (node.isExpanded()){
                   node.addChildren(cb);
@@ -498,7 +504,7 @@ $(document).ready(function () {
       node.setFocus();
       node.setActive();
       if (srcElement.hasClass('fancytree-folder')){
-        menu.disableContextMenuItems("#edit,#view,#md5sum,#favorite");
+        menu.disableContextMenuItems("#edit,#view,#md5sum");
       }
       else{
         menu.disableContextMenuItems("#nfile,#nfolder,#refresh,#paste,#ufile");
@@ -579,7 +585,7 @@ $(document).ready(function () {
           break;
         case "refresh":
           node.load(true);
-          node.toggleExpanded();
+          expandAfterLoad (node, true);
           break;
         case "nfolder":
           var newName = window.prompt('Please Enter the folder name: ');
@@ -595,7 +601,7 @@ $(document).ready(function () {
           request.always(function() {
             if (ajaxResult){
               node.load(true);
-              node.toggleExpanded();
+              expandAfterLoad (node, true);
             }
           });
           break;
@@ -613,7 +619,7 @@ $(document).ready(function () {
           request.always(function() {
             if (ajaxResult){
               node.load(true);
-              node.toggleExpanded();
+              expandAfterLoad (node, true);
             }
           });
           break;
@@ -635,7 +641,7 @@ $(document).ready(function () {
           break;
         case "rename":
           var newName = window.prompt('Please enter the new name: ', node.title);
-          if (newName == null) {
+          if (newName === null) {
               return;
           }
           dataForSend = {
@@ -657,14 +663,18 @@ $(document).ready(function () {
               }
               else {
                 node.getParent().load(true);
-                node.toggleExpanded();
+                expandAfterLoad (node, true);
               }
             }
           });
 
           break;
         case "favorite":
-          addToFavourite(node.data.path);
+          var nodePath = node.data.path;
+          if (node.isFolder()) {
+            nodePath = (nodePath.substr(-1) === '/') ? nodePath : nodePath + '/';
+          }
+          addToFavourite(nodePath);
           break;
         case "ufile":
           $.colorbox.remove();
@@ -764,14 +774,85 @@ $(document).ready(function () {
         }
       });
     }
+    
+    function expandAfterLoad (node, toState) {
+      /*Expand node after the call of load.
+        toState if true of false*/
+      setTimeout(function () {
+        if (node.isLoaded()) {
+          node.setExpanded(toState);
+        }
+        else {
+          expandAfterLoad (node, toState);
+        }
+      },300);
+    }
+    
+    function loadNodeAndExpand(tree, subNode, node, position, loading) {
+      var i = position, nextNode = null;
+      if (i >= subNode.length ) {
+        if (node) {
+          node.setActive(true);
+          node.scrollIntoView();
+        }
+        return;
+      }
+      if (!loading) {
+        var childList = (i === 1 ) ? tree.toDict() : node.getChildren();
+        for (var j=0; j<childList.length; j++){
+          if (childList[j].title === subNode[i]) {
+            nextNode = (i === 1 ) ? tree.getNodeByKey(childList[j].key) : childList[j];
+            break;
+          }
+        }
+      }
+      else {
+        nextNode = node;
+      }
+      if (nextNode) {
+        if (!loading) {
+          if (!nextNode.isLoaded()) {
+            nextNode.load(false);
+          }
+          position++;
+        }
+        setTimeout(function () {
+          if (nextNode.isLoaded()) {
+            nextNode.setExpanded(true);
+          }
+          loadNodeAndExpand(tree, subNode, nextNode, position, !nextNode.isLoaded());
+        },300);
+      }
+      else {
+        $("#error").Popup("ERROR: File or Folder not found. Please make sure that it exist!!", 
+                                                {type: 'error', duration: 5000});
+      }
+    }
 
     /******* END ******/
 
     function openOnFavourite($elt){
       var index = parseInt($elt.attr('rel')),
           file = favourite_list[index];
-      openFile(file);
-      saveTabList ();
+      if ( file.substr(-1) === '/') {
+        file = file.slice(0, -1);
+        var subNode = file.split('/'), tree = null;
+        if (softwareDisplay) {
+          softwareDisplay = !softwareDisplay;
+          switchContent();
+        }
+        tree = $('#fileTreeFull').fancytree("getTree");
+        //XXX - hard values, get relative path form runner_workdir directory
+        if (subNode[0] === 'workspace') {
+          subNode.splice(0, 0, 'runner_workdir');
+          subNode[1] = 'project';
+        }
+        loadNodeAndExpand(tree, subNode, null, 1, false);
+      }
+      else {
+        openFile(file);
+        saveTabList ();
+      }
       $("#filelist").click();
     }
 
@@ -800,6 +881,7 @@ $(document).ready(function () {
 
     function initEditor(){
       var tmp, filename;
+      /*GET TAB List and Open files in tab*/
       var strList = getCookie("OPENED_TAB_LIST"), tabList;
       if (strList) {
         tabList = strList.split("#");
@@ -807,6 +889,7 @@ $(document).ready(function () {
           openFile(tabList[i]);
         }
       }
+      /*Load Favourite Files and Folders*/
       tmp = getCookie("FAV_FILE_LIST");
       if(tmp){
         favourite_list = tmp.split('#');
@@ -815,6 +898,10 @@ $(document).ready(function () {
         }
         for (var i=0; i<favourite_list.length; i++){
           filename = favourite_list[i].replace(/^.*(\\|\/|\:)/, '');
+          if (filename === '' && favourite_list[i].substr(-1) === '/') {
+            filename = '[DIR] ' + favourite_list[i].slice(0,
+                                                -1).replace(/^.*(\\|\/|\:)/, '');
+          }
           $("#tooltip-filelist ul").append('<li rel="'+i+
                     '"><span class="bt_close" title="Remove this element!" rel="'+i+
                     '">×</span><a href="#" rel="'+i+'" title="' + favourite_list[i]
@@ -840,11 +927,16 @@ $(document).ready(function () {
       }
       var i = favourite_list.length,
           filename = filepath.replace(/^.*(\\|\/|\:)/, '');
+      if (filename === '' && filepath.substr(-1) === '/') {
+        filename = '[DIR] ' + filepath.slice(0,-1).replace(/^.*(\\|\/|\:)/, '');
+      }
       if (i === 0){
         $("#tooltip-filelist ul").empty();
       }
       if (favourite_list.indexOf(filepath) !== -1){
-        $("#error").Popup("<b>Duplicate item!</b><br/>This files already exist in your favourite list", {type: 'alert', duration: 5000});
+        $("#error").Popup("<b>Duplicate item!</b><br/>This Item (" + filename +
+                          ") already exist in your favourite list",
+                          {type: 'alert', duration: 5000});
       }
       else{
         favourite_list.push(filepath);
@@ -865,6 +957,7 @@ $(document).ready(function () {
         $("#error").Popup("<b>Item added!</b><br/>"+filename+" has been added to your favourite list.", {type: 'confirm', duration: 3000});
       }
     }
+    
 
 
     /************ INITIALIZE FUNTIONS CALLS  ************************/

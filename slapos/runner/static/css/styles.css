@@ -656,7 +656,7 @@ a.lshare img{
     position: absolute;
     top: 0px;
     left:0;
-    right: 70px;
+    right: 30px;
 }
 
 #error div{
@@ -667,7 +667,7 @@ a.lshare img{
     min-width: 300px;
     max-width: 500px;
     float: right;
-    border-radius: 4px;
+    border-radius: 2px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     text-align: left;
     position: relative;

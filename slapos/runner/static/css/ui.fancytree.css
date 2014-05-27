@@ -42,7 +42,6 @@ ul.fancytree-container li
 	background-position: 0 0;
 	background-repeat: repeat-y;
 	background-image: none;  /* no v-lines */
-
 	margin:0;
 	padding:4px 0 0 0;
 }
@@ -67,7 +66,7 @@ ul.fancytree-no-connector > li
 
 span.fancytree-node
 {
-  display: inline-block;
+  display: inline-table;
 	width: 100%;
 	border: 1px solid transparent;
 }
