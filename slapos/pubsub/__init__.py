@@ -4,6 +4,7 @@ import feedparser
 import httplib # To avoid magic numbers
 import io
 import json
+import logging
 import math
 import os
 import socket
@@ -26,7 +27,6 @@ csv.field_size_limit(sys.maxsize)
 @app.route('/get/<feed>')
 def get_feed(feed):
   global app
-
   feedpath = os.path.join(app.config['FEEDS'], feed)
   if not os.path.exists(feedpath):
     abort(httplib.NOT_FOUND)
@@ -70,7 +70,6 @@ def get_feed(feed):
 @app.route('/notify', methods=['POST'])
 def notify():
   global app
-
   try:
     feed = feedparser.parse(request.data)
   except ValueError:
@@ -113,6 +112,17 @@ def notify():
 
   return '', httplib.NO_CONTENT
 
+
+def getLogger(logfile):
+  logger = logging.getLogger("Notifier")
+  logger.setLevel(logging.INFO)
+  handler = logging.FileHandler(logfile)
+  # Natively support logrotate
+  formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+  handler.setFormatter(formatter)
+  logger.addHandler(handler)
+  return logger
+
 def main():
   global app
   parser = argparse.ArgumentParser(description="Atom server")
@@ -122,13 +132,20 @@ def main():
                       help="Feeds directory")
   parser.add_argument('-s', '--equeue-socket', dest='equeue_socket',
                       nargs=1, required=True, help="EQUEUE Server socket")
+  parser.add_argument('-l', '--logfile', nargs=1, required=False,
+                      help="Logfile.", default='', type=str)
   parser.add_argument('host', metavar='hostname', default='0.0.0.0', nargs='?')
   parser.add_argument('port', metavar='port', type=int, default=8080, nargs='?')
   args = parser.parse_args()
-
   app.config.update(FEEDS=args.feeds[0],
                     CALLBACKS=args.callbacks[0],
                     EQUEUE_SOCKET=args.equeue_socket[0])
+  # Set log
+  logfile = args.logfile[0]
+  if logfile:
+    logger = getLogger(logfile)
+    app.logger.addHandler(logger)
+    app.logger.info('starting server')
   app.run(host=args.host, port=args.port)
 
 if __name__ == '__main__':
