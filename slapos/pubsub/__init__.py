@@ -55,6 +55,7 @@ def get_feed(feed):
                            updated=datetime.fromtimestamp(timestamp),
                            content=Content(content, content_type='html'),
                           ))
+  entries.reverse()
   feed = Feed(title=feed_title,
               updated=datetime.fromtimestamp(feed_updated),
               guid=feed_guid,
