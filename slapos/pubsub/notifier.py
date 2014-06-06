@@ -37,17 +37,23 @@ def main():
         stderr=subprocess.STDOUT
     )
     exit_code = 0
+    content = ("OK</br><p>%s ran successfully</p>"
+                  "<p>Output is: </p><pre>%s</pre>" % (
+          args.executable[0],
+          content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+      ))
   except subprocess.CalledProcessError as e:
     content = e.output
     exit_code = e.returncode
+    content = ("FAILURE</br><p>%s Failed with returncode <em>%d</em>.</p>"
+                  "<p>Output is: </p><pre>%s</pre>" % (
+          args.executable[0],
+          exit_code,
+          content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+      ))
 
   print content
 
-  content += ("\n<p>Failed with returncode <em>%d</em>.</p>"
-              "<p>Output is: </p><pre>%s</pre>" % (
-      exit_code,
-      content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-  ))
 
   with open(args.logfile[0], 'a') as file_:
     cvsfile = csv.writer(file_)
