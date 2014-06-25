@@ -5,11 +5,11 @@
   <link href="{{ url_for('static', filename='css/ui.fancytree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
   <link href="{{ url_for('static', filename='css/jquery.contextMenu.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
   <link href="{{ url_for('static', filename='css/editor.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='js/jquery/jquery.contextMenu-custom.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('static', filename='js/jquery/jquery.fancytree.min.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/jquery/jquery.contextMenu-custom.js') }}" type="application/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/jquery/jquery.fancytree.min.js') }}" type="application/javascript" charset="utf-8"></script>
   <link href="{{ url_for('static', filename='css/colorbox.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='js/jquery/jquery.colorbox-min.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('static', filename='js/scripts/softwareFolder.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/jquery/jquery.colorbox-min.js') }}" type="application/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/scripts/softwareFolder.js') }}" type="application/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
 <style>
@@ -69,6 +69,7 @@
   <div class="clear"></div>
 </div>
 <div id="file_info" class="file_info"><span id="info"></span></div>
+<div class='clear'></div>
 </form>
 
 

@@ -1037,7 +1037,7 @@ $(document).ready(function () {
       $("#plist li").each(function (index) {
           var elt = $(this).find("input:checkbox");
           if (elt.is(":checked")) {
-              developList[i] = workdir + "/" + elt.val();
+              developList[i] = "workspace" + "/" + elt.val();
               i += 1;
               elt.attr("checked", false);
           }

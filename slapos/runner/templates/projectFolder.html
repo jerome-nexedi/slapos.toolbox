@@ -3,8 +3,8 @@
 {% block head %}
   {{ super() }}
   <link href="{{ url_for('static', filename='css/ui.fancytree.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='js/jquery/jquery.fancytree.min.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('static', filename='js/scripts/project.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/jquery/jquery.fancytree.min.js') }}" type="application/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/scripts/project.js') }}" type="application/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
 

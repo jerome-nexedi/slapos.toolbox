@@ -1,4 +1,3 @@
-*{margin: 0px;padding: 0px;}
 ol, ul {list-style: none outside none;}
 blockquote, q {quotes: none;}
 blockquote:before, blockquote:after, q:before, q:after {content: none;}
@@ -8,7 +7,7 @@ img{border:0}
 /*YAHOO RESET FONT*/
 html{color:#000;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,button,textarea,select,p,blockquote,th,td{margin:0;padding:0}table{border-collapse:collapse;border-spacing:0}fieldset,img{border:0}address,button,caption,cite,code,dfn,em,input,optgroup,option,select,strong,textarea,th,var{font:inherit}del,ins{text-decoration:none}li{list-style:none}caption,th{text-align:left}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal}q:before,q:after{content:''}abbr,acronym{border:0;font-variant:normal}sup{vertical-align:baseline}sub{vertical-align:baseline}legend{color:#000}body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small}select,input,textarea,button{font:99% arial,helvetica,clean,sans-serif}table{font-size:inherit;font:100%}pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%}
 body{
-  background: #8DABB4;/* #A2BDC5;*/
+  background: #6A93A0;/*#8DABB4;/* #A2BDC5;*/
   height:100%;
 }
 
@@ -61,7 +60,7 @@ body {
 #page
 {
 	margin: 10px auto;
-	width: 1014px;
+	width: 1032px;
 }
 
 #logo{
@@ -69,9 +68,9 @@ body {
 }
 
 #header{
-    height: 73px;
+    height: 78px;
     padding-top: 10px;
-    width: 1014px;
+    width: 1032px;
     background: url(../images/head.png) no-repeat;
 }
 
@@ -111,7 +110,7 @@ body {
     height: 22px;
     text-align: center;
     color: #4c6172;
-    text-shadow: 0 1px 1px #F1F1F1;
+    text-shadow: 0 1px 1px #DBDBDB;
     overflow: hidden;
 }
 #header .line{
@@ -126,7 +125,7 @@ body {
 }
 
 #wmenu{
-  margin: 1px 11px 1px 10px;
+  margin: 1px 7px 1px 10px;
 }
 
 #wmenu ul{
@@ -140,8 +139,8 @@ body {
 #main
 {
     background: url(../images/main_bg_all.png) repeat-y;
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-left: 17px;
+    padding-right: 17px;
     min-height: 400px;
 }
 
@@ -155,17 +154,15 @@ body {
 }
 
 .main_head{
-    height: 14px;
+    height: 10px;
     background: url(../images/main_top.png) no-repeat;
-    width: 966px;
+    width: 998px;
 }
 
 .content{
     background: url(../images/content.png) repeat-y;
-    width: 936px;
-    padding: 15px;
-    padding-top:1px;
-    padding-bottom:2px;
+    width: 978px;
+    padding: 0 10px;
     min-height: 400px;
 }
 
@@ -193,21 +190,21 @@ body {
 }
 
 .main_foot{
-    height: 15px;
+    height: 10px;
     background: url(../images/main_bottom.png) no-repeat;
-    width: 966px;
+    width: 998px;
 }
 
 #footer{
-    height: 35px;
-    width: 934px;
+    height: 33px;
+    width: 952px;
     background: url(../images/footer_bg.png) no-repeat;
     padding-left: 40px;
     padding-right: 40px;
-    padding-top: 4px;
+    padding-top: 7px;
     text-align: center;
     color: #4c6172;
-    text-shadow: 0px 1px 1px #fff;
+    text-shadow: 0px 1px 1px #DBDBDB;
 }
 .dsblebutton{color:#9C9C9C; padding: 5px 10px;display: inline;background: #eee;
         font-weight: bold; border:1px solid #000; margin-top:10px;}
@@ -386,7 +383,7 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 }
 
 .file_tree {
-    width: 923px;
+    /*width: 923px;*/
     height: 250px;
     border: solid 1px #678dad;
     background: #fff;
@@ -402,7 +399,7 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 }
 
 .file_tree_short{
-    width: 238px;
+    width: 252px;
     height: 429px;
     border: solid 1px #678dad;
     background: #fff;
@@ -419,12 +416,11 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 }
 #code{
     float: right;
-    width: 692px;
+    width: 720px;
 }
 #details_head{margin-bottom: 10px;}
 
 #contentInfo{
-    width: 882px;
     border: solid 1px #678dad;
     background: #fff;
     overflow: auto;
@@ -441,7 +437,7 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 .log_content{
     border: solid 1px #519ADA;
     padding: 2px;
-    width: 719px;
+    width: 761px;
     float: left;
 }
 
@@ -457,7 +453,6 @@ padding: 10px;height: 80px;padding-bottom:15px;}
     border: none;
     background: #f6f7f8;
     color: #000;
-    width: 715px;
     padding: 2px;
     height: 450px;
     resize: both;
@@ -723,9 +718,9 @@ div.sep{display:block; height:7px;}
 .show{background:#D5D5D5 url(../images/arrow_up.png) 97% 50% no-repeat; cursor: pointer;}
 .hide{background:#D5D5D5 url(../images/arrow_down.png) 97% 50% no-repeat; cursor: pointer;}
 
-.menu-box-left{float:left; width: 135px; font-size:14px; background: #e4e4e4; padding:5px 0 5px 5px; margin-top:10px;
+.menu-box-left{float:left; width: 162px; font-size:14px; background: #e4e4e4; padding:5px 0 5px 5px; margin-top:10px;
     font-size:14px; border-radius: 4px 0 0 4px;}
-.menu-box-right{background: #e4e4e4; padding: 5px; float:right; width: 745px; margin-left: -5px;
+.menu-box-right{background: #e4e4e4; padding: 5px; float:right; width: 760px; margin-left: -5px;
     margin-top:10px; box-shadow: 1px 1px 1px #888888;}
 .menu-box-left ul{margin:0px; list-style:none;}
 .menu-box-left li{padding: 2px; padding-left:10px; padding-right:10px; text-shadow: 0px 1px #fff;border-bottom:1px solid #fff;}

@@ -15,18 +15,18 @@
     <link href="{{ url_for('static', filename='css/superfish.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
     <link href="{{ url_for('static', filename='css/jquery-ui-1.10.3.custom.min.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
 
-    <script src="{{ url_for('static', filename='js/jquery/jquery-1.10.2.min.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/jquery/jquery-ui-1.10.3.custom.min.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/jquery/jquery.form.js') }}" type="text/javascript" charset="utf-8"></script>
-  	<script src="{{ url_for('static', filename='js/jquery/popupBox.js') }}" type="text/javascript" charset="utf-8"></script>
-  	<script src="{{ url_for('static', filename='js/jquery/jqueryToolTip.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/jquery/superfish.min.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/jquery/hoverIntent.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/jquery/jquery-1.10.2.min.js') }}" type="application/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/jquery/jquery-ui-1.10.3.custom.min.js') }}" type="application/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/jquery/jquery.form.js') }}" type="application/javascript" charset="utf-8"></script>
+  	<script src="{{ url_for('static', filename='js/jquery/popupBox.js') }}" type="application/javascript" charset="utf-8"></script>
+  	<script src="{{ url_for('static', filename='js/jquery/jqueryToolTip.js') }}" type="application/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/jquery/superfish.min.js') }}" type="application/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/jquery/hoverIntent.js') }}" type="application/javascript" charset="utf-8"></script>
     <script type=text/javascript>
       $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
     </script>
-  	<script src="{{ url_for('static', filename='js/scripts/cookies.js') }}" type="text/javascript" charset="utf-8"></script>
-  	<script src="{{ url_for('static', filename='js/scripts/common.js') }}" type="text/javascript" charset="utf-8"></script>
+  	<script src="{{ url_for('static', filename='js/scripts/cookies.js') }}" type="application/javascript" charset="utf-8"></script>
+  	<script src="{{ url_for('static', filename='js/scripts/common.js') }}" type="application/javascript" charset="utf-8"></script>
     <script type="text/javascript">
     	$(document).ready(function() {
         setInput();
@@ -34,10 +34,10 @@
     	});
     </script>
     {% if request.path != '/login' %}
-    <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/ace/ext-modelist.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/ace/ext-language_tools.js') }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{ url_for('static', filename='js/scripts/process.js') }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/ace.js') }}" type="application/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/ext-modelist.js') }}" type="application/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/ace/ext-language_tools.js') }}" type="application/javascript" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/scripts/process.js') }}" type="application/javascript" charset="utf-8"></script>
     <script type="text/javascript">
   		$(document).ready(function() {
     		if($("input#fmsg").val() != ""){

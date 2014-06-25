@@ -2,12 +2,11 @@
 {% block title %}Update your account{% endblock %}
 {% block head %}
   {{ super() }}
-  <script src="{{ url_for('static', filename='js/scripts/account.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/scripts/account.js') }}" type="application/javascript" charset="utf-8"></script>
   <link href="{{ url_for('static', filename='css/jqueryTabs.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
-  <script src="{{ url_for('static', filename='js/jquery/jqueryTabs.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/jquery/jqueryTabs.js') }}" type="application/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
-<h2>Web runner parameters</h2><br/>
 <div id="tabContainer">
   <ul>
     <li><a href="#tab1" class="active">Your personal information</a></li>
