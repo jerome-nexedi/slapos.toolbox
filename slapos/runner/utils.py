@@ -268,7 +268,10 @@ def isSoftwareRunning(config=None):
   """
     Return True if slapos is still running and false if slapos if not
   """
-  # XXX-Marco what is 'config' for?
+  # XXX-Cedric Hardcoded pidfile
+  if config:
+    slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-sr.pid')
+    return isPidFileProcessRunning(slapgrid_pid)
   return isRunning('slapgrid-sr')
 
 
@@ -370,7 +373,10 @@ def isInstanceRunning(config=None):
   """
     Return True if slapos is still running and False otherwise
   """
-  # XXX-Marco what is 'config' for?
+  # XXX-Cedric Hardcoded pidfile
+  if config:
+    slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-cp.pid')
+    return isPidFileProcessRunning(slapgrid_pid)
   return isRunning('slapgrid-cp')
 
 
