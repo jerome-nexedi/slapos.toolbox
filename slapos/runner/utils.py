@@ -156,7 +156,7 @@ def requestInstance(config, software_type=None):
     # Write it to conf file for later use
     open(software_type_path, 'w').write(software_type)
   elif os.path.exists(software_type_path):
-    software_type = open(software_type_path).read()
+    software_type = open(software_type_path).read().rstrip()
   else:
     software_type = 'default'
 
