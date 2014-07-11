@@ -1,3 +1,13 @@
+0.39.3 (2014-07-11)
+-----------------
+
+ * Slaprunner: Add folder to favorites [Alain T.]
+ * Slaprunner: Fix https git clone not possible if no login [Alain T.]
+ * Slaprunner: Improve editor full window [Alain T.]
+ * Pubsub: More explicit RSS displayed in reversed chronoligical order [Cedric LN]
+ * Pubsub-notifier: add logger [Cedric LN]
+ * Slaprunner: Various fixes
+
 0.39.2 (2014-05-16)
 -----------------
 
