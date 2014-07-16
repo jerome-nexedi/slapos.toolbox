@@ -14,8 +14,8 @@ from flask import (Flask, request, redirect, url_for, render_template,
 
 from slapos.runner.process import killRunningProcess
 from slapos.runner.utils import (checkSoftwareFolder, configNewSR,
-                                 createNewUser, getProfilePath,
-                                 getSlapgridResult,
+                                 createNewUser, getBuildAndRunParams,
+                                 getProfilePath, getSlapgridResult,
                                  listFolder, getBuildAndRunParams,
                                  getProjectTitle, getRcode, getSession,
                                  getSlapStatus, getSvcStatus,
@@ -92,6 +92,10 @@ def myAccount():
   return render_template('account.html', username=account[0],
           email=account[2], name=account[3].decode('utf-8'),
           params=getBuildAndRunParams(app.config))
+
+
+def getSlapgridParameters():
+  return jsonify(getBuildAndRunParams(app.config))
 
 
 def manageRepository():
@@ -782,3 +786,4 @@ app.add_url_rule("/editFile", 'editFile', editFile, methods=['GET'])
 app.add_url_rule('/shell', 'shell', shell)
 app.add_url_rule('/isSRReady', 'isSRReady', isSRReady)
 app.add_url_rule('/addUser', 'addUser', addUser, methods=['POST'])
+app.add_url_rule('/getSlapgridParameters', 'getSlapgridParameters', getSlapgridParameters, methods=['GET'])
