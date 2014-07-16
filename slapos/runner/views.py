@@ -15,6 +15,7 @@ from flask import (Flask, request, redirect, url_for, render_template,
 from slapos.runner.process import killRunningProcess
 from slapos.runner.utils import (checkSoftwareFolder, configNewSR,
                                  createNewUser, getProfilePath,
+                                 getSlapgridResult,
                                  listFolder, getBuildAndRunParams,
                                  getProjectTitle, getRcode, getSession,
                                  getSlapStatus, getSvcStatus,
@@ -446,7 +447,15 @@ def slapgridResult():
     if os.path.exists(app.config[log_file]):
       log_result = readFileFrom(open(app.config[log_file]),
                                 int(request.form['position']))
-  return jsonify(software=software_state, instance=instance_state,
+  build_result = getSlapgridResult(app.config, 'software')
+  run_result = getSlapgridResult(app.config, 'instance')
+  software_info = {'state':software_state,
+                   'last_build':build_result['last_build'],
+                   'success':build_result['success']}
+  instance_info = {'state':instance_state,
+                   'last_build':run_result['last_build'],
+                   'success':run_result['success']}
+  return jsonify(software=software_info, instance=instance_info,
                  result=(instance_state or software_state), content=log_result)
 
 

@@ -283,6 +283,16 @@ def slapgridResultToFile(config, step, returncode, datetime):
   open(file, "w").write(json.dumps(result))
 
 
+def getSlapgridResult(config, step):
+  filename = step + "_info.json"
+  file = os.path.join(config['runner_workdir'], filename)
+  if os.path.exists(file):
+    result = json.loads(open(file, "r").read())
+  else:
+    result = {'last_build': 0, 'success':-1}
+  return result
+
+
 def waitProcess(config, process, step):
   process.wait()
   date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
