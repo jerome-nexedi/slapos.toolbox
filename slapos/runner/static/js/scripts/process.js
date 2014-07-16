@@ -186,7 +186,7 @@ function setRunningState(data) {
             $("#running").show();
             running = true;
             //change run menu title and style
-            if (data.software) {
+            if (data.software.state) {
                 if ( $("#running").children('span').length === 0 ) {
                   $("#softrun").removeClass('slapos_run');
                   $("#softrun").addClass('slapos_stop');
@@ -194,7 +194,7 @@ function setRunningState(data) {
                 }
                 processType = "Software";
             }
-            if (data.instance) {
+            if (data.instance.state) {
               ///Draft!!
                 if ( $("#running").children('span').length === 0 ) {
                   $("#softrun").removeClass('slapos_run');
