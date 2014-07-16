@@ -1,7 +1,7 @@
 /*jslint undef: true */
 /*global $, window, $SCRIPT_ROOT, setRunningState, setCookie, getCookie, deleteCookie */
 /*global currentState: true, running: true, $current: true, processType: true, currentProcess: true */
-/*global sendStop: true, processState: true, openedlogpage: true, logReadingPosition: true, speed: true */
+/*global sendStop: true, openedlogpage: true, logReadingPosition: true, speed: true */
 /*global isRunning: true */
 /* vim: set et sts=4: */
 
@@ -14,7 +14,6 @@ var processType = "";
 var currentProcess;
 var sendStop = false;
 var forcedStop = false;
-var processState = "Checking"; //define slapgrid running state
 var openedlogpage = ""; //content software or instance if the current page is software or instance log, otherwise nothing
 var logReadingPosition = 0;
 var speed = 5000;
@@ -56,11 +55,20 @@ function getRunningState() {
         log_info = "",
         param = {
             position: logReadingPosition,
-            log: (processState !== "Checking" && openedlogpage !== "") ? processType.toLowerCase() : ""
+            log: (openedlogpage !== "") ? processType.toLowerCase() : ""
         },
         jqxhr = $.post(url, param, function (data) {
+            running = data.result;
+            if (data.instance.state) {
+                processType = "Instance";
+            } else if (data.software.state) {
+                processType = "Software";
+            }
             setRunningState(data);
             size = data.content.position - logReadingPosition;
+            if (size < 0) {
+                clearAll();
+            }
             if (logReadingPosition !== 0 && data.content.truncated) {
                 log_info = "<p  class='info' rel='0'>SLAPRUNNER INFO: SLAPGRID-LOG HAS BEEN TRUNCATED HERE. To see full log reload your log page</p>";
             }
@@ -72,13 +80,12 @@ function getRunningState() {
                         .scrollTop($("#salpgridLog")[0].scrollHeight - $("#salpgridLog").height());
                 }
             }
-            if (running && processState === "Checking" && openedlogpage !== "") {
+            if (running && openedlogpage !== "") {
                 $("#salpgridLog").show();
                 $("#manualLog").hide();
                 $("#slapstate").show();
                 $("#openloglist").hide();
             }
-            processState = running ? "Running" : "Stopped";
             currentLogSize += parseInt(size, 10);
             if (currentLogSize > maxLogSize) {
                 //Remove the first element into log div
@@ -107,16 +114,12 @@ function stopProcess() {
             type = "slapgrid-cp";
         }
         $.post(urlfor, {type: type}, function (data) {
-            //if (data.result) {
-                //$("#error").Popup("Failled to run Slapgrid", {type:'error', duration:3000}); });
-            //}
         })
             .error(function () {
                 $("#error").Popup("Failed to stop Slapgrid process", {type: 'error', duration: 3000});
             })
             .complete(function () {
                 sendStop = false;
-                processState = "Stopped";
                 forcedStop = true;
             });
     }
@@ -129,7 +132,7 @@ function bindRun() {
             stopProcess();
         } else {
             if (!isRunning()) {
-                setCookie("slapgridCMD", "Software");
+                runProcess($SCRIPT_ROOT + "/runSoftwareProfile");
                 window.location.href = $SCRIPT_ROOT + "/viewLog?logfile=software.log";
             }
         }
@@ -140,7 +143,7 @@ function bindRun() {
             stopProcess();
         } else {
             if (!isRunning()) {
-                setCookie("slapgridCMD", "Instance");
+                runProcess($SCRIPT_ROOT + "/runInstanceProfile");
                 if (window.location.pathname === "/viewLog")
                      window.location.href = $SCRIPT_ROOT + "/viewLog?logfile=instance.log";
             }
@@ -192,7 +195,6 @@ function setRunningState(data) {
                   $("#softrun").addClass('slapos_stop');
                   $("#running img").before('<p id="running_info" class="software">Building software...</p>');
                 }
-                processType = "Software";
             }
             if (data.instance.state) {
               ///Draft!!
@@ -201,14 +203,13 @@ function setRunningState(data) {
                   $("#softrun").addClass('slapos_stop');
                   $("#running img").before('<p id="running_info" class="instance">Running instance...</p>');
                 }
-            		if (processType === "Software") {
+            	if (processType === "Software") {
                     running = false;
                     $("#running_info").remove();
                     $("#softrun").addClass('slapos_run');
                     $("#softrun").removeClass('slapos_stop');
                     $("#instrun").click();
-            		}
-                processType = "Instance";
+                }
             }
         }
     } else {
@@ -238,46 +239,15 @@ function setRunningState(data) {
     currentState = data.result;
 }
 
-function runProcess(urlfor, data) {
+function runProcess(urlfor) {
     "use strict";
     if (!isRunning()) {
-        running = true;
-        processState = "Running";
-        currentProcess = $.post(urlfor)
-            .error(function () {
-                $("#error").Popup("Failled to run Slapgrid", {type: 'error', duration: 3000});
-            });
+        currentProcess = $.post(urlfor);
         if ( $("#running_info").children('span').length > 0 ) {
           $("#running_info").children('p').remove();
         }
     }
 }
 
-setInterval('GetStateRegularly()', 5000);
-function GetStateRegularly() {
-    getRunningState();
-}
-
-function checkSavedCmd() {
-    "use strict";
-    var result = getCookie("slapgridCMD");
-    if (!result) {
-        return false;
-    }
-    forcedStop = false;
-    if (result === "Software") {
-        running = false;
-        runProcess(($SCRIPT_ROOT + "/runSoftwareProfile"),
-                   {result: true, instance: false, software: true});
-        updateStatus('software', 'running');
-        updateStatus('instance', 'waiting');
-    } else if (result === "Instance") {
-        running = false;
-        runProcess(($SCRIPT_ROOT + "/runInstanceProfile"),
-                   {result: true, instance: true, software: false});
-        updateStatus('software', 'terminated');
-        updateStatus('instance', 'running');
-    }
-    deleteCookie("slapgridCMD");
-    return (result !== null);
-}
+getRunningState();
+setInterval('getRunningState()', 3000);
