@@ -434,6 +434,10 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 
 .gradient{background-color:#f4f4f4;background:-moz-linear-gradient(#f4f4f4,#ececec);background:-webkit-linear-gradient(#f4f4f4,#ececec);-ms-filter:"progid:DXImageTransform.Microsoft.gradient(startColorstr='#f4f4f4',endColorstr='#ececec')";background:linear-gradient(#f4f4f4,#ececec);}
 
+#slapstate {
+   display: none;
+}
+
 .log_content{
     border: solid 1px #519ADA;
     padding: 2px;

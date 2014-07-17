@@ -100,6 +100,11 @@ function getRunningState() {
             } else if (data.software.state) {
                 processType = "Software";
             }
+            //show accurate right panel
+            if (running) {
+                $("#slapstate").show();
+                $("#openloglist").hide();
+            }
             writeLogs(data);
             setRunningState(data);
             if(data.result) {
