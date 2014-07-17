@@ -1,6 +1,6 @@
 /*jslint undef: true */
 /*global $, window, $SCRIPT_ROOT, setRunningState, setCookie, getCookie, deleteCookie */
-/*global currentState: true, running: true, $current: true, processType: true, currentProcess: true */
+/*global currentState: true, running: true, $current: true, currentProcess: true, processTypes: true */
 /*global sendStop: true, openedlogpage: true, logReadingPosition: true, speed: true */
 /*global isRunning: true */
 /* vim: set et sts=4: */
@@ -10,8 +10,8 @@
 var url = $SCRIPT_ROOT + "/slapgridResult";
 var currentState = false;
 var running = true;
-var processType = "";
-var currentProcess;
+var currentProcess = "";
+var processTypes = {instance:"instance", software:"software"};
 var sendStop = false;
 var forcedStop = false;
 var openedlogpage = ""; //content software or instance if the current page is software or instance log, otherwise nothing
@@ -91,14 +91,14 @@ function getRunningState() {
         run_success = 0,
         param = {
             position: logReadingPosition,
-            log: (openedlogpage !== "") ? processType.toLowerCase() : ""
+            log: (openedlogpage !== "") ? currentProcess : ""
         },
         jqxhr = $.post(url, param, function (data) {
             running = data.result;
             if (data.instance.state) {
-                processType = "Instance";
+                currentProcess = processTypes.instance;
             } else if (data.software.state) {
-                processType = "Software";
+                currentProcess = processTypes.software;
             }
             //show accurate right panel
             if (running) {
@@ -108,7 +108,7 @@ function getRunningState() {
             writeLogs(data);
             setRunningState(data);
             if(data.result) {
-                updateStatus(processType.toLowerCase(), "running");
+                updateStatus(currentProcess, "running");
             } else {
                build_success = (data.software.success === 0)? "terminated":"failed";
                run_success = (data.instance.success === 0)? "terminated":"failed";
@@ -131,7 +131,7 @@ function stopProcess() {
         var urlfor = $SCRIPT_ROOT + "stopSlapgrid",
             type = "slapgrid-sr";
 
-        if (processType === "Instance") {
+        if (currentProcess === processTypes.instance) {
             type = "slapgrid-cp";
         }
         $.post(urlfor, {type: type}, function (data) {
@@ -229,13 +229,13 @@ function setRunningState(data) {
         }
     } else {
         if ( $("#running").is(":visible") ) {
-          $("#error").Popup("Slapgrid finished running your " + processType + " Profile", {type: 'info', duration: 3000});
+          $("#error").Popup("Slapgrid finished running your " + currentProcess + " profile", {type: 'info', duration: 3000});
           if ( forcedStop ) {
             updateStatus('instance', 'stopped');
             updateStatus('software', 'stopped');
           }
           else {
-            updateStatus(processType.toLowerCase(), 'terminated');
+            updateStatus(currentProcess, 'terminated');
           }
           //Update window!!!
           $("#slapswitch").attr('rel', 'opend');
@@ -256,7 +256,7 @@ function setRunningState(data) {
 function runProcess(urlfor) {
     "use strict";
     if (!isRunning()) {
-        currentProcess = $.post(urlfor);
+        $.post(urlfor);
         if ( $("#running_info").children('span').length > 0 ) {
           $("#running_info").children('p').remove();
         }
