@@ -534,7 +534,7 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 .log_info_box div.state_terminated span{
   background: #00C800;
 }
-.log_info_box div.state_waiting span, .log_info_box div.state_stopped span{
+.log_info_box div.state_waiting span, .log_info_box div.state_stopped span, .log_info_box div.state_failed span{
   background: #FF3131;
 }
 
