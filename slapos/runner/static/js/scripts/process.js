@@ -1,6 +1,6 @@
 /*jslint undef: true */
 /*global $, window, $SCRIPT_ROOT, setRunningState, setCookie, getCookie, deleteCookie */
-/*global currentState: true, running: true, $current: true, currentProcess: true, processTypes: true */
+/*global currentState: true, running: false, $current: true, currentProcess: true, processTypes: true */
 /*global sendStop: true, openedlogpage: true, logReadingPosition: true, speed: true */
 /*global isRunning: true */
 /* vim: set et sts=4: */
@@ -9,7 +9,7 @@
 
 var url = $SCRIPT_ROOT + "/slapgridResult";
 var currentState = false;
-var running = true;
+var running = false;
 var currentProcess = "";
 var processTypes = {instance:"instance", software:"software"};
 var sendStop = false;
@@ -55,7 +55,7 @@ function writeLogs(data) {
          size = data.content.position - logReadingPosition;
 
     if (size < 0) {
-            clearAll();
+            clearAll(false);
     }
     if (logReadingPosition !== 0 && data.content.truncated) {
             log_info = "<p  class='info' rel='0'>SLAPRUNNER INFO: SLAPGRID-LOG HAS BEEN TRUNCATED HERE. To see full log reload your log page</p>";

@@ -1,6 +1,6 @@
 /*jslint undef: true */
-/*global $, document, window, processState, getCookie, setCookie, setSpeed, $SCRIPT_ROOT */
-/*global openedlogpage: true */
+/*global $, document, window, getCookie, setCookie, setSpeed, $SCRIPT_ROOT */
+/*global openedlogpage: true, running: false */
 /* vim: set et sts=4: */
 
 $(document).ready(function () {
@@ -53,7 +53,7 @@ $(document).ready(function () {
     }
 
     function updatelogBox() {
-        if (processState === "Stopped" || processState === "Checking" || $("#manual").is(":checked")) {
+        if (! running || $("#manual").is(":checked")) {
             $("#salpgridLog").hide();
             $("#manualLog").show();
             $("#slapstate").hide();
@@ -113,7 +113,7 @@ $(document).ready(function () {
         })
         .always(function() {
           sending = false;
-          if (processState === "Stopped" || processState === "Checking" || $("#manual").is(":checked")) {
+          if (! running || $("#manual").is(":checked")) {
               $("#logheader").html(info);
           } else {
               $("#logheader").html("Inspecting slapgrid log - Click for more options");
