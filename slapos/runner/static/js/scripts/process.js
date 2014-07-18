@@ -63,11 +63,9 @@ function writeLogs(data) {
 
     logReadingPosition = data.content.position;
     if (data.content.content !== "") {
-            if (data.content.content !== "") {
-                    $("#salpgridLog").append(log_info + "<p rel='" + size + "'>" + data.content.content.toHtmlChar() + "</p>");
-                    $("#salpgridLog")
-                            .scrollTop($("#salpgridLog")[0].scrollHeight - $("#salpgridLog").height());
-            }
+            $("#salpgridLog").append(log_info + "<p rel='" + size + "'>" + data.content.content.toHtmlChar() + "</p>");
+            $("#salpgridLog")
+                    .scrollTop($("#salpgridLog")[0].scrollHeight - $("#salpgridLog").height());
     }
     if (running && openedlogpage !== "") {
             $("#salpgridLog").show();
