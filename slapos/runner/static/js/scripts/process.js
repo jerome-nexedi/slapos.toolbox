@@ -18,6 +18,14 @@ var logReadingPosition = 0;
 var speed = 5000;
 var maxLogSize = 100000; //Define the max limit of log to display  ~ 2500 lines
 var currentLogSize = 0; //Define the size of log actually displayed
+var runInstance = false;
+
+$(document).ready(function () {
+    $.get("/getSlapgridParameters",null,function(data) {
+        runInstance = data.run_instance;
+    });
+});
+
 var isRunning = function () {
     "use strict";
     if (running) {
@@ -101,14 +109,17 @@ function getRunningState() {
             $("#last_build_software").text("last build: " + data.software.last_build);
             $("#last_build_instance").text("last run: " + data.instance.last_build);
             //show accurate right panel
+            writeLogs(data);
+            setRunningState(data);
             if (running) {
                 $("#slapstate").show();
                 $("#openloglist").hide();
             }
-            writeLogs(data);
-            setRunningState(data);
             if(data.result) {
                 updateStatus(currentProcess, "running");
+                if (runInstance) {
+                    updateStatus("instance", "waiting");
+                }
             } else {
                build_success = (data.software.success === 0)? "terminated":"failed";
                run_success = (data.instance.success === 0)? "terminated":"failed";
