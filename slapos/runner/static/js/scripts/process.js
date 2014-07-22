@@ -98,6 +98,8 @@ function getRunningState() {
             } else if (data.software.state) {
                 currentProcess = processTypes.software;
             }
+            $("#last_build_software").text("last build: " + data.software.last_build);
+            $("#last_build_instance").text("last run: " + data.instance.last_build);
             //show accurate right panel
             if (running) {
                 $("#slapstate").show();
