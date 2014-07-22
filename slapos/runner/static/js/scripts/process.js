@@ -7,7 +7,6 @@
 
 //Global Traitment!!!
 
-var url = $SCRIPT_ROOT + "/slapgridResult";
 var currentState = false;
 var running = false;
 var currentProcess = "";
@@ -85,7 +84,8 @@ function writeLogs(data) {
 
 function getRunningState() {
     "use strict";
-    var build_success = 0,
+    var url = $SCRIPT_ROOT + "/slapgridResult",
+        build_success = 0,
         run_success = 0,
         param = {
             position: logReadingPosition,
