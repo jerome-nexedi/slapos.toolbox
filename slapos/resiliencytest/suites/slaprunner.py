@@ -200,9 +200,10 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
 
   def _getRcode(self):
     #XXX-Nicolas: hardcoded url. Best way right now to automate the tests...
+    monitoring_password = "passwordtochange"
     monitor_url = self.monitor_url + "?script=zero-knowledge%2Fsettings.cgi"
     result = self._opener_director.open(monitor_url, 
-                                       "password=passwordtochange")
+                                       "password=" + monitoring_password + ";password_2=" + monitoring_password)
 
     if result.getcode() is not 200:
       raise NotHttpOkException(result.getcode())
