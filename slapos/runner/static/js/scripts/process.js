@@ -242,7 +242,8 @@ function setRunningState(data) {
                 if ( $("#running").children('span').length === 0 ) {
                   $("#softrun").removeClass('slapos_run');
                   $("#softrun").addClass('slapos_stop');
-                  $("#running img").before('<p id="running_info" class="instance">Running instance...</p>');
+                  if($("[class=instance][id=running_info]").length === 0)
+                      $("#running img").before('<p id="running_info" class="instance">Running instance...</p>');
                 }
             }
         }
