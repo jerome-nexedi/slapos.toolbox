@@ -18,6 +18,7 @@ var logReadingPosition = 0;
 var speed = 5000;
 var maxLogSize = 100000; //Define the max limit of log to display  ~ 2500 lines
 var currentLogSize = 0; //Define the size of log actually displayed
+var last_run = "";
 var runInstance = false;
 
 $(document).ready(function () {
@@ -106,20 +107,27 @@ function getRunningState() {
             } else if (data.software.state) {
                 currentProcess = processTypes.software;
             }
+            if (last_run === "") {
+                last_run = data.instance.last_build;
+            }
             $("#last_build_software").text("last build: " + data.software.last_build);
+            if (data.instance.last_build !== last_run) {
+                currentProcess = processTypes.instance;
+                last_run = data.instance.last_build;
+            }
             $("#last_build_instance").text("last run: " + data.instance.last_build);
-            //show accurate right panel
             writeLogs(data);
             setRunningState(data);
+            //show accurate right panel
             if (running) {
                 $("#slapstate").show();
                 $("#openloglist").hide();
             }
             if(data.result) {
-                updateStatus(currentProcess, "running");
-                if (runInstance) {
+                if (currentProcess === processTypes.software && runInstance) {
                     updateStatus("instance", "waiting");
                 }
+                updateStatus(currentProcess, "running");
             } else {
                build_success = (data.software.success === 0)? "terminated":"failed";
                run_success = (data.instance.success === 0)? "terminated":"failed";
