@@ -4,6 +4,7 @@
 
 import ConfigParser
 import datetime
+import flask
 import logging
 import logging.handlers
 import os
@@ -132,5 +133,24 @@ def serve(config):
     runInstanceWithLock(app.config)
   config.logger.info('Done.')
   app.wsgi_app = ProxyFix(app.wsgi_app)
+
+
+def getUpdatedParameter(self, var):
+  configuration_parser = ConfigParser.SafeConfigParser()
+  configuration_file_path = os.path.abspath(os.getenv('RUNNER_CONFIG'))
+  configuration_parser.read(configuration_file_path)
+
+  for section in configuration_parser.sections():
+    if configuration_parser.has_option(section, var):
+      return configuration_parser.get(section, var)
+  # if the requested var is dependant of flask
+  if var in self.keys():
+    temp_dict = dict()
+    temp_dict.update(self)
+    return temp_dict[var]
+  else:
+    raise KeyError
+
+flask.config.Config.__getitem__ = getUpdatedParameter
 
 run()
