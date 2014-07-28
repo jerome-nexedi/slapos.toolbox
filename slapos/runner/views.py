@@ -220,6 +220,8 @@ def getFileLog():
   else:
     file_path = realpath(app.config, logfile)
   try:
+    if not os.path.exists(file_path):
+      raise IOError
     if not isText(file_path):
       return jsonify(code=0,
             result="Can not open binary file, please select a text file!")
