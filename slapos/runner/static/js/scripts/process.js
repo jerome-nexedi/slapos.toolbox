@@ -130,7 +130,11 @@ function getRunningState() {
                 updateStatus(currentProcess, "running");
             } else {
                build_success = (data.software.success === 0)? "terminated":"failed";
-               run_success = (data.instance.success === 0)? "terminated":"failed";
+               if ( last_run < data.software.last_build && data.software.success === 1 ) {
+                   run_success = "notupdated";
+               } else {
+                   run_success = (data.instance.success === 0)? "terminated":"failed";
+               }
                updateStatus("software", build_success);
                updateStatus("instance", run_success);
             }
@@ -210,16 +214,12 @@ function updateStatus(elt, val) {
     case "running":
       $(src).children('p').text("Processing");
       break;
+    case "notupdated":
+      $(src).children('p').text("Not updated");
+      break;
     case "failed":
       $(src).children('p').text("Failed");
       break;
-  }
-  // in case of failure
-  if ($("#salpgridLog").text().indexOf("Failed to run buildout profile") !== -1) {
-    var src = '#' + elt + '_run_state', value = 'state_' + "stopped";
-    $(src).removeClass();
-    $(src).addClass(value);
-    $(src).children('p').text("Buildout Failed");
   }
 }
 

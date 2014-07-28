@@ -535,7 +535,7 @@ padding: 10px;height: 80px;padding-bottom:15px;}
   display: block;
   float: left;
 }
-.log_info_box div.state_running span{
+.log_info_box div.state_running span, .log_info_box div.state_notupdated span{
   background: #FFC800;
 }
 .log_info_box div.state_terminated span{
