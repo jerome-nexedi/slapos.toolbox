@@ -120,6 +120,10 @@ class SlaprunnerTestCase(unittest.TestCase):
     project = os.path.join(self.app.config['etc_dir'], '.project')
     users = os.path.join(self.app.config['etc_dir'], '.users')
 
+    #reset tested parameters
+    self.updateConfigParameter('autorun', False)
+    self.updateConfigParameter('auto_deploy', True)
+
     if os.path.exists(users):
       os.unlink(users)
     if os.path.exists(project):
@@ -136,6 +140,15 @@ class SlaprunnerTestCase(unittest.TestCase):
     killRunningProcess('slapproxy', recursive=True)
     killRunningProcess('slapgrid-cp', recursive=True)
     killRunningProcess('slapgrid-sr', recursive=True)
+
+  def updateConfigParameter(self, parameter, value):
+    config_parser = ConfigParser.SafeConfigParser()
+    config_parser.read(os.getenv('RUNNER_CONFIG'))
+    for section in config_parser.sections():
+      if config_parser.has_option(section, parameter):
+        config_parser.set(section, parameter, str(value))
+    with open(os.getenv('RUNNER_CONFIG'), 'wb') as configfile:
+      config_parser.write(configfile)
 
   def configAccount(self, username, password, email, name, rcode):
     """Helper for configAccount"""
@@ -431,8 +444,8 @@ class SlaprunnerTestCase(unittest.TestCase):
     """Scenario 7: isSRReady won't overwrite the existing
     Sofware Instance if it has been deployed yet"""
     # Test that SR won't be deployed with auto_deploy=False
-    self.app.config['auto_deploy'] = False
-    self.app.config['autorun'] = False
+    self.updateConfigParameter('auto_deploy', False)
+    self.updateConfigParameter('autorun', False)
     project = open(os.path.join(self.app.config['etc_dir'],
                   '.project'), "w")
     project.write(self.software + 'slaprunner-test')
@@ -440,7 +453,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     response = isSoftwareReleaseReady(self.app.config)
     self.assertEqual(response, "0")
     # Test if auto_deploy parameter starts the deployment of SR
-    self.app.config['auto_deploy'] = True
+    self.updateConfigParameter('auto_deploy', True)
     self.setupSoftwareFolder()
     response = isSoftwareReleaseReady(self.app.config)
     self.assertEqual(response, "2")
