@@ -234,7 +234,8 @@ function setRunningState(data) {
                 if ( $("#running").children('span').length === 0 ) {
                   $("#softrun").removeClass('slapos_run');
                   $("#softrun").addClass('slapos_stop');
-                  $("#running img").before('<p id="running_info" class="software">Building software...</p>');
+                  if($("[class=software][id=running_info]").length === 0)
+                      $("#running img").before('<p id="running_info" class="software">Building software...</p>');
                 }
             }
             if (data.instance.state) {
