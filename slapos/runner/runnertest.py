@@ -533,6 +533,23 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertEqual(response, (1, MAX_RUN_INSTANCE))
 
 
+  def test_dynamicParametersReading(self):
+    """Test if the value of a parameter can change in the flask application
+    only by changing the value of slapos.cfg config file. This can happen when
+    slapgrid processes the webrunner's partition.
+    """
+    config_file = os.path.join(self.app.config['etc_dir'], 'slapos.cfg')
+    runner_config_old = os.environ['RUNNER_CONFIG']
+    os.environ['RUNNER_CONFIG'] = config_file
+    open(config_file, 'w').write("[section]\nvar=value")
+    config = self.app.config
+    self.assertEqual(config['var'], "value")
+    open(config_file, 'w').write("[section]\nvar=value_changed")
+    self.assertEqual(config['var'], "value_changed")
+    # cleanup
+    os.environ['RUNNER_CONFIG'] = runner_config_old
+
+
 def main():
   # Empty parser for now - so that erp5testnode is happy when doing --help
   parser = argparse.ArgumentParser()
