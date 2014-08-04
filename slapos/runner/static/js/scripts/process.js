@@ -176,8 +176,9 @@ function bindRun() {
             stopProcess();
         } else {
             if (!isRunning()) {
-                runProcess($SCRIPT_ROOT + "/runSoftwareProfile");
-                window.location.href = $SCRIPT_ROOT + "/viewLog?logfile=software.log";
+                runProcess($SCRIPT_ROOT + "/runSoftwareProfile").then(function() {
+                    window.location.href = $SCRIPT_ROOT + "/viewLog?logfile=software.log";
+                });
             }
         }
         return false;
@@ -187,9 +188,10 @@ function bindRun() {
             stopProcess();
         } else {
             if (!isRunning()) {
-                runProcess($SCRIPT_ROOT + "/runInstanceProfile");
-                if (window.location.pathname === "/viewLog")
-                     window.location.href = $SCRIPT_ROOT + "/viewLog?logfile=instance.log";
+                runProcess($SCRIPT_ROOT + "/runInstanceProfile").then(function() {
+                    if (window.location.pathname === "/viewLog")
+                         window.location.href = $SCRIPT_ROOT + "/viewLog?logfile=instance.log";
+                });
             }
         }
         return false;
@@ -277,10 +279,11 @@ function setRunningState(data) {
 function runProcess(urlfor) {
     "use strict";
     if (!isRunning()) {
-        $.post(urlfor);
-        if ( $("#running_info").children('span').length > 0 ) {
-          $("#running_info").children('p').remove();
-        }
+        return $.post(urlfor).then(function() {
+            if ( $("#running_info").children('span').length > 0 ) {
+              $("#running_info").children('p').remove();
+            }
+        });
     }
 }
 
