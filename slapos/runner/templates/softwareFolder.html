@@ -10,6 +10,7 @@
   <link href="{{ url_for('static', filename='css/colorbox.css', _external=False) }}" rel="stylesheet" type="text/css" media="screen" />
   <script src="{{ url_for('static', filename='js/jquery/jquery.colorbox-min.js') }}" type="application/javascript" charset="utf-8"></script>
   <script src="{{ url_for('static', filename='js/scripts/softwareFolder.js') }}" type="application/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('static', filename='js/scripts/shell.js') }}" type="application/javascript" charset="utf-8"></script>
 {% endblock %}
 {% block body %}
 <style>
@@ -50,9 +51,16 @@
       <li id="fullscreen"><span class="expand_editor" title="Show Editor in Full window. Hint: Use Ctrl+E">&nbsp;</span></li>
       <li id="save"><span class="save_btn" title="Save current file. Hint: Use Ctrl+S">&nbsp;</span></li>
       <li id="option"><span class="fmenu_btn" title='Show more options' rel='tooltip'>Menu</span></li>
+      <li id="shell"><span class="shell_btn" title="Run a command in a shell">Shell</span></li>
     </ul>
     <div id="tabControl"></div>
     <div class="clear"></div>
+  </div>
+  <div class="clear"></div>
+  <div id="shell-window">
+    <textarea id="shell-result" cols="80" readonly>
+    </textarea>
+    <input type="text" name="command" id="shell-input" />
   </div>
   <div class="clear"></div>
   <div class="software_details">

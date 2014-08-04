@@ -6,6 +6,7 @@
 import json
 import os
 import shutil
+import subprocess
 import thread
 import urllib
 
@@ -706,6 +707,34 @@ def isSRReady():
   return isSoftwareReleaseReady(app.config)
 
 
+def runCommand():
+  cwd = open(app.config['minishell_cwd_file'], 'r').read().strip()
+  command = request.form.get("command", '').strip()
+  parsed_commands = command.split(';');
+  # does the user want to change current directory ?
+  for cmd in parsed_commands:
+    if 'cd' == cmd[:2]:
+      cmd = cmd.split(' ');
+      if len(cmd) == 1:
+        cmd.append(os.environ.get('HOME'))
+      # shorten directory's name, to avoid things like : /a/../b
+      cd_dir = os.path.realpath(os.path.join(cwd, cmd[1]))
+      if os.path.exists(cd_dir):
+        cwd = cd_dir
+        # save new cwd in the config file
+        open(app.config['minishell_cwd_file'], 'w').write(cwd)
+        # if the command was just cd, execute it. Otherwise, execute the rest
+        command = command.replace(' '.join(cmd), '').strip(';')
+        if not command:
+          return "Changed directory, now in : " + cwd
+  try:
+    return subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True, cwd=cwd)
+  except subprocess.CalledProcessError as e:
+    error = "Error : process exited with exit code " + str(e.returncode) + \
+            "\nProcess says :\n" + e.output
+    return error
+
+
 #Setup List of URLs
 app.add_url_rule('/', 'home', home)
 app.add_url_rule('/browseWorkspace', 'browseWorkspace', browseWorkspace)
@@ -789,3 +818,4 @@ app.add_url_rule('/shell', 'shell', shell)
 app.add_url_rule('/isSRReady', 'isSRReady', isSRReady)
 app.add_url_rule('/addUser', 'addUser', addUser, methods=['POST'])
 app.add_url_rule('/getSlapgridParameters', 'getSlapgridParameters', getSlapgridParameters, methods=['GET'])
+app.add_url_rule('/runCommand', 'runCommand', runCommand, methods=['POST'])
