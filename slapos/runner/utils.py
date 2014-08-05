@@ -926,3 +926,17 @@ def setupDefaultSR(config):
     configNewSR(config, config['default_sr'])
   if config['auto_deploy']:
     thread.start_new_thread(buildAndRun, (config,))
+
+
+def setMiniShellHistory(config, command):
+  history_max_size = 10
+  command = command + "\n"
+  history_file = config['minishell_history_file']
+  if os.path.exists(history_file):
+    history = open(history_file, 'r').readlines()
+    if len(history) >= history_max_size:
+      del history[0]
+  else:
+    history = []
+  history.append(command)
+  open(history_file, 'w+').write(''.join(history))

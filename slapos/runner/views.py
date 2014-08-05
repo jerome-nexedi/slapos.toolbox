@@ -28,6 +28,7 @@ from slapos.runner.utils import (checkSoftwareFolder, configNewSR,
                                  removeSoftwareByName, runInstanceWithLock,
                                  runSoftwareWithLock, runSlapgridUntilSuccess,
                                  saveSession, saveBuildAndRunParams,
+                                 setMiniShellHistory,
                                  svcStartStopProcess, svcStopAll, tail,
                                  updateInstanceParameter)
 
@@ -728,11 +729,22 @@ def runCommand():
         if not command:
           return "Changed directory, now in : " + cwd
   try:
+    setMiniShellHistory(app.config, command)
     return subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True, cwd=cwd)
   except subprocess.CalledProcessError as e:
     error = "Error : process exited with exit code " + str(e.returncode) + \
             "\nProcess says :\n" + e.output
     return error
+
+
+def getMiniShellHistory():
+  history_file = app.config['minishell_history_file']
+  if not os.path.exists(history_file):
+    return ""
+  history = open(history_file, 'r').readlines()
+  for line, text in enumerate(history):
+    history[line] = text.strip()
+  return json.dumps(history)
 
 
 #Setup List of URLs
@@ -819,3 +831,4 @@ app.add_url_rule('/isSRReady', 'isSRReady', isSRReady)
 app.add_url_rule('/addUser', 'addUser', addUser, methods=['POST'])
 app.add_url_rule('/getSlapgridParameters', 'getSlapgridParameters', getSlapgridParameters, methods=['GET'])
 app.add_url_rule('/runCommand', 'runCommand', runCommand, methods=['POST'])
+app.add_url_rule("/getMiniShellHistory", 'getMiniShellHistory', getMiniShellHistory, methods=['GET'])
