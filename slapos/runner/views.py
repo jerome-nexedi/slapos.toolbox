@@ -719,7 +719,7 @@ def runCommand():
         cmd.append(os.environ.get('HOME'))
       # shorten directory's name, to avoid things like : /a/../b
       cd_dir = os.path.realpath(os.path.join(cwd, cmd[1]))
-      if os.path.exists(cd_dir):
+      if os.path.exists(cd_dir) and os.path.isdir(cd_dir):
         cwd = cd_dir
         # save new cwd in the config file
         open(app.config['minishell_cwd_file'], 'w').write(cwd)
