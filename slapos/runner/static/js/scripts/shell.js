@@ -34,10 +34,13 @@ $(document).ready(function () {
       var old_shell_btn_background = $(".shell_btn").css("background");
       $(".shell_btn").css("background", "url(/static/css/images/loading-min.gif) center right no-repeat")
       $.post("/runCommand", data, function (data) {
-        data = ">>> " + command + "\n\n" + data;
+        var data = ">>> " + command + "\n\n" + data;
         $("#shell-result").val(data);
         $("#shell-input").val("");
         updateHistory();
+      })
+      .fail( function(xhr, status, error) {
+        $("#error").Popup("Error while sending command. Server answered with :\n" + xhr.statusCode().status + " : " + error, {type: 'error', duration: 3000})
       })
       .always( function() {
         $(".shell_btn").css("background", old_shell_btn_background);
