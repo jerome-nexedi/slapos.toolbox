@@ -74,5 +74,11 @@ $(document).ready(function () {
         $("#shell-input").val(shellHistory[currentCommand]);
       }
     }
+
+    //if Tab is pressed
+    if(event.which === 9) {
+      event.preventDefault();
+        $("#error").Popup("Sorry, Tab completion is not handled for the moment in MiniShell", {type: 'info', duration: 1000})
+    }
   });
 });
