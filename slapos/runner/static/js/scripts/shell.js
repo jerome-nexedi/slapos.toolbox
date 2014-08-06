@@ -31,11 +31,16 @@ $(document).ready(function () {
       event.preventDefault();
       var command = $("#shell-input").val();
       var data = { command: command };
+      var old_shell_btn_background = $(".shell_btn").css("background");
+      $(".shell_btn").css("background", "url(/static/css/images/loading-min.gif) center right no-repeat")
       $.post("/runCommand", data, function (data) {
         data = ">>> " + command + "\n\n" + data;
         $("#shell-result").val(data);
         $("#shell-input").val("");
         updateHistory();
+      })
+      .always( function() {
+        $(".shell_btn").css("background", old_shell_btn_background);
       });
     }
   });
