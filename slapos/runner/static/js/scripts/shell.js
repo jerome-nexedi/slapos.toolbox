@@ -19,6 +19,11 @@ $(document).ready(function () {
   updateHistory();
 
   $("#shell").click (function() {
+    // We have to do that because once slide effect is activated, div is considered as visible
+    $("#shell").css("background-color", "#E4E4E4");
+    if ( ! $("#shell-window").is(':visible') ) {
+      $("#shell").css("background-color", "#C7C7C7");
+    }
     $("#shell-window").slideToggle("fast");
     if ( $("#shell-window").is(':visible') ) {
       $("#shell-input").focus();
