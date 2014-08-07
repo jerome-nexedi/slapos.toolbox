@@ -727,10 +727,10 @@ def runCommand():
         # if the command was just cd, execute it. Otherwise, execute the rest
         command = command.replace(' '.join(cmd), '').strip(';')
         if not command:
-          return "Changed directory, now in : " + cwd
+          return jsonify(path=cwd, data="Changed directory, now in : "+cwd)
   try:
     setMiniShellHistory(app.config, command)
-    return subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True, cwd=cwd)
+    return jsonify(path=cwd, data=subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True, cwd=cwd))
   except subprocess.CalledProcessError as e:
     error = "Error : process exited with exit code " + str(e.returncode) + \
             "\nProcess says :\n" + e.output

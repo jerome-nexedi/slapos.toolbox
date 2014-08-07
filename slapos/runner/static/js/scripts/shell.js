@@ -39,7 +39,7 @@ $(document).ready(function () {
       var old_shell_btn_background = $(".shell_btn").css("background");
       $(".shell_btn").css("background", "url(/static/css/images/loading-min.gif) center right no-repeat")
       $.post("/runCommand", data, function (data) {
-        var data = "<p><span class=\"runned-command\">>>> " + command + "</span></p><br/><pre>" + data + "</pre><br/>";
+        var data = "<p><span class=\"runned-command\">" + data.path + " >>> " + command + "</span></p><br/><pre>" + data.data + "</pre><br/>";
         $("#shell-result").append(data);
         $("#shell-input").val("");
         $("#shell-result").scrollTop($("#shell-result")[0].scrollHeight);
