@@ -24,7 +24,7 @@ from slapos.runner.utils import (getProfilePath, getRcode,
                                  getSession, isInstanceRunning,
                                  isSoftwareRunning, startProxy,
                                  isSoftwareReleaseReady,
-                                 runSlapgridUntilSuccess,
+                                 runSlapgridUntilSuccess, runInstanceWithLock,
                                  getBuildAndRunParams, saveBuildAndRunParams)
 from slapos.runner.process import killRunningProcess, isRunning
 from slapos.runner import views
@@ -532,6 +532,52 @@ class SlaprunnerTestCase(unittest.TestCase):
     response = runSlapgridUntilSuccess(self.app.config, 'software')
     self.assertEqual(response, (1, MAX_RUN_INSTANCE))
 
+  def test_slaveInstanceDeployment(self):
+    """
+    In order to test both slapproxy and core features of
+    slaprunner, will install special Software Release
+    into the current webrunner and fetch its instance
+    parameters once deployed.
+    """
+    # XXX: This test should NOT be a unit test but should be run
+    # by a Test Agent running against a slapproxy.
+
+    # Deploy "test-slave-instance-deployment" Software Release
+    self.test_cloneProject()
+    software = os.path.join(self.software, 'test-slave-instance-deployment')
+
+    # Checkout to master branch
+    response = loadJson(self.app.post('/newBranch',
+                                      data=dict(
+                                        project=self.software,
+                                        create='0',
+                                        name='master'
+                                      ),
+                                      follow_redirects=True)).get(u'code')
+    self.assertEqual(response, 1)
+    response = loadJson(self.app.post('/setCurrentProject',
+                                      data=dict(path=software),
+                                      follow_redirects=True)).get(u'code')
+    self.assertEqual(response, 1)
+
+    response = loadJson(self.app.post('/saveParameterXml',
+                                      data=dict(parameter='<?xml version="1.0" encoding="utf-8"?>\n<instance/>',
+                                                software_type='default'),
+                                      follow_redirects=True))
+
+    while self.app.get('/isSRReady').data == "2":
+      time.sleep(2)
+    self.assertEqual(self.app.get('/isSRReady').data, "1")
+
+    # Run instance deployment 3 times
+    runInstanceWithLock(self.app.config)
+    runInstanceWithLock(self.app.config)
+    result = runInstanceWithLock(self.app.config)
+    # result is True if returncode is 0 (i.e "deployed and promise passed")
+    self.assertTrue(result)
+
+    self.proxyStatus(True)
+    self.stopSlapproxy()
 
   def test_dynamicParametersReading(self):
     """Test if the value of a parameter can change in the flask application
