@@ -716,6 +716,7 @@ def runCommand():
   for cmd in parsed_commands:
     if 'cd' == cmd[:2]:
       cmd = cmd.split(' ');
+      real_cmd = cmd[:]
       if len(cmd) == 1:
         cmd.append(os.environ.get('HOME'))
       # shorten directory's name, to avoid things like : /a/../b
@@ -725,7 +726,7 @@ def runCommand():
         # save new cwd in the config file
         open(app.config['minishell_cwd_file'], 'w').write(cwd)
         # if the command was just cd, execute it. Otherwise, execute the rest
-        command = command.replace(' '.join(cmd), '').strip(';')
+        command = command.replace(' '.join(real_cmd), '').strip(';')
         if not command:
           return jsonify(path=cwd, data="Changed directory, now in : "+cwd)
   try:
