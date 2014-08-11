@@ -36,8 +36,8 @@ $(document).ready(function () {
       event.preventDefault();
       var command = $("#shell-input").val();
       var data = { command: command };
-      var old_shell_btn_background = $(".shell_btn").css("background");
-      $(".shell_btn").css("background", "url(/static/css/images/loading-min.gif) center right no-repeat")
+      $("#shell-result").append("<p id=\"waiting_for_command\"><img src=\"/static/css/images/loading-min.gif\" /></p>")
+      $("#shell-result").scrollTop($("#shell-result")[0].scrollHeight);
       $.ajax({
           type: "POST",
           url: $SCRIPT_ROOT + "/runCommand",
@@ -55,7 +55,7 @@ $(document).ready(function () {
           $("#error").Popup("Error while sending command. Server answered with :\n" + xhr.statusCode().status + " : " + error, {type: 'error', duration: 3000})
       })
       .always( function() {
-          $(".shell_btn").css("background", old_shell_btn_background);
+          $("#waiting_for_command").remove();
       });
     }
   });
