@@ -730,6 +730,7 @@ def runCommand():
           return jsonify(path=cwd, data="Changed directory, now in : "+cwd)
   try:
     setMiniShellHistory(app.config, command)
+    command = "timeout 600 " + command
     return jsonify(path=cwd, data=subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True, cwd=cwd))
   except subprocess.CalledProcessError as e:
     error = "Error : process exited with exit code " + str(e.returncode) + \

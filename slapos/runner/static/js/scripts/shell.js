@@ -38,18 +38,24 @@ $(document).ready(function () {
       var data = { command: command };
       var old_shell_btn_background = $(".shell_btn").css("background");
       $(".shell_btn").css("background", "url(/static/css/images/loading-min.gif) center right no-repeat")
-      $.post("/runCommand", data, function (data) {
-        var data = "<p><span class=\"runned-command\">" + data.path + " >>> " + command + "</span></p><br/><pre>" + data.data + "</pre><br/>";
-        $("#shell-result").append(data);
-        $("#shell-input").val("");
-        $("#shell-result").scrollTop($("#shell-result")[0].scrollHeight);
-        updateHistory();
+      $.ajax({
+          type: "POST",
+          url: $SCRIPT_ROOT + "/runCommand",
+          data: data,
+          timeout: 600000
+      })
+      .done( function (data) {
+          var data = "<p><span class=\"runned-command\">" + data.path + " >>> " + command + "</span></p><br/><pre>" + data.data + "</pre><br/>";
+          $("#shell-result").append(data);
+          $("#shell-input").val("");
+          $("#shell-result").scrollTop($("#shell-result")[0].scrollHeight);
+          updateHistory();
       })
       .fail( function(xhr, status, error) {
-        $("#error").Popup("Error while sending command. Server answered with :\n" + xhr.statusCode().status + " : " + error, {type: 'error', duration: 3000})
+          $("#error").Popup("Error while sending command. Server answered with :\n" + xhr.statusCode().status + " : " + error, {type: 'error', duration: 3000})
       })
       .always( function() {
-        $(".shell_btn").css("background", old_shell_btn_background);
+          $(".shell_btn").css("background", old_shell_btn_background);
       });
     }
   });
