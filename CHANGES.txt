@@ -1,3 +1,13 @@
+0.39.4 (2014-08-11)
+-------------------
+
+ * Slaprunner: Add a minishell feature, using far less bandwith than shellinabox
+ * Slaprunner: Slapgrid state is correctly rendered while compiling
+ * Slaprunner: consider new parameter's values without needing to restart [719da31a]
+ * Slaprunner: slapgrid's last result is always accessible through a stored file [a0bc26e9]
+ * Slaprunner: Fix dangerous bug concerning custom parameters [50ca3386]
+ * Slaprunner: various fixes and improvements
+
 0.39.3 (2014-07-11)
 -----------------
 
