@@ -64,6 +64,10 @@
         <div class="block_header">
           <a href="{{ url_for('home') }}" style="float:left;" id="home" title="Home"><img alt="" src="{{ url_for('static', filename='images/home.png') }}" /></a>
 	        <div class="line"></div>
+          <a href="http://community.slapos.org/wiki/osoe-Lecture.SlapOS.Extended" style="float:left;position:relative;top:1px;" target="_blank"><img src="{{ url_for('static', filename="images/doc.png")}}" alt="documentation" title="Documentation" /></a> 
+	        <div class="line"></div>
+          <a href="http://community.slapos.org/forum" style="float:left;position:relative;top:1px;" target="_blank"><img src="{{ url_for('static', filename="images/forum.png")}}" alt="forum" title="Forum" /></a> 
+	        <div class="line"></div>
           <h2 class="info">{% block title %}{% endblock %} - {{session.title}}</h2>
     	    <div class="run">
             <div id="running" style="display:none">
