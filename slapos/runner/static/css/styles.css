@@ -106,7 +106,7 @@ body {
     padding-top: 3px;
     margin-left:20px;
     float: left;
-    width: 700px;
+    width: 695px;
     height: 22px;
     text-align: center;
     color: #4c6172;
@@ -434,6 +434,10 @@ padding: 10px;height: 80px;padding-bottom:15px;}
 
 .gradient{background-color:#f4f4f4;background:-moz-linear-gradient(#f4f4f4,#ececec);background:-webkit-linear-gradient(#f4f4f4,#ececec);-ms-filter:"progid:DXImageTransform.Microsoft.gradient(startColorstr='#f4f4f4',endColorstr='#ececec')";background:linear-gradient(#f4f4f4,#ececec);}
 
+#slapstate {
+   display: none;
+}
+
 .log_content{
     border: solid 1px #519ADA;
     padding: 2px;
@@ -506,6 +510,9 @@ padding: 10px;height: 80px;padding-bottom:15px;}
   font-size: 16px;
 
 }
+.last_build{
+  font-size: 0.9em;
+}
 .log_content_box{
   padding: 10px 5px;
   font-size: 14px;
@@ -528,13 +535,13 @@ padding: 10px;height: 80px;padding-bottom:15px;}
   display: block;
   float: left;
 }
-.log_info_box div.state_running span{
+.log_info_box div.state_running span, .log_info_box div.state_notupdated span{
   background: #FFC800;
 }
 .log_info_box div.state_terminated span{
   background: #00C800;
 }
-.log_info_box div.state_waiting span, .log_info_box div.state_stopped span{
+.log_info_box div.state_waiting span, .log_info_box div.state_stopped span, .log_info_box div.state_failed span{
   background: #FF3131;
 }
 

@@ -89,9 +89,12 @@ $(document).ready(function () {
         }
         xml += '<instance>\n';
         if (size > 1) {
-            for (i = 2; i <= size; i += 1) {
-                if ($('input#txt_' + i).val() !== '') {
-                    xml += '<parameter id="' + $('input#txt_' + i).val() + '">' + $('textarea#value_' + i).val() + '</parameter>\n';
+            // we have to remove the 1st line, which just diplay column names
+            for (i = 0; i < size - 1; i += 1) {
+                var parameter_name = $("#partitionParameter tr").find("input")[i].value;
+                var parameter_value = $("#partitionParameter tr").find("textarea")[i].value;
+                if (parameter_name !== '') {
+                    xml += '<parameter id="' + parameter_name + '">' + parameter_value + '</parameter>\n';
                 }
             }
         }

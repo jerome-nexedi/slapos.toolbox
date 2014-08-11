@@ -96,8 +96,6 @@ class SlaprunnerTestCase(unittest.TestCase):
       software_profile='software.cfg',
       SECRET_KEY="123456",
       PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=31),
-      auto_deploy = True,
-      autorun = False,
       instance_monitoring_url = 'https://[' + config.ipv6_address + ']:9684',
     )
     self.app = views.app.test_client()
@@ -122,6 +120,10 @@ class SlaprunnerTestCase(unittest.TestCase):
     project = os.path.join(self.app.config['etc_dir'], '.project')
     users = os.path.join(self.app.config['etc_dir'], '.users')
 
+    #reset tested parameters
+    self.updateConfigParameter('autorun', False)
+    self.updateConfigParameter('auto_deploy', True)
+
     if os.path.exists(users):
       os.unlink(users)
     if os.path.exists(project):
@@ -138,6 +140,15 @@ class SlaprunnerTestCase(unittest.TestCase):
     killRunningProcess('slapproxy', recursive=True)
     killRunningProcess('slapgrid-cp', recursive=True)
     killRunningProcess('slapgrid-sr', recursive=True)
+
+  def updateConfigParameter(self, parameter, value):
+    config_parser = ConfigParser.SafeConfigParser()
+    config_parser.read(os.getenv('RUNNER_CONFIG'))
+    for section in config_parser.sections():
+      if config_parser.has_option(section, parameter):
+        config_parser.set(section, parameter, str(value))
+    with open(os.getenv('RUNNER_CONFIG'), 'wb') as configfile:
+      config_parser.write(configfile)
 
   def configAccount(self, username, password, email, name, rcode):
     """Helper for configAccount"""
@@ -433,8 +444,8 @@ class SlaprunnerTestCase(unittest.TestCase):
     """Scenario 7: isSRReady won't overwrite the existing
     Sofware Instance if it has been deployed yet"""
     # Test that SR won't be deployed with auto_deploy=False
-    self.app.config['auto_deploy'] = False
-    self.app.config['autorun'] = False
+    self.updateConfigParameter('auto_deploy', False)
+    self.updateConfigParameter('autorun', False)
     project = open(os.path.join(self.app.config['etc_dir'],
                   '.project'), "w")
     project.write(self.software + 'slaprunner-test')
@@ -442,7 +453,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     response = isSoftwareReleaseReady(self.app.config)
     self.assertEqual(response, "0")
     # Test if auto_deploy parameter starts the deployment of SR
-    self.app.config['auto_deploy'] = True
+    self.updateConfigParameter('auto_deploy', True)
     self.setupSoftwareFolder()
     response = isSoftwareReleaseReady(self.app.config)
     self.assertEqual(response, "2")
@@ -520,6 +531,23 @@ class SlaprunnerTestCase(unittest.TestCase):
     saveBuildAndRunParams(self.app.config, parameters)
     response = runSlapgridUntilSuccess(self.app.config, 'software')
     self.assertEqual(response, (1, MAX_RUN_INSTANCE))
+
+
+  def test_dynamicParametersReading(self):
+    """Test if the value of a parameter can change in the flask application
+    only by changing the value of slapos.cfg config file. This can happen when
+    slapgrid processes the webrunner's partition.
+    """
+    config_file = os.path.join(self.app.config['etc_dir'], 'slapos.cfg')
+    runner_config_old = os.environ['RUNNER_CONFIG']
+    os.environ['RUNNER_CONFIG'] = config_file
+    open(config_file, 'w').write("[section]\nvar=value")
+    config = self.app.config
+    self.assertEqual(config['var'], "value")
+    open(config_file, 'w').write("[section]\nvar=value_changed")
+    self.assertEqual(config['var'], "value_changed")
+    # cleanup
+    os.environ['RUNNER_CONFIG'] = runner_config_old
 
 
 def main():

@@ -3,6 +3,7 @@
 # pylint: disable-msg=W0311,C0301,C0103,C0111,W0141,W0142
 
 import ConfigParser
+import datetime
 import json
 import logging
 import md5
@@ -275,6 +276,29 @@ def isSoftwareRunning(config=None):
   return isRunning('slapgrid-sr')
 
 
+def slapgridResultToFile(config, step, returncode, datetime):
+  filename = step + "_info.json"
+  file = os.path.join(config['runner_workdir'], filename)
+  result = {'last_build':datetime, 'success':returncode}
+  open(file, "w").write(json.dumps(result))
+
+
+def getSlapgridResult(config, step):
+  filename = step + "_info.json"
+  file = os.path.join(config['runner_workdir'], filename)
+  if os.path.exists(file):
+    result = json.loads(open(file, "r").read())
+  else:
+    result = {'last_build': 0, 'success':-1}
+  return result
+
+
+def waitProcess(config, process, step):
+  process.wait()
+  date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+  slapgridResultToFile(config, step, process.returncode, date)
+
+
 def runSoftwareWithLock(config, lock=True):
   """
     Use Slapgrid to compile current Software Release and wait until
@@ -301,10 +325,13 @@ def runSoftwareWithLock(config, lock=True):
                     name='slapgrid-sr', stdout=None)
   if lock:
     slapgrid.wait()
+    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    slapgridResultToFile(config, "software", slapgrid.returncode, date)
     #Saves the current compile software for re-use
     config_SR_folder(config)
     return ( True if slapgrid.returncode == 0 else False )
   else:
+    thread.start_new_thread(waitProcess, (config, slapgrid, "software"))
     return False
 
 
@@ -401,8 +428,11 @@ def runInstanceWithLock(config, lock=True):
                    name='slapgrid-cp', stdout=None)
   if lock:
     slapgrid.wait()
+    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    slapgridResultToFile(config, "instance", slapgrid.returncode, date)
     return ( True if slapgrid.returncode == 0 else False )
   else:
+    thread.start_new_thread(waitProcess, (config, slapgrid, "instance"))
     return False
 
 
@@ -896,3 +926,17 @@ def setupDefaultSR(config):
     configNewSR(config, config['default_sr'])
   if config['auto_deploy']:
     thread.start_new_thread(buildAndRun, (config,))
+
+
+def setMiniShellHistory(config, command):
+  history_max_size = 10
+  command = command + "\n"
+  history_file = config['minishell_history_file']
+  if os.path.exists(history_file):
+    history = open(history_file, 'r').readlines()
+    if len(history) >= history_max_size:
+      del history[0]
+  else:
+    history = []
+  history.append(command)
+  open(history_file, 'w+').write(''.join(history))

@@ -6,6 +6,7 @@
 import json
 import os
 import shutil
+import subprocess
 import thread
 import urllib
 
@@ -14,7 +15,8 @@ from flask import (Flask, request, redirect, url_for, render_template,
 
 from slapos.runner.process import killRunningProcess
 from slapos.runner.utils import (checkSoftwareFolder, configNewSR,
-                                 createNewUser, getProfilePath,
+                                 createNewUser, getBuildAndRunParams,
+                                 getProfilePath, getSlapgridResult,
                                  listFolder, getBuildAndRunParams,
                                  getProjectTitle, getRcode, getSession,
                                  getSlapStatus, getSvcStatus,
@@ -26,6 +28,7 @@ from slapos.runner.utils import (checkSoftwareFolder, configNewSR,
                                  removeSoftwareByName, runInstanceWithLock,
                                  runSoftwareWithLock, runSlapgridUntilSuccess,
                                  saveSession, saveBuildAndRunParams,
+                                 setMiniShellHistory,
                                  svcStartStopProcess, svcStopAll, tail,
                                  updateInstanceParameter)
 
@@ -91,6 +94,10 @@ def myAccount():
   return render_template('account.html', username=account[0],
           email=account[2], name=account[3].decode('utf-8'),
           params=getBuildAndRunParams(app.config))
+
+
+def getSlapgridParameters():
+  return jsonify(getBuildAndRunParams(app.config))
 
 
 def manageRepository():
@@ -215,6 +222,8 @@ def getFileLog():
   else:
     file_path = realpath(app.config, logfile)
   try:
+    if not os.path.exists(file_path):
+      raise IOError
     if not isText(file_path):
       return jsonify(code=0,
             result="Can not open binary file, please select a text file!")
@@ -446,7 +455,15 @@ def slapgridResult():
     if os.path.exists(app.config[log_file]):
       log_result = readFileFrom(open(app.config[log_file]),
                                 int(request.form['position']))
-  return jsonify(software=software_state, instance=instance_state,
+  build_result = getSlapgridResult(app.config, 'software')
+  run_result = getSlapgridResult(app.config, 'instance')
+  software_info = {'state':software_state,
+                   'last_build':build_result['last_build'],
+                   'success':build_result['success']}
+  instance_info = {'state':instance_state,
+                   'last_build':run_result['last_build'],
+                   'success':run_result['success']}
+  return jsonify(software=software_info, instance=instance_info,
                  result=(instance_state or software_state), content=log_result)
 
 
@@ -691,6 +708,47 @@ def isSRReady():
   return isSoftwareReleaseReady(app.config)
 
 
+def runCommand():
+  cwd = open(app.config['minishell_cwd_file'], 'r').read().strip()
+  command = request.form.get("command", '').strip()
+  parsed_commands = command.split(';');
+  # does the user want to change current directory ?
+  for cmd in parsed_commands:
+    if 'cd' == cmd[:2]:
+      cmd = cmd.split(' ');
+      real_cmd = cmd[:]
+      if len(cmd) == 1:
+        cmd.append(os.environ.get('HOME'))
+      # shorten directory's name, to avoid things like : /a/../b
+      cd_dir = os.path.realpath(os.path.join(cwd, cmd[1]))
+      if os.path.exists(cd_dir) and os.path.isdir(cd_dir):
+        cwd = cd_dir
+        # save new cwd in the config file
+        open(app.config['minishell_cwd_file'], 'w').write(cwd)
+        # if the command was just cd, execute it. Otherwise, execute the rest
+        command = command.replace(' '.join(real_cmd), '').strip(';')
+        if not command:
+          return jsonify(path=cwd, data="Changed directory, now in : "+cwd)
+  try:
+    setMiniShellHistory(app.config, command)
+    command = "timeout 600 " + command
+    return jsonify(path=cwd, data=subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True, cwd=cwd))
+  except subprocess.CalledProcessError as e:
+    error = "Error : process exited with exit code " + str(e.returncode) + \
+            "\nProcess says :\n" + e.output
+    return error
+
+
+def getMiniShellHistory():
+  history_file = app.config['minishell_history_file']
+  if not os.path.exists(history_file):
+    return ""
+  history = open(history_file, 'r').readlines()
+  for line, text in enumerate(history):
+    history[line] = text.strip()
+  return json.dumps(history)
+
+
 #Setup List of URLs
 app.add_url_rule('/', 'home', home)
 app.add_url_rule('/browseWorkspace', 'browseWorkspace', browseWorkspace)
@@ -773,3 +831,6 @@ app.add_url_rule("/editFile", 'editFile', editFile, methods=['GET'])
 app.add_url_rule('/shell', 'shell', shell)
 app.add_url_rule('/isSRReady', 'isSRReady', isSRReady)
 app.add_url_rule('/addUser', 'addUser', addUser, methods=['POST'])
+app.add_url_rule('/getSlapgridParameters', 'getSlapgridParameters', getSlapgridParameters, methods=['GET'])
+app.add_url_rule('/runCommand', 'runCommand', runCommand, methods=['POST'])
+app.add_url_rule("/getMiniShellHistory", 'getMiniShellHistory', getMiniShellHistory, methods=['GET'])
