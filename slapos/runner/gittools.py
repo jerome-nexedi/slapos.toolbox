@@ -137,8 +137,8 @@ def gitCommit(project, msg):
       git.add(f)
     #Commit all modified and untracked files
     git.commit('-a', '-m', msg)
-  else:
     code = 1
+  else:
     json = "Nothing to be commited"
   return jsonify(code=code, result=json)
 

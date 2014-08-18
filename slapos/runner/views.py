@@ -403,6 +403,14 @@ def getProjectDiff():
                   result="Error: No such file or directory. PERMISSION DENIED!")
 
 
+def commitProjectFiles():
+  path = realpath(app.config, request.form['project'])
+  if path:
+    return gitCommit(path, request.form['msg'])
+  else:
+    return jsonify(code=0, result="Can not read folder: Permission Denied")
+
+
 def pushProjectFiles():
   path = realpath(app.config, request.form['project'])
   if path:
@@ -786,6 +794,8 @@ app.add_url_rule("/slapgridResult", 'slapgridResult',
                  slapgridResult, methods=['POST'])
 app.add_url_rule("/getmd5sum", 'getmd5sum', getmd5sum, methods=['POST'])
 app.add_url_rule("/checkFileType", 'checkFileType', checkFileType,
+                 methods=['POST'])
+app.add_url_rule("/commitProjectFiles", 'commitProjectFiles', commitProjectFiles,
                  methods=['POST'])
 app.add_url_rule("/pullProjectFiles", 'pullProjectFiles', pullProjectFiles,
                  methods=['POST'])
