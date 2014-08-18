@@ -150,6 +150,8 @@ def gitPush(project):
   code = 0
   json = ""
   try:
+    repo = Repo(project)
+    git = repo.git
     #push changes to repo
     current_branch = repo.active_branch.name
     git.push('origin', current_branch)
