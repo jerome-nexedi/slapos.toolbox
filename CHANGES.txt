@@ -1,3 +1,8 @@
+0.39.5 (Unreleased)
+-------------------
+
+ * Slaprunner: Add slave support test.
+
 0.39.4 (2014-08-11)
 -------------------
 
