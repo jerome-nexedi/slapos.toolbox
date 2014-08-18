@@ -286,6 +286,3 @@ function runProcess(urlfor) {
         });
     }
 }
-
-getRunningState();
-setInterval('getRunningState()', 3000);
