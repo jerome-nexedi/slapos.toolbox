@@ -31,6 +31,17 @@ def runProcesses(config, processes):
     waitForProcessEnd(proc)
 
 
+def stopProcess(config, process):
+  server = xmlrpclib.Server(config['supervisord_server'])
+  server.supervisor.stopProcess(process)
+
+
+def stopProcesses(config, processes):
+  server = xmlrpclib.Server(config['supervisord_server'])
+  for proc in processes:
+    server.supervisor.stopProcess(proc)
+
+
 def waitForProcessEnd(config, process):
   server = xmlrpclib.Server(config['supervisord_server'])
   while True:
