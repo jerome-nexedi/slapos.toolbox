@@ -9,11 +9,13 @@ import logging
 import md5
 import multiprocessing
 import os
+import sup_process
 import re
 import shutil
 import thread
 import time
 import urllib
+import xmlrpclib
 from xml.dom import minidom
 
 import xml_marshaller
@@ -319,19 +321,14 @@ def runSoftwareWithLock(config, lock=True):
     os.remove(config['software_log'])
   if not updateProxy(config):
     return False
-  slapgrid = Popen([config['slapos'], 'node', 'software', '--all',
-                   '--cfg', config['slapos_cfg'], '--pidfile', slapgrid_pid,
-                   '--verbose', '--logfile', config['software_log']],
-                    name='slapgrid-sr', stdout=None)
-  if lock:
-    slapgrid.wait()
-    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    slapgridResultToFile(config, "software", slapgrid.returncode, date)
+  try:
+    sup_process.runProcess(config, "slapgrid-sr")
+    if lock:
+      sup_process.waitForProcessEnd(config, "slapgrid-sr")
     #Saves the current compile software for re-use
     config_SR_folder(config)
-    return ( True if slapgrid.returncode == 0 else False )
-  else:
-    thread.start_new_thread(waitProcess, (config, slapgrid, "software"))
+    return True
+  except xmlrpclib.Fault:
     return False
 
 
@@ -422,17 +419,12 @@ def runInstanceWithLock(config, lock=True):
     os.remove(config['instance_log'])
   if not (updateProxy(config) and requestInstance(config)):
     return False
-  slapgrid = Popen([config['slapos'], 'node', 'instance', '--all',
-                   '--cfg', config['slapos_cfg'], '--pidfile', slapgrid_pid,
-                   '--verbose', '--logfile', config['instance_log']],
-                   name='slapgrid-cp', stdout=None)
-  if lock:
-    slapgrid.wait()
-    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    slapgridResultToFile(config, "instance", slapgrid.returncode, date)
-    return ( True if slapgrid.returncode == 0 else False )
-  else:
-    thread.start_new_thread(waitProcess, (config, slapgrid, "instance"))
+  try:
+    sup_process.runProcess(config, "slapgrid-cp")
+    if lock:
+      sup_process.waitForProcessEnd(config, "slapgrid-cp")
+    return True
+  except xmlrpclib.Fault:
     return False
 
 
