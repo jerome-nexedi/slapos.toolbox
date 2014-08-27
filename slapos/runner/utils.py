@@ -244,14 +244,13 @@ def updateInstanceParameter(config, software_type=None):
 
 def startProxy(config):
   """Start Slapproxy server"""
-  if isRunning('slapproxy'):
+  if sup_process.isRunning('slapproxy'):
     return
 
-  log = os.path.join(config['log_dir'], 'slapproxy.log')
-  Popen([config['slapos'], 'proxy', 'start', '--logfile', log,
-         '--cfg', config['configuration_file_path']],
-        name='slapproxy',
-        stdout=None)
+  try:
+    sup_process.runProcess(config, "slapproxy")
+  except xmlrpclib.Fault:
+    pass
   time.sleep(4)
 
 
