@@ -1,3 +1,5 @@
+import os
+import signal
 import time
 import xmlrpclib
 
@@ -7,10 +9,18 @@ from supervisor import childutils
 # It aims to replace the file "process.py"
 # For the moment, we keep both for compatibility
 
+
 def isRunning(config, process):
   server = xmlrpclib.Server(config['supervisord_server'])
   state = server.supervisor.getProcessInfo(process)['state']
-  return (True if state == 20 else False)
+  return (True if state in (10, 20) else False)
+
+
+def killRunningProcess(config, process, sig=signal.SIGTERM):
+  server = xmlrpclib.Server(config['supervisord_server'])
+  pid = server.supervisor.getProcessInfo(process)['pid']
+  if pid != 0:
+    os.kill(pid, sig)
 
 
 def returnCode(config, process):
@@ -31,6 +41,12 @@ def runProcesses(config, processes):
     waitForProcessEnd(proc)
 
 
+def stopIfRunning(config, process):
+  if isRunning(config, process):
+    server = xmlrpclib.Server(config['supervisord_server'])
+    slapos.stopProcess(process)
+
+
 def stopProcess(config, process):
   server = xmlrpclib.Server(config['supervisord_server'])
   server.supervisor.stopProcess(process)
@@ -47,5 +63,7 @@ def waitForProcessEnd(config, process):
   while True:
     state = server.supervisor.getProcessInfo(process)['state']
     if state == 20:
-      time.sleep(5)
+      time.sleep(3)
+    else:
+      return True
   return False
