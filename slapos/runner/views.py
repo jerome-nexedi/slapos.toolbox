@@ -7,13 +7,13 @@ import json
 import os
 import shutil
 import subprocess
+import sup_process
 import thread
 import urllib
 
 from flask import (Flask, request, redirect, url_for, render_template,
                    g, flash, jsonify, session, abort, send_file)
 
-from slapos.runner.process import killRunningProcess
 from slapos.runner.utils import (checkSoftwareFolder, configNewSR,
                                  createNewUser, getBuildAndRunParams,
                                  getProfilePath, getSlapgridResult,
@@ -478,7 +478,7 @@ def slapgridResult():
 def stopSlapgrid():
   counter_file = os.path.join(app.config['runner_workdir'], '.turn-left')
   open(counter_file, 'w+').write(str(0))
-  result = killRunningProcess(request.form['type'])
+  result = sup_process.killRunningProcess(app.config, request.form['type'])
   return jsonify(result=result)
 
 
