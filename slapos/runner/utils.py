@@ -454,8 +454,11 @@ def getSlapStatus(config):
 
 def svcStopAll(config):
   """Stop all Instance processes on this computer"""
-  return Popen([config['supervisor'], config['configuration_file_path'],
-                'shutdown']).communicate()[0]
+  try:
+    return Popen([config['supervisor'], config['configuration_file_path'],
+                  'shutdown']).communicate()[0]
+  except:
+    pass
 
 
 def removeInstanceRoot(config):
