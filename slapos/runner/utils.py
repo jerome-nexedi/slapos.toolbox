@@ -7,7 +7,6 @@ import datetime
 import json
 import logging
 import md5
-import multiprocessing
 import os
 import sup_process
 import re
@@ -23,7 +22,7 @@ from flask import jsonify
 
 from slapos.runner.gittools import cloneRepo
 
-from slapos.runner.process import Popen, isRunning, killRunningProcess, isPidFileProcessRunning
+from slapos.runner.process import Popen
 from slapos.htpasswd import HtpasswdFile
 import slapos.slap
 from slapos.grid.utils import md5digest

@@ -3,8 +3,6 @@ import signal
 import time
 import xmlrpclib
 
-from supervisor import childutils
-
 # This mini-library is used to communicate with supervisord process
 # It aims to replace the file "process.py"
 # For the moment, we keep both for compatibility

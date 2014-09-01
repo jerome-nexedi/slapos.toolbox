@@ -21,13 +21,12 @@ import sup_process
 import time
 import unittest
 
-from slapos.runner.utils import (getProfilePath, getRcode,
+from slapos.runner.utils import (getProfilePath,
                                  getSession, isInstanceRunning,
                                  isSoftwareRunning, startProxy,
                                  isSoftwareReleaseReady,
                                  runSlapgridUntilSuccess,
                                  getBuildAndRunParams, saveBuildAndRunParams)
-from slapos.runner.process import killRunningProcess, isRunning
 from slapos.runner import views
 import slapos.slap
 from slapos.htpasswd import  HtpasswdFile
