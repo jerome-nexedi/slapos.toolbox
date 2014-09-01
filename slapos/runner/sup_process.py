@@ -39,15 +39,13 @@ def runProcesses(config, processes):
     waitForProcessEnd(proc)
 
 
-def stopIfRunning(config, process):
+def stopProcess(config, process):
+  """
+  Ask supervisor to stop a process
+  """
   if isRunning(config, process):
     server = xmlrpclib.Server(config['supervisord_server'])
-    slapos.stopProcess(process)
-
-
-def stopProcess(config, process):
-  server = xmlrpclib.Server(config['supervisord_server'])
-  server.supervisor.stopProcess(process)
+    server.supervisor.stopProcess(process)
 
 
 def stopProcesses(config, processes):

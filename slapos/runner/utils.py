@@ -547,8 +547,8 @@ def configNewSR(config, projectpath):
   """
   folder = realpath(config, projectpath)
   if folder:
-    sup_process.stopIfRunning(config, 'slapgrid-cp')
-    sup_process.stopIfRunning(config, 'slapgrid-sr')
+    sup_process.stopProcess(config, 'slapgrid-cp')
+    sup_process.stopProcess(config, 'slapgrid-sr')
     stopProxy(config)
     removeProxyDb(config)
     startProxy(config)
