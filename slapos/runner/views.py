@@ -2,7 +2,7 @@
 # vim: set et sts=2:
 # pylint: disable-msg=W0311,C0301,C0103,C0111
 
-
+import codecs
 import json
 import os
 import shutil
@@ -356,10 +356,10 @@ def getFileContent():
       return jsonify(code=0,
             result="Can not open a binary file, please select a text file!")
     if 'truncate' in request.form:
-      content = tail(open(file_path), int(request.form['truncate']))
+      content = tail(codecs.open(file_path, "r", "utf_8"), int(request.form['truncate']))
       return jsonify(code=1, result=content)
     else:
-      return jsonify(code=1, result=open(file_path).read())
+      return jsonify(code=1, result=codecs.open(file_path, "r", "utf_8").read())
   else:
     return jsonify(code=0, result="Error: No such file!")
 
