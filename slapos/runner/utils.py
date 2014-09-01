@@ -7,13 +7,14 @@ import datetime
 import json
 import logging
 import md5
-import multiprocessing
 import os
+import sup_process
 import re
 import shutil
 import thread
 import time
 import urllib
+import xmlrpclib
 from xml.dom import minidom
 
 import xml_marshaller
@@ -21,7 +22,7 @@ from flask import jsonify
 
 from slapos.runner.gittools import cloneRepo
 
-from slapos.runner.process import Popen, isRunning, killRunningProcess, isPidFileProcessRunning
+from slapos.runner.process import Popen
 from slapos.htpasswd import HtpasswdFile
 import slapos.slap
 from slapos.grid.utils import md5digest
@@ -236,20 +237,19 @@ def updateInstanceParameter(config, software_type=None):
     config: Slaprunner configuration.
     software_type: reconfigure Software Instance with software type.
   """
+  time.sleep(1)
   if not (updateProxy(config) and requestInstance(config, software_type)):
     return False
 
 
 def startProxy(config):
   """Start Slapproxy server"""
-  if isRunning('slapproxy'):
+  if sup_process.isRunning(config, 'slapproxy'):
     return
-
-  log = os.path.join(config['log_dir'], 'slapproxy.log')
-  Popen([config['slapos'], 'proxy', 'start', '--logfile', log,
-         '--cfg', config['configuration_file_path']],
-        name='slapproxy',
-        stdout=None)
+  try:
+    sup_process.runProcess(config, "slapproxy")
+  except xmlrpclib.Fault:
+    pass
   time.sleep(4)
 
 
@@ -265,15 +265,11 @@ def removeProxyDb(config):
     os.unlink(config['database_uri'])
 
 
-def isSoftwareRunning(config=None):
+def isSoftwareRunning(config):
   """
     Return True if slapos is still running and false if slapos if not
   """
-  # XXX-Cedric Hardcoded pidfile
-  if config:
-    slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-sr.pid')
-    return isPidFileProcessRunning(slapgrid_pid)
-  return isRunning('slapgrid-sr')
+  return sup_process.isRunning(config, 'slapgrid-sr')
 
 
 def slapgridResultToFile(config, step, returncode, datetime):
@@ -299,17 +295,14 @@ def waitProcess(config, process, step):
   slapgridResultToFile(config, step, process.returncode, date)
 
 
-def runSoftwareWithLock(config, lock=True):
+def runSoftwareWithLock(config, lock=False):
   """
     Use Slapgrid to compile current Software Release and wait until
     compilation is done
   """
-  if isSoftwareRunning():
-    return False
+  if sup_process.isRunning(config, 'slapgrid-sr'):
+    return 1
 
-  slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-sr.pid')
-  if isPidFileProcessRunning(slapgrid_pid):
-    return False
   if not os.path.exists(config['software_root']):
     os.mkdir(config['software_root'])
   stopProxy(config)
@@ -318,21 +311,16 @@ def runSoftwareWithLock(config, lock=True):
   if os.path.exists(config['software_log']):
     os.remove(config['software_log'])
   if not updateProxy(config):
-    return False
-  slapgrid = Popen([config['slapos'], 'node', 'software', '--all',
-                   '--cfg', config['slapos_cfg'], '--pidfile', slapgrid_pid,
-                   '--verbose', '--logfile', config['software_log']],
-                    name='slapgrid-sr', stdout=None)
-  if lock:
-    slapgrid.wait()
-    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    slapgridResultToFile(config, "software", slapgrid.returncode, date)
+    return 1
+  try:
+    sup_process.runProcess(config, "slapgrid-sr")
+    if lock:
+      sup_process.waitForProcessEnd(config, "slapgrid-sr")
     #Saves the current compile software for re-use
     config_SR_folder(config)
-    return ( True if slapgrid.returncode == 0 else False )
-  else:
-    thread.start_new_thread(waitProcess, (config, slapgrid, "software"))
-    return False
+    return sup_process.returnCode(config, "slapgrid-sr")
+  except xmlrpclib.Fault:
+    return 1
 
 
 def config_SR_folder(config):
@@ -396,44 +384,34 @@ def loadSoftwareRList(config):
   return list
 
 
-def isInstanceRunning(config=None):
+def isInstanceRunning(config):
   """
     Return True if slapos is still running and False otherwise
   """
-  # XXX-Cedric Hardcoded pidfile
-  if config:
-    slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-cp.pid')
-    return isPidFileProcessRunning(slapgrid_pid)
-  return isRunning('slapgrid-cp')
+  return sup_process.isRunning(config, 'slapgrid-cp')
 
 
-def runInstanceWithLock(config, lock=True):
+def runInstanceWithLock(config, lock=False):
   """
     Use Slapgrid to deploy current Software Release and wait until
     deployment is done.
   """
-  if isInstanceRunning():
-    return False
+  if sup_process.isRunning(config, 'slapgrid-cp'):
+    return 1
 
-  slapgrid_pid = os.path.join(config['run_dir'], 'slapgrid-cp.pid')
   startProxy(config)
   # XXX Hackish and unreliable
   if os.path.exists(config['instance_log']):
     os.remove(config['instance_log'])
   if not (updateProxy(config) and requestInstance(config)):
-    return False
-  slapgrid = Popen([config['slapos'], 'node', 'instance', '--all',
-                   '--cfg', config['slapos_cfg'], '--pidfile', slapgrid_pid,
-                   '--verbose', '--logfile', config['instance_log']],
-                   name='slapgrid-cp', stdout=None)
-  if lock:
-    slapgrid.wait()
-    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    slapgridResultToFile(config, "instance", slapgrid.returncode, date)
-    return ( True if slapgrid.returncode == 0 else False )
-  else:
-    thread.start_new_thread(waitProcess, (config, slapgrid, "instance"))
-    return False
+    return 1
+  try:
+    sup_process.runProcess(config, "slapgrid-cp")
+    if lock:
+      sup_process.waitForProcessEnd(config, "slapgrid-cp")
+    return sup_process.returnCode(config, "slapgrid-cp")
+  except xmlrpclib.Fault:
+    return 1
 
 
 def getProfilePath(projectDir, profile):
@@ -475,8 +453,11 @@ def getSlapStatus(config):
 
 def svcStopAll(config):
   """Stop all Instance processes on this computer"""
-  return Popen([config['supervisor'], config['configuration_file_path'],
-                'shutdown']).communicate()[0]
+  try:
+    return Popen([config['supervisor'], config['configuration_file_path'],
+                  'shutdown']).communicate()[0]
+  except:
+    pass
 
 
 def removeInstanceRoot(config):
@@ -566,10 +547,8 @@ def configNewSR(config, projectpath):
   """
   folder = realpath(config, projectpath)
   if folder:
-    if isInstanceRunning():
-      killRunningProcess('slapgrid-cp')
-    if isSoftwareRunning():
-      killRunningProcess('slapgrid-sr')
+    sup_process.stopProcess(config, 'slapgrid-cp')
+    sup_process.stopProcess(config, 'slapgrid-sr')
     stopProxy(config)
     removeProxyDb(config)
     startProxy(config)
@@ -661,7 +640,7 @@ def removeSoftwareByName(config, md5, folderName):
     config: slaprunner configuration
     foldername: the link name given to the software release
     md5: the md5 filename given by slapgrid to SR folder"""
-  if isSoftwareRunning() or isInstanceRunning():
+  if isSoftwareRunning(config) or isInstanceRunning(config):
     raise Exception("Software installation or instantiation in progress, cannot remove")
   path = os.path.join(config['software_root'], md5)
   linkpath = os.path.join(config['software_link'], folderName)
@@ -899,8 +878,9 @@ def runSlapgridUntilSuccess(config, step):
   # XXX-Nico runSoftwareWithLock can return 0 or False (0==False)
   while counter > 0:
     counter -= 1
-    slapgrid = runSlapgridWithLock(config)
-    if slapgrid:
+    slapgrid = runSlapgridWithLock(config, lock=True)
+    # slapgrid == 0 because EXIT_SUCCESS == 0
+    if slapgrid == 0:
       break
     times_left = int(open(counter_file).read()) - 1
     if times_left > 0 :
@@ -911,7 +891,7 @@ def runSlapgridUntilSuccess(config, step):
   max_tries -= counter
   # run instance only if we are deploying the software release,
   # if it is defined so, and sr is correctly deployed
-  if step == "software" and params['run_instance'] and slapgrid:
+  if step == "software" and params['run_instance'] and slapgrid == 0:
     return (max_tries, runSlapgridUntilSuccess(config, "instance"))
   else:
     return max_tries

@@ -7,13 +7,13 @@ import json
 import os
 import shutil
 import subprocess
+import sup_process
 import thread
 import urllib
 
 from flask import (Flask, request, redirect, url_for, render_template,
                    g, flash, jsonify, session, abort, send_file)
 
-from slapos.runner.process import killRunningProcess
 from slapos.runner.utils import (checkSoftwareFolder, configNewSR,
                                  createNewUser, getBuildAndRunParams,
                                  getProfilePath, getSlapgridResult,
@@ -25,8 +25,7 @@ from slapos.runner.utils import (checkSoftwareFolder, configNewSR,
                                  loadSoftwareRList, md5sum, newSoftware,
                                  readFileFrom, readParameters, realpath,
                                  removeInstanceRoot, removeProxyDb,
-                                 removeSoftwareByName, runInstanceWithLock,
-                                 runSoftwareWithLock, runSlapgridUntilSuccess,
+                                 removeSoftwareByName, runSlapgridUntilSuccess,
                                  saveSession, saveBuildAndRunParams,
                                  setMiniShellHistory,
                                  svcStartStopProcess, svcStopAll, tail,
@@ -403,6 +402,14 @@ def getProjectDiff():
                   result="Error: No such file or directory. PERMISSION DENIED!")
 
 
+def commitProjectFiles():
+  path = realpath(app.config, request.form['project'])
+  if path:
+    return gitCommit(path, request.form['msg'])
+  else:
+    return jsonify(code=0, result="Can not read folder: Permission Denied")
+
+
 def pushProjectFiles():
   path = realpath(app.config, request.form['project'])
   if path:
@@ -470,7 +477,7 @@ def slapgridResult():
 def stopSlapgrid():
   counter_file = os.path.join(app.config['runner_workdir'], '.turn-left')
   open(counter_file, 'w+').write(str(0))
-  result = killRunningProcess(request.form['type'])
+  result = sup_process.killRunningProcess(app.config, request.form['type'])
   return jsonify(result=result)
 
 
@@ -786,6 +793,8 @@ app.add_url_rule("/slapgridResult", 'slapgridResult',
                  slapgridResult, methods=['POST'])
 app.add_url_rule("/getmd5sum", 'getmd5sum', getmd5sum, methods=['POST'])
 app.add_url_rule("/checkFileType", 'checkFileType', checkFileType,
+                 methods=['POST'])
+app.add_url_rule("/commitProjectFiles", 'commitProjectFiles', commitProjectFiles,
                  methods=['POST'])
 app.add_url_rule("/pullProjectFiles", 'pullProjectFiles', pullProjectFiles,
                  methods=['POST'])

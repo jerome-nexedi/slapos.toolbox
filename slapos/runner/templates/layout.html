@@ -44,6 +44,8 @@
     		   $("#error").Popup($("input#fmsg").val(), {type:'info', duration:5000, load:true});
     		}
     		bindRun();
+            getRunningState();
+            setInterval('getRunningState()', 3000);
         $('ul.sf-menu').superfish({
       		delay:       600,
     			speed:       'fast',

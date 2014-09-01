@@ -137,8 +137,8 @@ def gitCommit(project, msg):
       git.add(f)
     #Commit all modified and untracked files
     git.commit('-a', '-m', msg)
-  else:
     code = 1
+  else:
     json = "Nothing to be commited"
   return jsonify(code=code, result=json)
 
@@ -150,6 +150,8 @@ def gitPush(project):
   code = 0
   json = ""
   try:
+    repo = Repo(project)
+    git = repo.git
     #push changes to repo
     current_branch = repo.active_branch.name
     git.push('origin', current_branch)

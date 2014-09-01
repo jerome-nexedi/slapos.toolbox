@@ -17,16 +17,16 @@ import hashlib
 import json
 import os
 import shutil
+import sup_process
 import time
 import unittest
 
-from slapos.runner.utils import (getProfilePath, getRcode,
+from slapos.runner.utils import (getProfilePath,
                                  getSession, isInstanceRunning,
                                  isSoftwareRunning, startProxy,
                                  isSoftwareReleaseReady,
                                  runSlapgridUntilSuccess, runInstanceWithLock,
                                  getBuildAndRunParams, saveBuildAndRunParams)
-from slapos.runner.process import killRunningProcess, isRunning
 from slapos.runner import views
 import slapos.slap
 from slapos.htpasswd import  HtpasswdFile
@@ -137,9 +137,9 @@ class SlaprunnerTestCase(unittest.TestCase):
     if os.path.exists(self.app.config['software_link']):
       shutil.rmtree(self.app.config['software_link'])
     #Stop process
-    killRunningProcess('slapproxy', recursive=True)
-    killRunningProcess('slapgrid-cp', recursive=True)
-    killRunningProcess('slapgrid-sr', recursive=True)
+    sup_process.killRunningProcess(self.app.config, 'slapproxy')
+    sup_process.killRunningProcess(self.app.config, 'slapgrid-cp')
+    sup_process.killRunningProcess(self.app.config, 'slapgrid-sr')
 
   def updateConfigParameter(self, parameter, value):
     config_parser = ConfigParser.SafeConfigParser()
@@ -186,10 +186,10 @@ class SlaprunnerTestCase(unittest.TestCase):
 
   def proxyStatus(self, status=True, sleep_time=0):
     """Helper for testslapproxy status"""
-    proxy = isRunning('slapproxy')
+    proxy = sup_process.isRunning(self.app.config, 'slapproxy')
     if proxy != status and sleep_time != 0:
       time.sleep(sleep_time)
-      proxy = isRunning('slapproxy')
+      proxy = sup_process.isRunning(self.app.config, 'slapproxy')
     self.assertEqual(proxy, status)
 
   def setupProjectFolder(self, withSoftware=False):
@@ -232,7 +232,7 @@ class SlaprunnerTestCase(unittest.TestCase):
 
   def stopSlapproxy(self):
     """Kill slapproxy process"""
-    killRunningProcess('slapproxy', recursive=True)
+    pass
 
   def test_configAccount(self):
     """For the first lauch of slaprunner user need do create first account"""
@@ -256,12 +256,8 @@ class SlaprunnerTestCase(unittest.TestCase):
 
   def test_startStopProxy(self):
     """Test slapproxy"""
-    self.stopSlapproxy()
-    self.proxyStatus(False)
     startProxy(self.app.config)
     self.proxyStatus(True)
-    self.stopSlapproxy()
-    self.proxyStatus(False, sleep_time=1)
 
   def test_cloneProject(self):
     """Start scenario 1 for deploying SR: Clone a project from git repository"""
@@ -408,7 +404,6 @@ class SlaprunnerTestCase(unittest.TestCase):
   def test_requestInstance(self):
     """Scenarion 6: request software instance"""
     self.test_updateInstanceParameter()
-    self.proxyStatus(False, sleep_time=1)
     #run Software profile
     response = loadJson(self.app.post('/runSoftwareProfile',
                                       data=dict(),
@@ -459,7 +454,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertEqual(response, "2")
     # Test that the new call to isSoftwareReleaseReady
     # doesn't overwrite the previous installed one
-    killRunningProcess('slapgrid-sr')
+    sup_process.killRunningProcess(self.app.config, 'slapgrid-sr')
     completed_path = os.path.join(self.app.config['runner_workdir'],
         'softwareLink', 'slaprunner-test', '.completed')
     completed_text = ".completed file: test"
@@ -584,7 +579,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     only by changing the value of slapos.cfg config file. This can happen when
     slapgrid processes the webrunner's partition.
     """
-    config_file = os.path.join(self.app.config['etc_dir'], 'slapos.cfg')
+    config_file = os.path.join(self.app.config['etc_dir'], 'slapos-test.cfg')
     runner_config_old = os.environ['RUNNER_CONFIG']
     os.environ['RUNNER_CONFIG'] = config_file
     open(config_file, 'w').write("[section]\nvar=value")

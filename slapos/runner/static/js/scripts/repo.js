@@ -171,7 +171,7 @@ $(document).ready(function () {
     });
     $("#commitbutton").click(function () {
         if ($("input#commitmsg").val() === "" ||
-                $("textarea#commitmsg").val() === "Enter message...") {
+                $("input#commitmsg").val() === "Enter message...") {
             $("#error").Popup("Please Enter the commit message", {type: 'alert', duration: 3000});
             return false;
         }
@@ -181,12 +181,12 @@ $(document).ready(function () {
         send = true;
         var project = $("#project").val();
         $("#imgwaitting").fadeIn('normal');
-        //$("#commit").empty();
-        $("#commitbbutton").attr("value", "Wait...");
+        $("#commitmsg").empty();
+        $("#commitbutton").attr("value", "Wait...");
         $.ajax({
             type: "POST",
             url: $SCRIPT_ROOT + '/commitProjectFiles',
-            data: {project: $("input#workdir").val() + "/" + project, msg: $("textarea#commitmsg").val()},
+            data: {project: $("input#workdir").val() + "/" + project, msg: $("input#commitmsg").val()},
             success: function (data) {
                 if (data.code === 1) {
                     if (data.result !== "") {
