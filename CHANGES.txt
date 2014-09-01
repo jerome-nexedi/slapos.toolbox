@@ -1,3 +1,9 @@
+0.40 (2014-09-01)
+-----------------
+
+ * Slaprunner: Supervisord runs slapos commands
+ * Slaprunner: fixes for git repositories management
+
 0.39.5 (Unreleased)
 -------------------
 
