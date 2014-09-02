@@ -287,7 +287,7 @@ class SlaprunnerTestCase(unittest.TestCase):
                                       data=dict(
                                         project=folder,
                                         create='0',
-                                        name='slaprunner'
+                                        name='erp5'
                                       ),
                                       follow_redirects=True))
     self.assertEqual(response['result'], "")
