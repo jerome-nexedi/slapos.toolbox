@@ -13,6 +13,7 @@ from slapos.runner.process import setHandler
 import sys
 from slapos.runner.utils import runInstanceWithLock
 from slapos.runner.views import *
+import time
 
 TRUE_VALUES = (1, '1', True, 'true', 'True')
 
@@ -130,9 +131,17 @@ def serve(config):
   app.logger.addHandler(config.logger)
   app.logger.info('Running slapgrid...')
   if app.config['auto_deploy_instance'] in TRUE_VALUES:
-    runInstanceWithLock(app.config)
+    import thread
+    # XXX-Nicolas: Hack to be sure that supervisord has started
+    # before any communication with it, so that gunicorn doesn't exit
+    thread.start_new_thread(waitForRun, (app.config,))
   config.logger.info('Done.')
   app.wsgi_app = ProxyFix(app.wsgi_app)
+
+
+def waitForRun(config):
+    time.sleep(3)
+    runInstanceWithLock(config)
 
 
 def getUpdatedParameter(self, var):
