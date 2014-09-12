@@ -454,7 +454,7 @@ def getSlapStatus(config):
 def svcStopAll(config):
   """Stop all Instance processes on this computer"""
   try:
-    return Popen([config['supervisor'], config['configuration_file_path'],
+    return Popen([config['slapos'], 'node', 'supervisorctl', '--cfg', config['configuration_file_path'],
                   'shutdown']).communicate()[0]
   except:
     pass
@@ -475,7 +475,7 @@ def removeInstanceRoot(config):
 
 def getSvcStatus(config):
   """Return all Softwares Instances process Information"""
-  result = Popen([config['supervisor'], config['configuration_file_path'],
+  result = Popen([config['slapos'], 'node', 'supervisorctl', '--cfg', config['configuration_file_path'],
                   'status']).communicate()[0]
   regex = "(^unix:.+\.socket)|(^error:)|(^watchdog).*$"
   supervisord = []
@@ -495,7 +495,7 @@ def getSvcTailProcess(config, process):
   Returns:
     a string that contains the log of the process.
   """
-  return Popen([config['supervisor'], config['configuration_file_path'],
+  return Popen([config['slapos'], 'node', 'supervisorctl', '--cfg', config['configuration_file_path'],
                 "tail", process]).communicate()[0]
 
 
@@ -514,7 +514,7 @@ def svcStartStopProcess(config, process, action):
     'EXITED': 'start',
     'STOP': 'stop'
   }
-  return Popen([config['supervisor'], config['configuration_file_path'],
+  return Popen([config['slapos'], 'node', 'supervisorctl', '--cfg', config['configuration_file_path'],
                 cmd[action], process]).communicate()[0]
 
 
