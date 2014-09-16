@@ -234,19 +234,23 @@ function setRunningState(data) {
             //change run menu title and style
             if (data.software.state) {
                 if ( $("#running").children('span').length === 0 ) {
-                  $("#softrun").removeClass('slapos_run');
-                  $("#softrun").addClass('slapos_stop');
-                  if($("[class=software][id=running_info]").length === 0)
-                      $("#running img").before('<p id="running_info" class="software">Building software...</p>');
+                    $("#softrun").removeClass('slapos_run');
+                    $("#softrun").addClass('slapos_stop');
+                    if($("[class=software][id=running_info]").length === 0) {
+                        $("p#running_info").remove()
+                        $("#running img").before('<p id="running_info" class="software">Building software...</p>');
+                    }
                 }
             }
             if (data.instance.state) {
               ///Draft!!
                 if ( $("#running").children('span').length === 0 ) {
-                  $("#softrun").removeClass('slapos_run');
-                  $("#softrun").addClass('slapos_stop');
-                  if($("[class=instance][id=running_info]").length === 0)
-                      $("#running img").before('<p id="running_info" class="instance">Running instance...</p>');
+                    $("#softrun").removeClass('slapos_run');
+                    $("#softrun").addClass('slapos_stop');
+                    if($("[class=instance][id=running_info]").length === 0) {
+                        $("p#running_info").remove()
+                        $("#running img").before('<p id="running_info" class="instance">Running instance...</p>');
+                    }
                 }
             }
         }
