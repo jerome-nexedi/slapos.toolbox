@@ -78,6 +78,9 @@ class SlaprunnerTestCase(unittest.TestCase):
     #create slaprunner configuration
     config = Config()
     config.setConfig()
+    # We do not run tests if a user is already set (runner being used)
+    if os.path.exists(os.path.join(config.etc_dir, '.users')):
+      self.fail(msg="A user is already set, can not start tests")
     workdir = os.path.join(config.runner_workdir, 'project')
     software_link = os.path.join(config.runner_workdir, 'softwareLink')
     views.app.config.update(**config.__dict__)
@@ -263,6 +266,8 @@ class SlaprunnerTestCase(unittest.TestCase):
     """Start scenario 1 for deploying SR: Clone a project from git repository"""
     self.setAccount()
     folder = 'workspace/' + self.project
+    if os.path.exists(self.app.config['workspace'] + '/' + self.project):
+      shutil.rmtree(self.app.config['workspace'] + '/' + self.project)
     data = {
       'repo': self.repo,
       'user': 'Slaprunner test',
@@ -308,7 +313,7 @@ class SlaprunnerTestCase(unittest.TestCase):
   def test_openSR(self):
     """Scenario 3: Open software release"""
     self.test_cloneProject()
-    software = os.path.join(self.software, 'drupal')  # Drupal SR must exist in SR folder
+    software = os.path.join(self.software, 'helloworld')  # Drupal SR must exist in SR folder
     response = loadJson(self.app.post('/setCurrentProject',
                                       data=dict(path=software),
                                       follow_redirects=True))
