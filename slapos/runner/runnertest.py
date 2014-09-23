@@ -187,35 +187,33 @@ class SlaprunnerTestCase(unittest.TestCase):
    return getProfilePath(self.app.config['etc_dir'],
                               self.app.config['software_profile'])
 
-  def proxyStatus(self, status=True, sleep_time=0):
+  def proxyStatus(self, status=True):
     """Helper for testslapproxy status"""
     proxy = sup_process.isRunning(self.app.config, 'slapproxy')
-    if proxy != status and sleep_time != 0:
-      time.sleep(sleep_time)
-      proxy = sup_process.isRunning(self.app.config, 'slapproxy')
     self.assertEqual(proxy, status)
 
-  def setupProjectFolder(self, withSoftware=False):
+  def setupProjectFolder(self):
     """Helper to create a project folder as for slapos.git"""
     base = os.path.join(self.app.config['workspace'], 'slapos')
     software = os.path.join(base, 'software')
     os.mkdir(base)
     os.mkdir(software)
-    if withSoftware:
-      testSoftware = os.path.join(software, 'slaprunner-test')
-      sr = "[buildout]\n\n"
-      sr += "parts = command\n\nunzip = true\nnetworkcache-section = networkcache\n\n"
-      sr += "find-links += http://www.nexedi.org/static/packages/source/slapos.buildout/\n\n"
-      sr += "[networkcache]\ndownload-cache-url = http://www.shacache.org/shacache"
-      sr += "\ndownload-dir-url = http://www.shacache.org/shadir\n\n"
-      sr += "[command]\nrecipe = zc.recipe.egg\neggs = plone.recipe.command\n  zc.buildout\n\n"
-      os.mkdir(testSoftware)
-      open(os.path.join(testSoftware, self.app.config['software_profile']),
-                          'w').write(sr)
 
-  def setupSoftwareFolder(self):
-    """Helper to setup compiled software release dir"""
-    self.setupProjectFolder(withSoftware=True)
+  def setupTestSoftware(self):
+    """Helper to setup Basic SR for testing purposes"""
+    self.setupProjectFolder()
+    base = os.path.join(self.app.config['workspace'], 'slapos')
+    software = os.path.join(base, 'software')
+    testSoftware = os.path.join(software, 'slaprunner-test')
+    sr = "[buildout]\n\n"
+    sr += "parts = command\n\nunzip = true\nnetworkcache-section = networkcache\n\n"
+    sr += "find-links += http://www.nexedi.org/static/packages/source/slapos.buildout/\n\n"
+    sr += "[networkcache]\ndownload-cache-url = http://www.shacache.org/shacache"
+    sr += "\ndownload-dir-url = http://www.shacache.org/shadir\n\n"
+    sr += "[command]\nrecipe = zc.recipe.egg\neggs = plone.recipe.command\n  zc.buildout\n\n"
+    os.mkdir(testSoftware)
+    open(os.path.join(testSoftware, self.app.config['software_profile']),
+         'w').write(sr)
     md5 = hashlib.md5(os.path.join(self.app.config['workspace'],
                                    "slapos/software/slaprunner-test",
                                    self.app.config['software_profile'])
@@ -367,7 +365,7 @@ class SlaprunnerTestCase(unittest.TestCase):
   def test_updateInstanceParameter(self):
     """Scenarion 5: Update parameters of current sofware profile"""
     self.setAccount()
-    self.setupSoftwareFolder()
+    self.setupTestSoftware()
     #Set current projet and run Slapgrid-cp
     software = os.path.join(self.software, 'slaprunner-test')
     response = loadJson(self.app.post('/setCurrentProject',
@@ -425,7 +423,6 @@ class SlaprunnerTestCase(unittest.TestCase):
     time.sleep(5)
     #Check that all partitions has been created
     assert "create-file" in open(self.app.config['instance_log']).read()
-    instanceDir = os.listdir(self.app.config['instance_root'])
     for num in range(int(self.app.config['partition_amount'])):
       partition = os.path.join(self.app.config['instance_root'],
                     self.partitionPrefix + str(num))
@@ -454,7 +451,7 @@ class SlaprunnerTestCase(unittest.TestCase):
     self.assertEqual(response, "0")
     # Test if auto_deploy parameter starts the deployment of SR
     self.updateConfigParameter('auto_deploy', True)
-    self.setupSoftwareFolder()
+    self.setupTestSoftware()
     response = isSoftwareReleaseReady(self.app.config)
     self.assertEqual(response, "2")
     # Test that the new call to isSoftwareReleaseReady
