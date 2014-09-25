@@ -1,3 +1,9 @@
+0.40.2 (2014-09-25)
+-------------------
+
+  * Slaprunner: Various bug fix
+  * Slaprunner: Update supervisorctl interaction to work with latest slapos.core revision
+
 0.40.1 (2014-09-02)
 -------------------
 
