@@ -255,7 +255,7 @@ def startProxy(config):
 
 def stopProxy(config):
   """Stop Slapproxy server"""
-  pass
+  sup_process.stopProcess(config, "slapproxy")
 
 
 def removeProxyDb(config):

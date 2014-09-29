@@ -28,6 +28,7 @@ from slapos.runner.utils import (checkSoftwareFolder, configNewSR,
                                  removeSoftwareByName, runSlapgridUntilSuccess,
                                  saveSession, saveBuildAndRunParams,
                                  setMiniShellHistory,
+                                 stopProxy,
                                  svcStartStopProcess, svcStopAll, tail,
                                  updateInstanceParameter)
 
@@ -193,6 +194,7 @@ def removeInstance():
     flash('Instantiation in progress, cannot remove')
   else:
     removeProxyDb(app.config)
+    stopProxy(app.config)
     svcStopAll(app.config)  # Stop All instance process
     removeInstanceRoot(app.config)
     param_path = os.path.join(app.config['etc_dir'], ".parameter.xml")
