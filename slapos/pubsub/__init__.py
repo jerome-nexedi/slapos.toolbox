@@ -68,8 +68,8 @@ def get_feed(feed):
           {'Content-Type': 'application/atom+xml'}
          )
 
-@app.route('/notify', methods=['POST'])
-def notify():
+@app.route('/notify/<int:transaction_id>', methods=['POST'])
+def notify(transaction_id):
   global app
   try:
     feed = feedparser.parse(request.data)
@@ -94,7 +94,7 @@ def notify():
     timestamp = int(math.floor(time.mktime(feed.feed.updated_parsed)))
 
     equeue_request = json.dumps({
-        'command': callback,
+        'command': '%s\0--transaction-id\0%s' % (callback, transaction_id),
         'timestamp': timestamp,
         })
 

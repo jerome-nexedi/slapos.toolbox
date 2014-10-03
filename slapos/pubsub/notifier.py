@@ -28,6 +28,9 @@ def main():
                       help="Notification url")
   parser.add_argument('--executable', nargs=1, dest='executable',
                       help="Executable to wrap")
+  parser.add_argument('--transaction-id', nargs=1, dest='transaction_id',
+                      type=int, required=False,
+                      help="Additional parameter for notification-url")
 
   args = parser.parse_args()
 
@@ -75,15 +78,23 @@ def main():
   some_notification_failed = False
   for notif_url in args.notification_url:
     notification_url = urlparse.urlparse(notif_url)
+
     notification_port = notification_url.port
     if notification_port is None:
       notification_port = socket.getservbyname(notification_url.scheme)
+
+    notification_path = notification_url.path
+    if not notification_path.endswith('/'):
+      notification_path += '/'
+
+    transaction_id = args.transaction_id[0] if args.transaction_id else int(time.time()*1e6)
+    notification_path += str(transaction_id)
 
     headers = {'Content-Type': feed.info().getheader('Content-Type')}
     try:
       notification = httplib.HTTPConnection(notification_url.hostname,
                                             notification_port)
-      notification.request('POST', notification_url.path, body, headers)
+      notification.request('POST', notification_path, body, headers)
       response = notification.getresponse()
       if not (200 <= response.status < 300):
         sys.stderr.write("The remote server at %s didn't send a successful reponse.\n" % notif_url)

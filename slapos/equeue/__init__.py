@@ -74,23 +74,27 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
 
   def _runCommandIfNeeded(self, command, timestamp):
     with self.lock:
-      if command in self.db and timestamp <= int(self.db[command]):
-        self.logger.info("%s already run.", command)
+      cmd_list = command.split('\0')
+      cmd_readable = ' '.join(cmd_list)
+      cmd_executable = cmd_list[0]
+
+      if cmd_executable in self.db and timestamp <= int(self.db[cmd_executable]):
+        self.logger.info("%s already run.", cmd_readable)
         return
 
-      self.logger.info("Running %s, %s with output:", command, timestamp)
+      self.logger.info("Running %s, %s with output:", cmd_readable, timestamp)
       try:
         self.logger.info(
-            subprocess.check_output([command], stderr=subprocess.STDOUT)
+            subprocess.check_output(cmd_list, stderr=subprocess.STDOUT)
         )
-        self.logger.info("%s finished successfully.", command)
+        self.logger.info("%s finished successfully.", cmd_readable)
       except subprocess.CalledProcessError as e:
         self.logger.warning("%s exited with status %s. output is: \n %s" % (
-            command,
+            cmd_readable,
             e.returncode,
             e.output,
         ))
-      self.db[command] = str(timestamp)
+      self.db[cmd_executable] = str(timestamp)
 
   def process_request_thread(self, request, client_address):
     # Handle request

@@ -1,3 +1,19 @@
+
+0.40.4 (2014-10-14)
+-------------------
+
+ * The equeue server now supports additional parameters to the callbacks, separated by \0 in the JSON protocol.
+   The pubsubnotifier accepts a --transaction-id parameter. If missing, the current timestamp is used.
+   The pubsubnotifier then provides the transaction-id value in the POST call to /notify.
+
+   Together, these three changes allow us to put in the crontab:
+
+   0 0 * * * /srv/slapgrid/slappartXX/bin/exporter --transaction-id `date +%s`
+
+   and the same timestamp value is reported as transaction id in the equeue logs for BOTH the pull
+   and push operations.
+
+
 0.40.3 (2014-10-13)
 -------------------
 
