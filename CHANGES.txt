@@ -1,3 +1,8 @@
+0.40.3 (2014-10-13)
+-------------------
+
+  * Slaprunner: stop proxy when removing instances content. This fixes the "partition11 table does not exist" error.
+
 0.40.2 (2014-09-25)
 -------------------
 
@@ -78,7 +83,7 @@
  * Slaprunner: new test scenario for auto-deployment [c6007954]
  * Runner resiliencytestsuite: adds basic auth support [3c03f12b]
  * Runner resiliencytestsuite: tests can be done on only one Slapos node [07198d87]
- 
+
 0.37.4 (2013-10-15)
 -------------------
 
