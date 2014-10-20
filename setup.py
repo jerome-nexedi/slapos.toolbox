@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import glob
 import os
 
-version = '0.40.4'
+version = '0.41.0'
 name = 'slapos.toolbox'
 long_description = open("README.txt").read() + "\n" + \
     open("CHANGES.txt").read() + "\n"
@@ -53,6 +53,7 @@ setup(name=name,
       entry_points={
         'console_scripts': [
           'agent = slapos.agent.agent:main [agent]',
+          'is-local-tcp-port-opened = slapos.promise.islocaltcpportopened:main',
           'clouddestroy = slapos.cloudmgr.destroy:main',
           'cloudgetprivatekey = slapos.cloudmgr.getprivatekey:main',
           'cloudgetpubliciplist = slapos.cloudmgr.getpubliciplist:main',
