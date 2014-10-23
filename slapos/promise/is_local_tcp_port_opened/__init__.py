@@ -15,7 +15,7 @@ import socket
 import struct
 assert struct.calcsize('I') == 4
 
-def is_local_tcp_port_opened(ip_address, port):
+def isLocalTcpPortOpened(ip_address, port):
   family = socket.getaddrinfo(ip_address, 0)[0][0]
   conf = {
     socket.AF_INET6: (4, "/proc/net/tcp6"),
@@ -31,7 +31,7 @@ def is_local_tcp_port_opened(ip_address, port):
   return any(full_addr_hex == line.split()[1] for line in open(tcp_path).readlines())
 
 def main():
-  if is_local_tcp_port_opened(sys.argv[1], int(sys.argv[2])):
+  if isLocalTcpPortOpened(sys.argv[1], int(sys.argv[2])):
     return 0
   return 1
 
