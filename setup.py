@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import glob
 import os
 
-version = '0.41.0'
+version = '0.42.0'
 name = 'slapos.toolbox'
 long_description = open("README.txt").read() + "\n" + \
     open("CHANGES.txt").read() + "\n"
@@ -37,6 +37,7 @@ setup(name=name,
         'lxml', # needed for xml parsing
         'paramiko', # needed by cloudmgr
         'psutil', # needed for playing with processes in portable way
+        'pycurl', # needed for check_web_page_http_cache_hit module
         'setuptools', # namespaces
         'slapos.core', # as it provides library for slap
         'xml_marshaller', # needed to dump information
@@ -53,6 +54,7 @@ setup(name=name,
       entry_points={
         'console_scripts': [
           'agent = slapos.agent.agent:main [agent]',
+          'check-web-page-http-cache-hit = slapos.promise.check_web_page_http_cache_hit:main',
           'clouddestroy = slapos.cloudmgr.destroy:main',
           'cloudgetprivatekey = slapos.cloudmgr.getprivatekey:main',
           'cloudgetpubliciplist = slapos.cloudmgr.getpubliciplist:main',
