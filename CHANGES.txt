@@ -1,3 +1,15 @@
+0.42.0 (2014-10-28)
+===================
+
+* The egg provides `check-web-page-http-cache-hit` script to check if a web page
+  is well cached by Squid or TrafficServer.
+
+0.41.0 (2014-10-20)
+===================
+
+* The egg provides `is-local-tcp-port-opened` script to check if an ip address
+  + port are currently opened on the local machine by reading in /proc/net/tcp
+  and /proc/net/tcp6.
 
 0.40.4 (2014-10-14)
 -------------------
