@@ -37,7 +37,6 @@ setup(name=name,
         'lxml', # needed for xml parsing
         'paramiko', # needed by cloudmgr
         'psutil', # needed for playing with processes in portable way
-        'pycurl', # needed for check_web_page_http_cache_hit module
         'setuptools', # namespaces
         'slapos.core', # as it provides library for slap
         'xml_marshaller', # needed to dump information
@@ -48,6 +47,7 @@ setup(name=name,
         'zodbpack': ['ZODB3'], # needed to play with ZODB
         'agent': ['erp5.util'],
         'flask_auth' : ["Flask-Auth"],
+        'check_web_page_http_cache_hit' : ['pycurl'], # needed for check_web_page_http_cache_hit module
       },
       zip_safe=False, # proxy depends on Flask, which has issues with
                       # accessing templates
