@@ -51,7 +51,7 @@ def parseArguments():
   Parse arguments.
   """
   parser = argparse.ArgumentParser()
-  parser.add_argument('--test-result-path',
+  parser.add_argument('--test-result-path', '--test_result_path',
                       metavar='ERP5_TEST_RESULT_PATH',
                       help='ERP5 relative path of the test result')
 
@@ -59,20 +59,27 @@ def parseArguments():
                       metavar='REVISION',
                       help='Revision of the test_suite')
 
-  parser.add_argument('--test-suite',
+  parser.add_argument('--test-suite', '--test_suite',
                       metavar='TEST_SUITE',
                       help='Name of the test suite')
 
-  parser.add_argument('--node-title',
+  parser.add_argument('--test-suite-title', '--test_suite_title',
+                      metavar='TEST_SUITE',
+                      help='The test suite title')
+
+  parser.add_argument('--node-title', '--test_node_title',
                       metavar='NODE_TITLE',
                       help='Title of the testnode which is running this'
                             'launcher')
 
-  parser.add_argument('--test-suite-master-url',
+  parser.add_argument('--node_quantity', help='Number of parallel tests to run',
+                      default=1, type=int)
+
+  parser.add_argument('--test-suite-master-url', '--master_url',
                       metavar='TEST_SUITE_MASTER_URL',
                       help='Url to connect to the ERP5 Master testsuite taskditributor')
 
-  parser.add_argument('--log-path',
+  parser.add_argument('--log-path', '--log_path',
                       metavar='LOG_PATH',
                       help='Log Path')
 
