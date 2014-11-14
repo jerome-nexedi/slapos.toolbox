@@ -135,8 +135,11 @@ class ScalabilityLauncher(object):
   """
   def __init__(self):
     self._argumentNamespace = parseArguments()
-    log_path = os.path.join(self._argumentNamespace.log_path,
-                            'runScalabilityTestSuite.log')
+    if self._argumentNamespace.log_path:
+      log_path = os.path.join(self._argumentNamespace.log_path,
+                              'runScalabilityTestSuite.log')
+    else:
+      log_path = None
     self.log = setupLogging('runScalabilityTestSuite', log_path).info
 
     # Proxy to erp5 master test_result
