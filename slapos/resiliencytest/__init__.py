@@ -140,12 +140,13 @@ class ScalabilityLauncher(object):
                               'runScalabilityTestSuite.log')
     else:
       log_path = None
-    self.log = setupLogging('runScalabilityTestSuite', log_path).info
+    logger = setupLogging('runScalabilityTestSuite', log_path)
+    self.log = logger.info
 
     # Proxy to erp5 master test_result
     self.test_result = taskdistribution.TestResultProxyProxy(
                         self._argumentNamespace.test_suite_master_url,
-                        1.0, self.log,
+                        1.0, logger,
                         self._argumentNamespace.test_result_path,
                         self._argumentNamespace.node_title,
                         self._argumentNamespace.revision
