@@ -31,7 +31,6 @@ import json
 import importlib
 import logging
 import os
-import sys
 import time
 import traceback
 from erp5.util import taskdistribution
@@ -225,6 +224,39 @@ def runResiliencyTest():
     print >>sys.stderr, 'ERROR: %s' % error_message
 
   sys.exit(exit_status)
+
+def runUnitTest():
+  """
+  Function meant to be run by "classical" (a.k.a UnitTest) erp5testnode.
+  """
+  logger = setupLogging('runScalabilityTestSuite', None)
+  args = parseArguments()
+  master = taskdistribution.TaskDistributionTool(args.test_suite_master_url)
+  test_suite_title = args.test_suite_title or args.test_suite
+  revision = args.revision
+
+  test_result = master.createTestResult(revision, [test_suite_title],
+    args.node_title, True, test_suite_title, 'foo')
+    #args.project_title)
+  test_line = test_result.start()
+
+  start_time = time.time()
+  success = runTestSuite(
+      args.test_suite,
+      args.additional_arguments,
+      logger.info,
+  )
+
+  if success:
+    error_count = 0
+  else:
+    error_count = 1
+
+  test_duration = time.time() - start_time
+  test_line.stop(stdout='Success',
+                  test_count=1,
+                  error_count=error_count,
+                  duration=test_duration)
 
 def runStandaloneResiliencyTest():
   """
