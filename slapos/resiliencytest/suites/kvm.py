@@ -35,9 +35,13 @@ from slapos.recipe.addresiliency.takeover import takeover
 import slapos.slap
 
 import logging
+import os
 import random
 import string
+import subprocess
+import sys
 import time
+import traceback
 import urllib
 
 logger = logging.getLogger('KVMResiliencyTest')
@@ -45,6 +49,8 @@ logger = logging.getLogger('KVMResiliencyTest')
 # Wait for 2 hours before renaming, so that replication of data is done
 # (~1GB of data to backup)
 SLEEP_TIME = 2 * 60 * 60
+# In case of unittest testnode (not scalability testnode), everything is local
+UNIT_TEST_SLEEP_TYPE = 900
 
 def fetchMainInstanceIP(current_partition, software_release, instance_name):
   return current_partition.request(
@@ -97,7 +103,8 @@ def runTestSuite(server_url, key_file, cert_file,
                  computer_id, partition_id, software,
                  namebase, kvm_rootinstance_name,
                  # Number of instances: main instance (exporter) + clones (importer).
-                 total_instance_count="3"):
+                 total_instance_count="3",
+                 type=None):
   """
   Run KVM Resiliency Test.
   Requires a specific KVM environment (virtual hard drive), see KVM SR for more
@@ -187,6 +194,8 @@ def runTestSuite(server_url, key_file, cert_file,
     key = setRandomKey(ip)
     logger.info('Key set for test in current KVM: %s.' % key)
 
+    if type == 'UnitTest':
+      SLEEP_TIME = UNIT_TEST_SLEEP_TYPE
     logger.info('Sleeping for %s seconds.' % SLEEP_TIME)
     time.sleep(SLEEP_TIME)
 
@@ -213,14 +222,31 @@ def runTestSuite(server_url, key_file, cert_file,
         time.sleep(10)
     logger.info('Done.')
 
-    # Wait for the new IP (of old-clone new-main instance) to appear.
-    logger.info('Waiting for new main instance to be ready...')
-    new_ip = None
-    while not new_ip or new_ip == 'None' or  new_ip == ip:
-      logger.info('Not ready yet. SlapOS says main IP is %s' % new_ip)
-      time.sleep(60)
-      new_ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
-    logger.info('New IP of instance is %s' % new_ip)
+    if type == 'UnitTest': # Run by classical erp5testnode using slapproxy
+      # Run slapos node instance
+      # XXX hardcoded
+      slapos_configuration_file_path = os.path.join(
+          os.path.dirname(sys.argv[0]),
+          '..', '..', '..', 'slapos.cfg'
+      )
+      print slapos_configuration_file_path
+      command = ['/opt/slapos/bin/slapos', 'node', 'instance',
+                 '--cfg=%s' % slapos_configuration_file_path,
+                 '--pidfile=slapos.pid']
+      subprocess.Popen(command).wait()
+      subprocess.Popen(command).wait()
+      subprocess.Popen(command).wait()
+      new_ip = ip
+
+    else: # ScalabilityTest
+      # Wait for the new IP (of old-clone new-main instance) to appear.
+      logger.info('Waiting for new main instance to be ready...')
+      new_ip = None
+      while not new_ip or new_ip == 'None' or  new_ip == ip:
+        logger.info('Not ready yet. SlapOS says main IP is %s' % new_ip)
+        time.sleep(60)
+        new_ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
+      logger.info('New IP of instance is %s' % new_ip)
 
     new_key = fetchKey(new_ip)
     logger.info('Key on this new instance is %s' % new_key)

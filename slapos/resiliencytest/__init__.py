@@ -241,6 +241,8 @@ def runUnitTest():
   test_line = test_result.start()
 
   start_time = time.time()
+
+  args.additional_arguments.append('type=UnitTest')
   success = runTestSuite(
       args.test_suite,
       args.additional_arguments,
