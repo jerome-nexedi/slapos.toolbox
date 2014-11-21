@@ -103,7 +103,7 @@ def runTestSuite(server_url, key_file, cert_file,
                  computer_id, partition_id, software,
                  namebase, kvm_rootinstance_name,
                  # Number of instances: main instance (exporter) + clones (importer).
-                 total_instance_count="3",
+                 total_instance_count="2",
                  type=None):
   """
   Run KVM Resiliency Test.
@@ -171,6 +171,10 @@ def runTestSuite(server_url, key_file, cert_file,
   update-rc.d io defaults
 
   """
+  if type == 'UnitTest':
+    global SLEEP_TIME
+    SLEEP_TIME = UNIT_TEST_SLEEP_TYPE
+
   slap = slapos.slap.slap()
   slap.initializeConnection(server_url, key_file, cert_file)
   partition = slap.registerComputerPartition(
@@ -184,85 +188,95 @@ def runTestSuite(server_url, key_file, cert_file,
   # In resilient stack, main instance (example with KVM) is named "kvm0",
   # clones are named "kvm1", "kvm2", ...
   clone_count = int(total_instance_count) - 1
-  # So first clone starts from 1.
-  current_clone = 1
 
-  # Test each clone
-  while current_clone <= clone_count:
-    logger.info('Testing kvm%s.' % current_clone)
+  # In case we have only one clone: test the takeover twice
+  # so that we test the reconstruction of a new clone.
+  if clone_count == 1:
+    for i in range(2):
+      ip = testClone(1, ip,
+          server_url, key_file, cert_file, computer_id, partition_id, software, namebase, partition, kvm_rootinstance_name, type)
 
-    key = setRandomKey(ip)
-    logger.info('Key set for test in current KVM: %s.' % key)
-
-    if type == 'UnitTest':
-      SLEEP_TIME = UNIT_TEST_SLEEP_TYPE
-    logger.info('Sleeping for %s seconds.' % SLEEP_TIME)
-    time.sleep(SLEEP_TIME)
-
-    # Make the clone instance takeover the main instance
-    logger.info('Replacing main instance by clone instance...')
-    for i in range(0, 10):
-      try:
-        takeover(
-            server_url=server_url,
-            key_file=key_file,
-            cert_file=cert_file,
-            computer_guid=computer_id,
-            partition_id=partition_id,
-            software_release=software,
-            namebase=namebase,
-            winner_instance_suffix=str(current_clone),
-        )
-        break
-      except: # SSLError
-        traceback.print_exc()
-        if i is 9:
-          raise
-        logger.warning('takeover failed. Retrying...')
-        time.sleep(10)
-    logger.info('Done.')
-
-    if type == 'UnitTest': # Run by classical erp5testnode using slapproxy
-      # Run slapos node instance
-      # XXX hardcoded
-      slapos_configuration_file_path = os.path.join(
-          os.path.dirname(sys.argv[0]),
-          '..', '..', '..', 'slapos.cfg'
-      )
-      print slapos_configuration_file_path
-      command = ['/opt/slapos/bin/slapos', 'node', 'instance',
-                 '--cfg=%s' % slapos_configuration_file_path,
-                 '--pidfile=slapos.pid']
-      subprocess.Popen(command).wait()
-      subprocess.Popen(command).wait()
-      subprocess.Popen(command).wait()
-      new_ip = ip
-
-    else: # ScalabilityTest
-      # Wait for the new IP (of old-clone new-main instance) to appear.
-      logger.info('Waiting for new main instance to be ready...')
-      new_ip = None
-      while not new_ip or new_ip == 'None' or  new_ip == ip:
-        logger.info('Not ready yet. SlapOS says main IP is %s' % new_ip)
-        time.sleep(60)
-        new_ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
-      logger.info('New IP of instance is %s' % new_ip)
-
-    new_key = fetchKey(new_ip)
-    logger.info('Key on this new instance is %s' % new_key)
-
-    # Compare with original key. If same: success.
-    if new_key == key:
-      logger.info('Success for clone %s.' % current_clone)
-    else:
-      logger.info('Failure for clone %s. Aborting.' % current_clone)
-      return False
-
-    # Setup "new old ip" for next clone, so that it will test it is different
-    # from current clone
-    ip = new_ip
-
-    current_clone = current_clone + 1
+  # In case we have more than one clone: test each clone one time.
+  else:
+    # So first clone starts from 1.
+    current_clone = 1
+    while current_clone <= clone_count:
+      ip = testClone(current_clone, ip,
+                     server_url, key_file, cert_file, computer_id, partition_id, software, namebase, partition, kvm_rootinstance_name, type)
+      current_clone = current_clone + 1
 
   # All clones have been successfully tested: success.
   return True
+
+def testClone(current_clone, ip,
+              server_url, key_file, cert_file, computer_id, partition_id, software, namebase, partition, kvm_rootinstance_name, test_type):
+  logger.info('Testing kvm%s.' % current_clone)
+
+  key = setRandomKey(ip)
+  logger.info('Key set for test in current KVM: %s.' % key)
+
+  logger.info('Sleeping for %s seconds.' % SLEEP_TIME)
+  time.sleep(SLEEP_TIME)
+
+  # Make the clone instance takeover the main instance
+  logger.info('Replacing main instance by clone instance...')
+  for i in range(0, 10):
+    try:
+      takeover(
+           server_url=server_url,
+          key_file=key_file,
+          cert_file=cert_file,
+          computer_guid=computer_id,
+          partition_id=partition_id,
+          software_release=software,
+          namebase=namebase,
+          winner_instance_suffix=str(current_clone),
+      )
+      break
+    except: # SSLError
+      traceback.print_exc()
+      if i is 9:
+        raise
+      logger.warning('takeover failed. Retrying...')
+      time.sleep(10)
+  logger.info('Done.')
+
+  if test_type == 'UnitTest': # Run by classical erp5testnode using slapproxy
+    # Run slapos node instance
+    # XXX hardcoded
+    slapos_configuration_file_path = os.path.join(
+        os.path.dirname(sys.argv[0]),
+        '..', '..', '..', 'slapos.cfg'
+    )
+    print slapos_configuration_file_path
+    command = ['/opt/slapos/bin/slapos', 'node', 'instance',
+               '--cfg=%s' % slapos_configuration_file_path,
+               '--pidfile=slapos.pid']
+    subprocess.Popen(command).wait()
+    subprocess.Popen(command).wait()
+    subprocess.Popen(command).wait()
+    new_ip = ip
+
+  else: # ScalabilityTest
+    # Wait for the new IP (of old-clone new-main instance) to appear.
+    logger.info('Waiting for new main instance to be ready...')
+    new_ip = None
+    while not new_ip or new_ip == 'None' or  new_ip == ip:
+      logger.info('Not ready yet. SlapOS says main IP is %s' % new_ip)
+      time.sleep(60)
+      new_ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
+    logger.info('New IP of instance is %s' % new_ip)
+
+  new_key = fetchKey(new_ip)
+  logger.info('Key on this new instance is %s' % new_key)
+
+  # Compare with original key. If same: success.
+  if new_key == key:
+    logger.info('Success for clone %s.' % current_clone)
+  else:
+    logger.info('Failure for clone %s. Aborting.' % current_clone)
+    return False
+
+  # Setup "new old ip" for next clone, so that it will test it is different
+  # from current clone
+  return new_ip
