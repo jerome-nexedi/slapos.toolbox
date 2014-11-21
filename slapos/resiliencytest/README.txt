@@ -11,13 +11,15 @@ release using the dedicated test software-type made for the occasion).
 This is quite useful if you simply want to run the resiliency tests without having the whole
 dedicated test infrastructure.
 
+The third entry point, "bin/runUnitTestTestNode" is basically the same as the first one, but used to be run inside of
+a classical, "Unit Test"-style erp5testnode.
 
 
 This module contains:
  * The code to start the test from a testnode / manually
- * A Resiliency Test Suite framework (in suites/), used to easily write new
+ * A Resiliency Test Suite framework (in suites/__init__.py), used to easily write new
    test suites
- * A list of test suites
+ * A list of test suites (in suites/)
 
 
 
