@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import glob
 import os
 
-version = '0.43.0'
+version = '0.44.0'
 name = 'slapos.toolbox'
 long_description = open("README.txt").read() + "\n" + \
     open("CHANGES.txt").read() + "\n"
@@ -41,6 +41,7 @@ setup(name=name,
         'slapos.core', # as it provides library for slap
         'xml_marshaller', # needed to dump information
         'GitPython', #needed for git manipulation into slaprunner
+        'netifaces'
       ] + additional_install_requires,
       extras_require = {
         'lampconfigure':  ["mysql-python"], #needed for MySQL Database access
@@ -84,6 +85,7 @@ setup(name=name,
           'slaprunner = slapos.runner:run',
           'slaprunnertest = slapos.runner.runnertest:main',
           'zodbpack = slapos.zodbpack:run [zodbpack]',
+          'networkbench = slapos.networkbench:main' 
         ]
       },
     )
