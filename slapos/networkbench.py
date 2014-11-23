@@ -9,12 +9,9 @@ import re
 import sys
 import shutil
 import netifaces
+import random
 
 botname = socket.gethostname()
-
-# IP adress of the internet box in the LAN, likely found in the output of
-# route command
-interval = 60 * 5
 
 # rtt min/avg/max/mdev = 1.102/1.493/2.203/0.438 ms
 ping_re = re.compile(
@@ -24,6 +21,8 @@ ping_re = re.compile(
     "(?P<avg>[\d\.]+)/"
     "(?P<mdev>[\d\.]+) ms"
     )
+
+date_reg_exp = re.compile('\d{4}[-/]\d{2}[-/]\d{2}')
 
 def _get_network_gateway(self):
   return netifaces.gateways()["default"][netifaces.AF_INET][0]
@@ -92,8 +91,12 @@ def is_rotate_log(log_file_path):
       today = time.strftime("%Y-%m-%d")
       
       for line in reversed(log_file.read().split('\n')):
-        if len(line.strip()) and not line.startswith(today):
-          return line.split(" ")[0]
+        if len(line.strip()):
+          match_list = date_reg_exp.findall(line)
+          if len(match_list):
+            if match_list[0] != today:
+              return ValueError(match_list[0])
+            break
 
     except IOError:
       return False
@@ -138,13 +141,17 @@ def main():
   else:
     log_folder = "."
 
+  delay = random.randint(0, 30)
+
   name_list = config.get("network_bench", "dns")
   url_list = config.get("network_bench", "url")
   ping_list = config.get("network_bench", "ping")
 
   logger = create_logger("info", log_folder)
 
-  logger.debug('Starting a new test..')
+  logger.debug('Starting a new test in %s seconds' % delay)
+
+  time.sleep(delay)
 
   for name in name_list.split():
     info_list = _test_dns(name)
