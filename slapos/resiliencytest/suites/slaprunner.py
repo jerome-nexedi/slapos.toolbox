@@ -223,7 +223,7 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     parameter_dict = self._getPartitionParameterDict()
     self.slaprunner_backend_url = parameter_dict['backend_url']
     self.logger.info('backend_url is %s.' % self.slaprunner_backend_url)
-    self.monitor_url = parameter_dict['monitor_url']
+    self.monitor_url = parameter_dict['monitor_backend_url']
     slaprunner_recovery_code = self._getRcode()
 
     self.logger.debug('Creating the slaprunner account...')
