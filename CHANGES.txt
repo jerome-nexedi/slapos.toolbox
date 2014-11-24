@@ -1,3 +1,8 @@
+0.45.0 (2014-11-24)
+===================
+
+* Resiliency tests: allow to use from inside of a classical erp5testnode.
+
 0.44.0 (2014-11-22)
 ===================
 
