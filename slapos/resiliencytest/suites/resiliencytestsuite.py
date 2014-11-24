@@ -48,7 +48,7 @@ class ResiliencyTestSuite(object):
                computer_id, partition_id, software,
                namebase,
                root_instance_name,
-               sleep_time_between_test=600,
+               sleep_time_between_test=900,
                total_instance_count="2",
                type=None):
     self.server_url = server_url

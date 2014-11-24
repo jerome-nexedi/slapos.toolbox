@@ -45,26 +45,14 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
   Run Slaprunner Resiliency Test.
   It is highly suggested to read ResiliencyTestSuite code.
   """
-  def __init__(self,
-               server_url, key_file, cert_file,
-               computer_id, partition_id, software,
-               namebase, slaprunner_rootinstance_name,
-               total_instance_count="3"):
-
+  def __init__(self, *args, **kwargs):
     # Setup urllib2 with cookie support
     cookie_jar = cookielib.CookieJar()
     self._opener_director = urllib2.build_opener(
         urllib2.HTTPCookieProcessor(cookie_jar)
     )
 
-    ResiliencyTestSuite.__init__(
-        self,
-        server_url, key_file, cert_file,
-        computer_id, partition_id, software,
-        namebase,
-        slaprunner_rootinstance_name,
-        1000
-    )
+    ResiliencyTestSuite.__init__(self, *args, **kwargs)
 
   def _getPartitionParameterDict(self):
     """
@@ -202,7 +190,7 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     #XXX-Nicolas: hardcoded url. Best way right now to automate the tests...
     monitoring_password = "passwordtochange"
     monitor_url = self.monitor_url + "?script=zero-knowledge%2Fsettings.cgi"
-    result = self._opener_director.open(monitor_url, 
+    result = self._opener_director.open(monitor_url,
                                        "password=" + monitoring_password + ";password_2=" + monitoring_password)
 
     if result.getcode() is not 200:
