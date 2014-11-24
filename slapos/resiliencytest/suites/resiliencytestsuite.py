@@ -34,6 +34,8 @@ import slapos.slap
 import logging
 import time
 import os
+import subprocess
+import sys
 
 UNIT_TEST_ERP5TESTNODE = 'UnitTest'
 
@@ -59,7 +61,7 @@ class ResiliencyTestSuite(object):
     self.total_instance_count = total_instance_count
     self.root_instance_name = root_instance_name
     self.sleep_time_between_test = sleep_time_between_test
-    self.suite_type = type
+    self.test_type = type
 
     slap = slapos.slap.slap()
     slap.initializeConnection(server_url, key_file, cert_file)
@@ -161,7 +163,7 @@ class ResiliencyTestSuite(object):
     self.logger.info(
       'Sleeping for %s seconds before testing clone %s.' % (
           self.sleep_time_between_test,
-          current_clone
+          clone
         ))
     time.sleep(self.sleep_time_between_test)
 
@@ -179,7 +181,6 @@ class ResiliencyTestSuite(object):
       subprocess.Popen(command).wait()
       subprocess.Popen(command).wait()
       subprocess.Popen(command).wait()
-      new_ip = ip
 
     success = self.checkDataOnCloneInstance()
     if success:
@@ -203,12 +204,21 @@ class ResiliencyTestSuite(object):
     # So first clone starts from 1.
     current_clone = 1
 
-    # Test each clone
-    while current_clone <= clone_count:
-      success = self._test_clone(current_clone)
-      if not success:
-        return Fasle
-      current_clone = current_clone + 1
+    # In case we have only one clone: test the takeover twice
+    # so that we test the reconstruction of a new clone.
+    if clone_count == 1:
+      for i in range(2):
+        success = self._testClone(1)
+        if not success:
+          return False
+
+    else:
+      # Test each clone
+      while current_clone <= clone_count:
+        success = self._test_clone(current_clone)
+        if not success:
+          return False
+        current_clone = current_clone + 1
 
     # All clones have been successfully tested: success.
     return True
