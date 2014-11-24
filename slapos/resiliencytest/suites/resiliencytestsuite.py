@@ -27,12 +27,15 @@
 ##############################################################################
 
 # XXX: takeover module should be in slapos.toolbox, not in slapos.cookbook
+# XXX: use web interface for takeover to really simulate user behavior.
 from slapos.recipe.addresiliency.takeover import takeover
 import slapos.slap
 
 import logging
 import time
 import os
+
+UNIT_TEST_ERP5TESTNODE = 'UnitTest'
 
 class ResiliencyTestSuite(object):
   """
@@ -44,7 +47,8 @@ class ResiliencyTestSuite(object):
                namebase,
                root_instance_name,
                sleep_time_between_test=600,
-               total_instance_count="3"):
+               total_instance_count="2",
+               type=None):
     self.server_url = server_url
     self.key_file = key_file
     self.cert_file = cert_file
@@ -55,6 +59,7 @@ class ResiliencyTestSuite(object):
     self.total_instance_count = total_instance_count
     self.root_instance_name = root_instance_name
     self.sleep_time_between_test = sleep_time_between_test
+    self.suite_type = type
 
     slap = slapos.slap.slap()
     slap.initializeConnection(server_url, key_file, cert_file)
@@ -64,7 +69,6 @@ class ResiliencyTestSuite(object):
     )
 
     self.logger = logging.getLogger('SlaprunnerResiliencyTest')
-    # XXX Quite hardcoded...
     self.logger.setLevel(logging.DEBUG)
 
   def _doTakeover(self, target_clone):
@@ -132,16 +136,55 @@ class ResiliencyTestSuite(object):
     Wait for the new parameter (of old-clone new-main instance) to appear.
     Check than it is different from the old parameter
     """
+    # if we are inside of a classical erp5testnode: just return the same parameter.
+    if self.test_type == UNIT_TEST_ERP5TESTNODE:
+      return old_parameter_value
+
     self.logger.info('Waiting for new main instance to be ready...')
     new_parameter_value = None
     while not new_parameter_value or new_parameter_value == 'None' or  new_parameter_value == old_parameter_value:
       self.logger.info('Not ready yet. SlapOS says new parameter value is %s' % new_parameter_value)
       new_parameter_value = self._getPartitionParameterDict().get(parameter_key, None)
-      time.sleep(120)
+      time.sleep(30)
     self.logger.info('New parameter value of instance is %s' % new_parameter_value)
-
     return new_parameter_value
 
+  def _testClone(self, clone):
+    """
+    Private method.
+    Launch takeover and check for a specific clone.
+    """
+    self._doTakeover(clone)
+    self.logger.info('Testing %s%s instance.' % (self.namebase, clone))
+
+    # Wait for XX minutes so that replication is done
+    self.logger.info(
+      'Sleeping for %s seconds before testing clone %s.' % (
+          self.sleep_time_between_test,
+          current_clone
+        ))
+    time.sleep(self.sleep_time_between_test)
+
+    if self.test_type == UNIT_TEST_ERP5TESTNODE: # Run by classical erp5testnode using slapproxy
+      # Run manually slapos node instance
+      # XXX hardcoded path
+      self.logger.info('Running "slapos node instance"...')
+      slapos_configuration_file_path = os.path.join(
+          os.path.dirname(sys.argv[0]),
+          '..', '..', '..', 'slapos.cfg'
+      )
+      command = ['/opt/slapos/bin/slapos', 'node', 'instance',
+                 '--cfg=%s' % slapos_configuration_file_path,
+                 '--pidfile=slapos.pid']
+      subprocess.Popen(command).wait()
+      subprocess.Popen(command).wait()
+      subprocess.Popen(command).wait()
+      new_ip = ip
+
+    success = self.checkDataOnCloneInstance()
+    if success:
+      return True
+    return False
 
   def runTestSuite(self):
     """
@@ -160,22 +203,13 @@ class ResiliencyTestSuite(object):
     # So first clone starts from 1.
     current_clone = 1
 
-    # Wait for XX minutes so that replication is done
-    self.logger.info(
-      'Sleeping for %s seconds before testing clone %s.' % (
-          self.sleep_time_between_test,
-          current_clone
-        ))
-    time.sleep(self.sleep_time_between_test)
-
     # Test each clone
     while current_clone <= clone_count:
-      self._doTakeover(current_clone)
-      self.logger.info('Testing %s%s instance.' % (self.namebase, current_clone))
-      success = self.checkDataOnCloneInstance()
+      success = self._test_clone(current_clone)
       if not success:
-        return False
+        return Fasle
       current_clone = current_clone + 1
 
     # All clones have been successfully tested: success.
     return True
+
