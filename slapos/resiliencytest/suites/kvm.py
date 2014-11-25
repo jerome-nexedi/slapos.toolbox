@@ -26,57 +26,15 @@
 #
 ##############################################################################
 
-# XXX: This module should use the resiliencytestsuite helper module to factor all code,
-#      like slaprunner test suite does.
-
-# XXX: takeover module should be in slapos.toolbox, not in slapos.cookbook
-from slapos.recipe.addresiliency.takeover import takeover
-
-import slapos.slap
+from .resiliencytestsuite import ResiliencyTestSuite
 
 import logging
-import os
 import random
 import string
-import subprocess
-import sys
 import time
-import traceback
 import urllib
 
 logger = logging.getLogger('KVMResiliencyTest')
-
-# Wait for 2 hours before renaming, so that replication of data is done
-# (~1GB of data to backup)
-SLEEP_TIME = 2 * 60 * 60
-# In case of unittest testnode (not scalability testnode), everything is local
-UNIT_TEST_SLEEP_TYPE = 900
-
-def fetchMainInstanceIP(current_partition, software_release, instance_name):
-  return current_partition.request(
-      software_release=software_release,
-      software_type='kvm-resilient',
-      partition_reference=instance_name).getConnectionParameter('ipv6')
-
-
-def setRandomKey(ip):
-  """
-  Set a random key that will be stored inside of the virtual hard drive.
-  """
-  random_key = ''.join(random.SystemRandom().sample(string.ascii_lowercase, 20))
-  for i in range(0, 60):
-    connection = urllib.urlopen('http://%s:10080/set?key=%s' % (ip, random_key))
-    if connection.getcode() is 200:
-      break
-    else:
-      logger.info('Impossible to connect to virtual machine to set key. sleeping...')
-      time.sleep(60)
-
-    if i is 59:
-      raise Exception('Bad return code when setting key in main instance, after trying for 60 minutes.')
-  
-  return random_key
-
 
 def fetchKey(ip):
   """
@@ -98,13 +56,7 @@ def fetchKey(ip):
 
   return new_key
 
-
-def runTestSuite(server_url, key_file, cert_file,
-                 computer_id, partition_id, software,
-                 namebase, kvm_rootinstance_name,
-                 # Number of instances: main instance (exporter) + clones (importer).
-                 total_instance_count="2",
-                 type=None):
+class KVMTestSuite(ResiliencyTestSuite):
   """
   Run KVM Resiliency Test.
   Requires a specific KVM environment (virtual hard drive), see KVM SR for more
@@ -121,27 +73,27 @@ def runTestSuite(server_url, key_file, cert_file,
   With the following python code running at boot in /root/number.py:
 
   import os
-  
+
   from flask import Flask, abort, request
   app = Flask(__name__)
-  
+
   storage = 'storage.txt'
-  
+
   @app.route("/")
   def greeting_list(): # 'cause there are several greetings, and plural is forbidden.
     return "Hello World"
-  
+
   @app.route("/get")
   def get():
     return open(storage, 'r').read()
-  
+
   @app.route("/set")
   def set():
     #if os.path.exists(storage):
     #  abort(503)
     open(storage, 'w').write(request.args['key'])
     return "OK"
-  
+
   if __name__ == "__main__":
     app.run(host='0.0.0.0', port=80)
 
@@ -171,112 +123,59 @@ def runTestSuite(server_url, key_file, cert_file,
   update-rc.d io defaults
 
   """
-  if type == 'UnitTest':
-    global SLEEP_TIME
-    SLEEP_TIME = UNIT_TEST_SLEEP_TYPE
 
-  slap = slapos.slap.slap()
-  slap.initializeConnection(server_url, key_file, cert_file)
-  partition = slap.registerComputerPartition(
-      computer_guid=computer_id,
-      partition_id=partition_id
-  )
+  def _getPartitionParameterDict(self):
+    """
+    Overload default method.
+    """
+    return self.partition.request(
+        software_release=self.software,
+        software_type='kvm-resilient',
+        partition_reference=self.root_instance_name).getConnectionParameterDict()
 
-  ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
-  logger.info('KVM IP is %s.' % ip)
+  def generateData(self):
+    """
+    Set a random key that will be stored inside of the virtual hard drive.
+    """
+    self.key = ''.join(random.SystemRandom().sample(string.ascii_lowercase, 20))
+    self.logger.info('Generated key is: %s' % self.key)
 
-  # In resilient stack, main instance (example with KVM) is named "kvm0",
-  # clones are named "kvm1", "kvm2", ...
-  clone_count = int(total_instance_count) - 1
+  def pushDataOnMainInstance(self):
+    self.logger.info('Getting the KVM IP...')
+    self.ip = self._getPartitionParameterDict()['ipv6']
+    logger.info('KVM IP is %s.' % self.ip)
 
-  # In case we have only one clone: test the takeover twice
-  # so that we test the reconstruction of a new clone.
-  if clone_count == 1:
-    for i in range(2):
-      ip = testClone(1, ip,
-          server_url, key_file, cert_file, computer_id, partition_id, software, namebase, partition, kvm_rootinstance_name, type)
+    for i in range(0, 60):
+      connection = urllib.urlopen('http://%s:10080/set?key=%s' % (self.ip, self.key))
+      if connection.getcode() is 200:
+        break
+      else:
+        logger.info('Impossible to connect to virtual machine to set key. sleeping...')
+        time.sleep(60)
+      if i is 59:
+        raise Exception('Bad return code when setting key in main instance, after trying for 60 minutes.')
 
-  # In case we have more than one clone: test each clone one time.
-  else:
-    # So first clone starts from 1.
-    current_clone = 1
-    while current_clone <= clone_count:
-      ip = testClone(current_clone, ip,
-                     server_url, key_file, cert_file, computer_id, partition_id, software, namebase, partition, kvm_rootinstance_name, type)
-      current_clone = current_clone + 1
+    logger.info('Key uploaded to KVM main instance.')
 
-  # All clones have been successfully tested: success.
-  return True
-
-def testClone(current_clone, ip,
-              server_url, key_file, cert_file, computer_id, partition_id, software, namebase, partition, kvm_rootinstance_name, test_type):
-  logger.info('Testing kvm%s.' % current_clone)
-
-  key = setRandomKey(ip)
-  logger.info('Key set for test in current KVM: %s.' % key)
-
-  logger.info('Sleeping for %s seconds.' % SLEEP_TIME)
-  time.sleep(SLEEP_TIME)
-
-  # Make the clone instance takeover the main instance
-  logger.info('Replacing main instance by clone instance...')
-  for i in range(0, 10):
-    try:
-      takeover(
-           server_url=server_url,
-          key_file=key_file,
-          cert_file=cert_file,
-          computer_guid=computer_id,
-          partition_id=partition_id,
-          software_release=software,
-          namebase=namebase,
-          winner_instance_suffix=str(current_clone),
-      )
-      break
-    except: # SSLError
-      traceback.print_exc()
-      if i is 9:
-        raise
-      logger.warning('takeover failed. Retrying...')
-      time.sleep(10)
-  logger.info('Done.')
-
-  if test_type == 'UnitTest': # Run by classical erp5testnode using slapproxy
-    # Run slapos node instance
-    # XXX hardcoded
-    slapos_configuration_file_path = os.path.join(
-        os.path.dirname(sys.argv[0]),
-        '..', '..', '..', 'slapos.cfg'
+  def checkDataOnCloneInstance(self):
+    self.ip = self._returnNewInstanceParameter(
+        parameter_key='ipv6',
+        old_parameter_value=self.ip
     )
-    print slapos_configuration_file_path
-    command = ['/opt/slapos/bin/slapos', 'node', 'instance',
-               '--cfg=%s' % slapos_configuration_file_path,
-               '--pidfile=slapos.pid']
-    subprocess.Popen(command).wait()
-    subprocess.Popen(command).wait()
-    subprocess.Popen(command).wait()
-    new_ip = ip
 
-  else: # ScalabilityTest
-    # Wait for the new IP (of old-clone new-main instance) to appear.
-    logger.info('Waiting for new main instance to be ready...')
-    new_ip = None
-    while not new_ip or new_ip == 'None' or  new_ip == ip:
-      logger.info('Not ready yet. SlapOS says main IP is %s' % new_ip)
-      time.sleep(60)
-      new_ip = fetchMainInstanceIP(partition, software, kvm_rootinstance_name)
-    logger.info('New IP of instance is %s' % new_ip)
+    new_key = fetchKey(self.ip)
+    logger.info('Key on this new instance is %s' % new_key)
 
-  new_key = fetchKey(new_ip)
-  logger.info('Key on this new instance is %s' % new_key)
+    # Compare with original key. If same: success.
+    if new_key == self.key:
+      self.logger.info('Data are the same: success.')
+      return True
+    else:
+      self.logger.info('Data are different: failure.')
 
-  # Compare with original key. If same: success.
-  if new_key == key:
-    logger.info('Success for clone %s.' % current_clone)
-  else:
-    logger.info('Failure for clone %s. Aborting.' % current_clone)
-    return False
 
-  # Setup "new old ip" for next clone, so that it will test it is different
-  # from current clone
-  return new_ip
+def runTestSuite(*args, **kwargs):
+  """
+  Run KVM Resiliency Test.
+  """
+  return KVMTestSuite(*args, **kwargs).runTestSuite()
