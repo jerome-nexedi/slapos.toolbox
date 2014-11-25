@@ -31,6 +31,8 @@ import json
 import importlib
 import logging
 import os
+import sys
+import tempfile
 import time
 import traceback
 from erp5.util import taskdistribution
@@ -89,17 +91,23 @@ def parseArguments():
 def setupLogging(log_path=None, name=__name__):
   logger_format = '%(asctime)s %(name)-13s: %(levelname)-8s %(message)s'
   formatter = logging.Formatter(logger_format)
-  logging.basicConfig(level=logging.INFO,
-                      format=logger_format)
-  logger = logging.getLogger(name)
-  logger.addHandler(logging.NullHandler())
+  logging.basicConfig(level=logging.INFO, format=logger_format)
+
+  root_logger = logging.getLogger('')
+  fd, fname = tempfile.mkstemp()
+  file_handler = logging.FileHandler(fname)
+  file_handler.setFormatter(formatter)
+  root_logger.addHandler(file_handler)
+
   if log_path:
     file_handler = logging.handlers.RotatingFileHandler(
         filename=log_path,
         maxBytes=20000000, backupCount=4)
     file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-  return logger
+    root_logger.addHandler(file_handler)
+
+  logger = logging.getLogger(name)
+  return logger, fname
 
 def runTestSuite(test_suite_title, test_suite_arguments, log):
   """
@@ -139,7 +147,7 @@ class ScalabilityLauncher(object):
                               'runScalabilityTestSuite.log')
     else:
       log_path = None
-    logger = setupLogging('runScalabilityTestSuite', log_path)
+    logger, fname = setupLogging('runScalabilityTestSuite', log_path)
     self.log = logger.info
 
     # Proxy to erp5 master test_result
@@ -229,36 +237,41 @@ def runUnitTest():
   """
   Function meant to be run by "classical" (a.k.a UnitTest) erp5testnode.
   """
-  logger = setupLogging('runScalabilityTestSuite', None)
   args = parseArguments()
-  master = taskdistribution.TaskDistributionTool(args.test_suite_master_url)
-  test_suite_title = args.test_suite_title or args.test_suite
-  revision = args.revision
+  logger, fname = setupLogging('runScalabilityTestSuite', None)
+  try:
+    master = taskdistribution.TaskDistributionTool(args.test_suite_master_url)
+    test_suite_title = args.test_suite_title or args.test_suite
+    revision = args.revision
 
-  test_result = master.createTestResult(revision, [test_suite_title],
-    args.node_title, True, test_suite_title, 'foo')
-    #args.project_title)
-  test_line = test_result.start()
+    test_result = master.createTestResult(revision, [test_suite_title],
+      args.node_title, True, test_suite_title, 'foo')
+      #args.project_title)
+    test_line = test_result.start()
 
-  start_time = time.time()
+    start_time = time.time()
 
-  args.additional_arguments.append('type=UnitTest')
-  success = runTestSuite(
-      args.test_suite,
-      args.additional_arguments,
-      logger.info,
-  )
+    args.additional_arguments.append('type=UnitTest')
+    success = runTestSuite(
+        args.test_suite,
+        args.additional_arguments,
+        logger.info,
+    )
 
-  if success:
-    error_count = 0
-  else:
-    error_count = 1
+    if success:
+      error_count = 0
+    else:
+      error_count = 1
 
-  test_duration = time.time() - start_time
-  test_line.stop(stdout='Success',
-                  test_count=1,
-                  error_count=error_count,
-                  duration=test_duration)
+    test_duration = time.time() - start_time
+    test_line.stop(stdout=open(fname).read(),
+                    test_count=1,
+                    error_count=error_count,
+                    duration=test_duration)
+  except:
+    raise
+  finally:
+    os.remove(fname)
 
 def runStandaloneResiliencyTest():
   """
@@ -272,5 +285,5 @@ def runStandaloneResiliencyTest():
   runTestSuite(
       arguments.test_suite_title,
       arguments.additional_arguments,
-      setupLogging().info
+      setupLogging()[0].info
   )

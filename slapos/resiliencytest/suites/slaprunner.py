@@ -142,7 +142,7 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
       status = getSRStatus()
       limit -= 1
       self.logger.info('Software release is still building. Sleeping...')
-      time.sleep(15)
+      time.sleep(60)
 
 
   def _buildSoftwareRelease(self):
