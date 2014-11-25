@@ -1,3 +1,9 @@
+This module is used to test resiliency stack for different Software Releases.
+To be specific, it tests:
+ * The replication mechanism between main instance, pbs and clone and
+the specific behavior of the resilient Software Release.
+ * The takeover mechanism.
+
 This module is supposed to be launched from the "test" instance of a resilient
 service (usually deployed using "test" software type).
 
