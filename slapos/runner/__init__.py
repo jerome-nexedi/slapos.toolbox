@@ -92,7 +92,7 @@ def checkJSONConfig(config):
       'max_run_software' : 2
     }
     open(json_file, "w").write(json.dumps(params))
-    
+
 
 def run():
   "Run default configuration."
