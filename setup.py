@@ -83,10 +83,9 @@ setup(name=name,
           'slapmonitor-xml = slapos.monitor:run_slapmonitor_xml',
           'slapos-kill = slapos.systool:kill',
           'slapreport = slapos.monitor:run_slapreport',
-          'slaprunner = slapos.runner:run',
           'slaprunnertest = slapos.runner.runnertest:main',
           'zodbpack = slapos.zodbpack:run [zodbpack]',
-          'networkbench = slapos.networkbench:main' 
+          'networkbench = slapos.networkbench:main'
         ]
       },
     )
