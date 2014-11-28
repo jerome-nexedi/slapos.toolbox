@@ -18,6 +18,7 @@ import json
 import os
 import shutil
 import sup_process
+import StringIO
 import time
 import unittest
 
@@ -31,10 +32,49 @@ from slapos.runner import views
 import slapos.slap
 from slapos.htpasswd import  HtpasswdFile
 
+import erp5.util.taskdistribution as taskdistribution
+
 
 #Helpers
 def loadJson(response):
   return json.loads(response.data)
+
+def parseArguments():
+  """
+  Parse arguments for erp5testnode-backed test.
+  """
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--test_result_path',
+                      metavar='ERP5_TEST_RESULT_PATH',
+                      help='ERP5 relative path of the test result')
+
+  parser.add_argument('--revision',
+                      metavar='REVISION',
+                      help='Revision of the test_suite')
+
+  parser.add_argument('--test_suite',
+                      metavar='TEST_SUITE',
+                      help='Name of the test suite')
+
+  parser.add_argument('--test_suite_title',
+                      metavar='TEST_SUITE',
+                      help='The test suite title')
+
+  parser.add_argument('--test_node_title',
+                      metavar='NODE_TITLE',
+                      help='Title of the testnode which is running this'
+                            'launcher')
+
+  parser.add_argument('--node_quantity', help='Number of parallel tests to run',
+                      default=1, type=int)
+
+  parser.add_argument('--master_url',
+                      metavar='TEST_SUITE_MASTER_URL',
+                      help='Url to connect to the ERP5 Master testsuite taskditributor')
+
+  parser.add_argument('additional_arguments', nargs=argparse.REMAINDER)
+
+  return parser.parse_args()
 
 
 class Config:
@@ -594,10 +634,36 @@ class SlaprunnerTestCase(unittest.TestCase):
 
 
 def main():
-  # Empty parser for now - so that erp5testnode is happy when doing --help
-  parser = argparse.ArgumentParser()
-  parser.parse_args()
-  unittest.main(module=__name__)
+  """
+  Function meant to be run by erp5testnode.
+  """
+  args = parseArguments()
+  master = taskdistribution.TaskDistributionTool(args.master_url)
+  test_suite_title = args.test_suite_title or args.test_suite
+  revision = args.revision
 
-if __name__ == '__main__':
-  main()
+  test_result = master.createTestResult(revision, [test_suite_title],
+    args.test_node_title, True, test_suite_title, 'foo')
+    #args.project_title)
+  test_line = test_result.start()
+
+  start_time = time.time()
+
+  stderr = StringIO.StringIO()
+
+  suite = unittest.TestLoader().loadTestsFromTestCase(SlaprunnerTestCase)
+  test_result = unittest.TextTestRunner(verbosity=2, stream=stderr).run(suite)
+
+  test_duration = time.time() - start_time
+  test_line.stop(stderr=stderr.getvalue(),
+                  test_count=test_result.testsRun,
+                  error_count=len(test_result.errors),
+                  failure_count=len(test_result.failures) + len(test_result.unexpectedSuccesses),
+                  skip_count=len(test_result.skipped),
+                  duration=test_duration)
+
+def runStandaloneUnitTest():
+  """
+  Run unit tests without erp5testnode."
+  """
+  unittest.main(module=__name__)

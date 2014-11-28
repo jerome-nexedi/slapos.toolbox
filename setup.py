@@ -84,6 +84,7 @@ setup(name=name,
           'slapos-kill = slapos.systool:kill',
           'slapreport = slapos.monitor:run_slapreport',
           'slaprunnertest = slapos.runner.runnertest:main',
+          'slaprunnerteststandalone = slapos.runner.runnertest:runStandaloneUnitTest',
           'zodbpack = slapos.zodbpack:run [zodbpack]',
           'networkbench = slapos.networkbench:main'
         ]
