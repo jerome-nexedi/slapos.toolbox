@@ -146,12 +146,19 @@ class KVMTestSuite(ResiliencyTestSuite):
     logger.info('KVM IP is %s.' % self.ip)
 
     for i in range(0, 60):
-      connection = urllib.urlopen('http://%s:10080/set?key=%s' % (self.ip, self.key))
-      if connection.getcode() is 200:
-        break
-      else:
-        logger.info('Impossible to connect to virtual machine to set key. sleeping...')
-        time.sleep(60)
+      failure = False
+      try:
+        connection = urllib.urlopen('http://%s:10080/set?key=%s' % (self.ip, self.key))
+        if connection.getcode() is 200:
+          break
+        else:
+          failure = True
+      except IOError:
+        failure = True
+      finally:
+        if failure:
+          logger.info('Impossible to connect to virtual machine to set key. sleeping...')
+          time.sleep(60)
       if i is 59:
         raise Exception('Bad return code when setting key in main instance, after trying for 60 minutes.')
 
