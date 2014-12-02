@@ -1,7 +1,14 @@
+0.45.2 (2014-12-02)
+===================
+
+* resiliencytest framework: adapt abstract test suite to work with a single clone.
+* resiliency test suites: send log to erp5 master.
+* KVM resiliency test suite: use test framework
+
 0.45.1 (2014-11-24)
 ===================
 
-* Fix logrotate and introduce a delay for `networkbench`. 
+* Fix logrotate and introduce a delay for `networkbench`.
 
 0.45.0 (2014-11-24)
 ===================
