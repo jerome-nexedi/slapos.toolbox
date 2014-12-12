@@ -211,10 +211,11 @@ class ResiliencyTestSuite(object):
     # In case we have only one clone: test the takeover twice
     # so that we test the reconstruction of a new clone.
     if clone_count == 1:
-      for i in range(2):
-        success = self._testClone(1)
-        if not success:
-          return False
+      return self._testClone(1)
+      #for i in range(2):
+      #  success = self._testClone(1)
+      #  if not success:
+      #    return False
 
     else:
       # Test each clone
