@@ -14,6 +14,7 @@ import urllib
 from flask import (Flask, request, redirect, url_for, render_template,
                    g, flash, jsonify, session, abort, send_file)
 
+import slapos
 from slapos.runner.utils import (checkSoftwareFolder, configNewSR,
                                  createNewUser, getBuildAndRunParams,
                                  getProfilePath, getSlapgridResult,
@@ -171,6 +172,15 @@ def inspectInstance():
                          slap_status=getSlapStatus(app.config),
                          partition_amount=app.config['partition_amount'])
 
+def getConnectionParameter(partition_reference):
+  """
+  Return connection parameters of a partition.
+  """
+  slap = slapos.slap.slap()
+  slap.initializeConnection(app.config['master_url'])
+  partition = slap.registerComputerPartition(app.config['computer_id'], partition_reference)
+  return jsonify(partition.getConnectionParameterDict())
+app.add_url_rule("/getConnectionParameter/<partition_reference>", 'getConnectionParameter', getConnectionParameter, methods=['GET'])
 
 #Reload instance process ans returns new value to ajax
 def supervisordStatus():
