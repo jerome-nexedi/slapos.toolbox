@@ -71,6 +71,8 @@ $(document).ready(function () {
             var mode = modelist.getModeForPath(file);
             editor.session.modeName = mode.name;
             editor.session.setMode(mode.mode);
+            ace.require("ace/ext/language_tools");
+            editor.setOptions({ enableBasicAutocompletion: true });
             editor.session.getUndoManager().reset();
             editorlist[hash].busy = false;
             status = true;

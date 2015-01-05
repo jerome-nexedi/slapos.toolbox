@@ -45,6 +45,7 @@ define('ace/mode/buildout', function(require, exports, module) {
 
     var Mode = function() {
         this.$tokenizer = new Tokenizer(new BuildoutHighlightRules().getRules());
+        this.$highlightRules = []; // workaround for bug with autocomplete
     };
     oop.inherits(Mode, TextMode);
 
