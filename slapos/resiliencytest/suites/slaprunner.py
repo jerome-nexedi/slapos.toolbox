@@ -161,9 +161,12 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
     except (NotHttpOkException, urllib2.HTTPError):
       # The nginx frontend might timeout before someftware release is finished.
       pass
-    while self._connectToSlaprunner(resource='slapgridResult', data='position=0&log=').find('"instance": true') is not -1:
-      self.logger.info('Buildout is still running. Sleeping...')
+    while True:
       time.sleep(15)
+      result = json.loads(self._connectToSlaprunner(resource='slapgridResult', data='position=0&log='))
+      if result['instance']['state'] is False:
+        break
+      self.logger.info('Buildout is still running. Sleeping...')
     self.logger.info('Instance has been deployed.')
 
   def _gitClone(self):
