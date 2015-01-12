@@ -88,13 +88,13 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
             subprocess.check_output(cmd_list, stderr=subprocess.STDOUT)
         )
         self.logger.info("%s finished successfully.", cmd_readable)
+        self.db[cmd_executable] = str(timestamp)
       except subprocess.CalledProcessError as e:
         self.logger.warning("%s exited with status %s. output is: \n %s" % (
             cmd_readable,
             e.returncode,
             e.output,
         ))
-      self.db[cmd_executable] = str(timestamp)
 
   def process_request_thread(self, request, client_address):
     # Handle request
