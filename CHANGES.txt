@@ -1,3 +1,7 @@
+0.45.3 (2015-01-12)
+===================
+* slaprunner: Quick and dirty support for ace editor autocompletion
+
 0.45.2 (2014-12-02)
 ===================
 
