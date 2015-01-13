@@ -30,6 +30,7 @@ import argparse
 import errno
 import gdbm
 import json
+from lockfile import LockFile
 import logging
 import logging.handlers
 import os
@@ -42,8 +43,6 @@ import StringIO
 import threading
 
 
-# I think this is obvious enough to not require any documentation, but I might
-# be wrong.
 class EqueueServer(SocketServer.ThreadingUnixStreamServer):
 
   daemon_threads = True
@@ -57,7 +56,8 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
     self.setLogger(self.options.logfile[0], self.options.loglevel[0])
     self.setDB(self.options.database[0])
     # Lock to only have one command running at the time
-    self.lock = threading.Lock()
+    self.thread_lock = threading.Lock()
+    self.lockfile = LockFile(self.options.lockfile)
 
   def setLogger(self, logfile, loglevel):
     self.logger = logging.getLogger("EQueue")
@@ -73,7 +73,7 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
     self.db = gdbm.open(database, 'cs', 0700)
 
   def _runCommandIfNeeded(self, command, timestamp):
-    with self.lock:
+    with self.thread_lock as thread_lock, self.lockfile as lockfile:
       cmd_list = command.split('\0')
       cmd_readable = ' '.join(cmd_list)
       cmd_executable = cmd_list[0]
@@ -151,6 +151,8 @@ def main():
                       help="Path to the log file.")
   parser.add_argument('-t', '--timeout', nargs=1, required=False,
                       dest='timeout', type=int, default=3)
+  parser.add_argument('--lockfile',
+                      help="Path to the lock file created when a command is run")
   parser.add_argument('socket', help="Path to the unix socket")
 
   args = parser.parse_args()
