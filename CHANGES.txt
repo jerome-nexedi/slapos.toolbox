@@ -1,3 +1,12 @@
+0.46.0 (2015-01-16)
+===================
+
+* slaprunner: don't shutdown supervisord.
+* slaprunner: Simplify process management and make sure 'process killer' handler works.
+* webrunner: add getConnectionParameter API.
+* equeue: create a lockfile when running importer command.
+* Equeue: do not register command in database if it was not successful.
+
 0.45.3 (2015-01-12)
 ===================
 * slaprunner: Quick and dirty support for ace editor autocompletion
