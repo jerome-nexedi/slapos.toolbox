@@ -455,7 +455,7 @@ def svcStopAll(config):
   """Stop all Instance processes on this computer"""
   try:
     return Popen([config['slapos'], 'node', 'supervisorctl', '--cfg', config['configuration_file_path'],
-                  'shutdown']).communicate()[0]
+                  'stop' 'all']).communicate()[0]
   except:
     pass
 
