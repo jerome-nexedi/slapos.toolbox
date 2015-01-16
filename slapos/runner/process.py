@@ -1,11 +1,8 @@
+import atexit
 import os
-import psutil
-import signal
 import subprocess
-import sys
 
 SLAPRUNNER_PROCESS_LIST = []
-
 
 class Popen(subprocess.Popen):
   """
@@ -21,54 +18,11 @@ class Popen(subprocess.Popen):
     kwargs.setdefault('stdout', subprocess.PIPE)
     kwargs.setdefault('close_fds', True)
     subprocess.Popen.__init__(self, *args, **kwargs)
+    global SLAPRUNNER_PROCESS_LIST
     SLAPRUNNER_PROCESS_LIST.append(self)
     self.stdin.flush()
     self.stdin.close()
     self.stdin = None
-
-  def kill(self, sig=signal.SIGTERM, recursive=False):
-    """
-    Kill process and all its descendants if recursive
-    """
-    if self.poll() is None:
-      if recursive:
-        childs_pids = pidppid(self.pid)
-        for pid in childs_pids:
-          killNoFail(pid, sig)
-      killNoFail(self.pid, sig)
-      if self.poll() is not None:
-        SLAPRUNNER_PROCESS_LIST.remove(self)
-
-  def __del__(self):
-    """
-    Del function, try to kill process group
-    and process if its group does not exist
-    """
-    for pid in (-self.pid, self.pid):
-      try:
-        os.kill(-self.pid, 15)
-      except OSError:
-        pass
-    subprocess.Popen.__del__(self)
-
-
-def pidppid(pid, recursive=True):
-  """
-  Return a list of all children of pid
-  """
-  return [p.pid for p in psutil.Process(pid).get_children(recursive=recursive)]
-
-
-def killNoFail(pid, sig):
-  """
-  function to kill without failing. Return True if kill do not fail
-  """
-  try:
-    os.kill(pid, sig)
-    return True
-  except OSError:
-    return False
-
 
 def isRunning(name):
   """
@@ -90,20 +44,25 @@ def killRunningProcess(name, recursive=False):
       process.kill(recursive=recursive)
 
 
-def handler(sig, frame):
+sigterm_handled = False
+def handler(*args, **kwargs):
   """
   Signal handler to kill all processes
   """
-  pid = os.getpid()
-  os.kill(-pid, sig)
-  sys.exit()
+  global sigterm_handled
+  if sigterm_handled:
+    return
+  sigterm_handled = True
+
+  for process in SLAPRUNNER_PROCESS_LIST:
+    try:
+      process.kill()
+    except OSError:
+      pass
 
 
 def setHandler(sig_list=None):
-  if sig_list is None:
-    sig_list = [signal.SIGTERM]
-  for sig in sig_list:
-    signal.signal(sig, handler)
+  atexit.register(handler)
 
 
 def isPidFileProcessRunning(pidfile):
