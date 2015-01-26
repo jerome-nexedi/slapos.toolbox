@@ -11,6 +11,7 @@ import os
 import sup_process
 import re
 import shutil
+import stat
 import thread
 import time
 import urllib
@@ -464,13 +465,19 @@ def removeInstanceRoot(config):
   """Clean instance directory and stop all its running processes"""
   if os.path.exists(config['instance_root']):
     svcStopAll(config)
-    for root, dirs, _ in os.walk(config['instance_root']):
-      for fname in dirs:
-        fullPath = os.path.join(root, fname)
-        if not os.access(fullPath, os.W_OK):
-          # Some directories may be read-only, preventing to remove files in it
-          os.chmod(fullPath, 0744)
-    shutil.rmtree(config['instance_root'])
+    for instance_directory in os.listdir(config['instance_root']):
+      instance_directory = os.path.join(config['instance_root'], instance_directory)
+      # XXX: hardcoded
+      if stat.S_ISSOCK(os.stat(instance_directory).st_mode) or os.path.isfile(instance_directory):
+        # Ignore non-instance related files
+        continue
+      for root, dirs, _ in os.walk(instance_directory):
+        for fname in dirs:
+          fullPath = os.path.join(root, fname)
+          if not os.access(fullPath, os.W_OK):
+            # Some directories may be read-only, preventing to remove files in it
+            os.chmod(fullPath, 0744)
+      shutil.rmtree(instance_directory)
 
 
 def getSvcStatus(config):
