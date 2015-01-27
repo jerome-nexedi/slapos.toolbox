@@ -32,14 +32,14 @@
     <div id="slapstate">
       <h2 class="software">Building State</h2>
       <div class="log_content_box">
-        <div id="software_run_state" class="state_running">
+         <div id="software_run_state" class="state_running">
           <span class="legend"></span>
           <p>Processing</p>
           <div class="clear"></div>
         </div>
         <p id="last_build_software" class="last_build"></p><br/>
         <div class="clear"></div>
-        <p>SlapOS rebuild your software from source, allowing you to easily patch or add any free software. <a href="{{ url_for('viewLog', logfile='software.log') }}">Learn how!</a></p>
+        <p>SlapOS rebuilds your software from source, allowing you to easily patch or add any free software. <a href="{{ url_for('viewLog', logfile='software.log') }}">Learn how!</a></p>
       </div>
 
       <h2 class="instance">Running State</h2>
@@ -53,7 +53,7 @@
         </div>
         <p id="last_build_instance" class="last_build"></p><br/>
         <div class="clear"></div>
-        <p>SlapOS configure your running environment to match your needs. <a href="{{ url_for('viewLog', logfile='instance.log') }}">Learn how!</a></p>
+        <p>SlapOS configures your running environment and processes to match your needs. <a href="{{ url_for('viewLog', logfile='instance.log') }}">Learn how!</a></p>
       </div>
 
       <div class="separator"></div>
@@ -62,7 +62,7 @@
       </div>
     </div>
     <div id="openloglist">
-      <h2 class="boxtitle">Select log file to view</h2>
+      <h2  class="boxtitle">Select log file to view</h2>
       <div style="height: 340px; margin-bottom: 10px;">
         <div id='addbox' style="display:none">
           <a href="#inline_content" id="inlineViewer" class="add_btn">ADD FILE</a>
@@ -71,7 +71,7 @@
         <ul>
           <li rel='software.log'>Software.log</li>
           <li rel='instance.log' class='checked'>Instance.log</li>
-        </ul>
+         </ul>
       </div>
       <div class="separator"></div>
       <div style="height: 38px; text-align: left; padding: 20px 0 0 15px;">
