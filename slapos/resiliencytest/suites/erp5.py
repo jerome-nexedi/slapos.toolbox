@@ -191,9 +191,6 @@ class ERP5TestSuite(SlaprunnerTestSuite):
     self._waitForSoftwareBuild()
     self._deployInstance()
     time.sleep(30)
-    import rpdb
-    debugger = rpdb.Rpdb(port=12349)
-    debugger.set_trace()
 
     self._editHAProxyconfiguration()
     new_data = self._getCreatedERP5Document()
