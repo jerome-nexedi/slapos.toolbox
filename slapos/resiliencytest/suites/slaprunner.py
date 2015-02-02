@@ -71,7 +71,9 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
       partition_parameter_kw={
         'resiliency-backup-periodicity': '*/6 * * * *',
         'auto-deploy-instance': 'false',
-        'auto-deploy': 'true'
+        'auto-deploy': 'true',
+        # XXX HACK!
+        "slapos-reference": 'slaprunner-erp5-resiliency'
         }
     ).getConnectionParameterDict()
     self.deleteTimestamp()
