@@ -42,6 +42,38 @@ import SocketServer
 import StringIO
 import threading
 
+# Copied from erp5.util:erp5/util/testnode/ProcessManager.py
+def subprocess_capture(p, log, log_prefix, get_output=True):
+  def readerthread(input, output, buffer):
+    while True:
+      data = input.readline()
+      if not data:
+        break
+      if get_output:
+        buffer.append(data)
+      if log_prefix:
+        data = "%s : " % log_prefix +  data
+      data = data.rstrip('\n')
+      output(data)
+  if p.stdout:
+    stdout = []
+    stdout_thread = threading.Thread(target=readerthread,
+                                     args=(p.stdout, log, stdout))
+    stdout_thread.daemon = True
+    stdout_thread.start()
+  if p.stderr:
+    stderr = []
+    stderr_thread = threading.Thread(target=readerthread,
+                                     args=(p.stderr, log, stderr))
+    stderr_thread.daemon = True
+    stderr_thread.start()
+  p.wait()
+  if p.stdout:
+    stdout_thread.join()
+  if p.stderr:
+    stderr_thread.join()
+  return (p.stdout and ''.join(stdout),
+          p.stderr and ''.join(stderr))
 
 class EqueueServer(SocketServer.ThreadingUnixStreamServer):
 
@@ -84,11 +116,15 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
 
       self.logger.info("Running %s, %s with output:", cmd_readable, timestamp)
       try:
-        self.logger.info(
-            subprocess.check_output(cmd_list, stderr=subprocess.STDOUT)
-        )
-        self.logger.info("%s finished successfully.", cmd_readable)
-        self.db[cmd_executable] = str(timestamp)
+        sys.stdout.flush()
+        p = subprocess.Popen(cmd_list, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        subprocess_capture(p, self.logger.info, '', True)
+        if p.returncode == 0:
+          self.logger.info("%s finished successfully.", cmd_readable)
+          self.db[cmd_executable] = str(timestamp)
+        else:
+          self.logger.warning("%s exited with status %s." % (cmd_readable, p.returncode))
       except subprocess.CalledProcessError as e:
         self.logger.warning("%s exited with status %s. output is: \n %s" % (
             cmd_readable,
