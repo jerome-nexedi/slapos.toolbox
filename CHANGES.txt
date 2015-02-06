@@ -1,3 +1,9 @@
+0.47 (2015-02-05)
+=================
+
+* runner: fix syntax when stopping all processes.
+* equeue: realtime logging.
+
 0.46.1 (2015-01-30)
 ===================
 
