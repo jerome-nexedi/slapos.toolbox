@@ -89,7 +89,9 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
     self.setDB(self.options.database[0])
     # Lock to only have one command running at the time
     self.thread_lock = threading.Lock()
+    # Lockfile is used by other commands to know if an import is ongoing.
     self.lockfile = LockFile(self.options.lockfile)
+    self.lockfile.break_lock()
 
   def setLogger(self, logfile, loglevel):
     self.logger = logging.getLogger("EQueue")
