@@ -26,16 +26,14 @@
 #
 ##############################################################################
 
-# XXX: takeover module should be in slapos.toolbox, not in slapos.cookbook
-# XXX: use web interface for takeover to really simulate user behavior.
-from slapos.recipe.addresiliency.takeover import takeover
 import slapos.slap
 
 import logging
-import time
 import os
 import subprocess
 import sys
+import time
+import urllib2
 
 UNIT_TEST_ERP5TESTNODE = 'UnitTest'
 
@@ -73,23 +71,29 @@ class ResiliencyTestSuite(object):
     self.logger = logging.getLogger('SlaprunnerResiliencyTest')
     self.logger.setLevel(logging.DEBUG)
 
-  def _doTakeover(self, target_clone):
+  def _doTakeover(self, namebase, target_clone):
     """
     Private method.
     Make the specified clone instance takeover the main instance.
     """
     self.logger.info('Replacing main instance by clone instance %s%s...' % (
         self.namebase, target_clone))
-    takeover(
-        server_url=self.server_url,
-        key_file=self.key_file,
-        cert_file=self.cert_file,
-        computer_guid=self.computer_id,
-        partition_id=self.partition_id,
-        software_release=self.software,
-        namebase=self.namebase,
-        winner_instance_suffix=str(target_clone),
-    )
+
+    # Request
+    root_partition_parameter_dict = self._getPartitionParameterDict()
+    takeover_url = root_partition_parameter_dict['takeover-%s-%s-url' % (namebase, target_clone)]
+    takeover_password = root_partition_parameter_dict['takeover-%s-%s-password' % (namebase, target_clone)]
+    # Connect to takeover web interface
+    takeover_page_content = urllib2.urlopen(takeover_url).read()
+    # Wait for importer script to be not running
+    while 'Importer script(s) of backup in progress: True' in takeover_page_content:
+      time.sleep(10)
+      takeover_page_content = urllib2.urlopen(takeover_url).read()
+    # Do takeover
+    takeover_result = urllib2.urlopen('%s?password=%s' % (takeover_url, takeover_password)).read()
+    if 'Error' in takeover_result:
+      raise Exception('Error while doing takeover: %s' % takeover_result)
+
     self.logger.info('Done.')
 
   def generateData(self):
@@ -156,7 +160,7 @@ class ResiliencyTestSuite(object):
     Private method.
     Launch takeover and check for a specific clone.
     """
-    self._doTakeover(clone)
+    self._doTakeover(self.namebase, clone)
     self.logger.info('Testing %s%s instance.' % (self.namebase, clone))
 
     # Wait for XX minutes so that replication is done
