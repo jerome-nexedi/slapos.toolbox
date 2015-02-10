@@ -87,6 +87,8 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
     # Equeue Specific elements
     self.setLogger(self.options.logfile[0], self.options.loglevel[0])
     self.setDB(self.options.database[0])
+    if getattr(self.options, 'takeover_triggered_file_path', None):
+      self.takeover_triggered_file_path = self.options.takeover_triggered_file_path[0]
     # Lock to only have one command running at the time
     self.thread_lock = threading.Lock()
     # Lockfile is used by other commands to know if an import is ongoing.
@@ -106,7 +108,16 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
   def setDB(self, database):
     self.db = gdbm.open(database, 'cs', 0700)
 
+  def _hasTakeoverBeenTriggered(self):
+    if hasattr(self, 'takeover_triggered_file_path') and \
+       os.path.exists(self.takeover_triggered_file_path):
+      return True
+    return False
+
   def _runCommandIfNeeded(self, command, timestamp):
+    if self._hasTakeoverBeenTriggered():
+      self.logger.info('Takeover has been triggered, preventing to run import script.')
+      return
     with self.thread_lock as thread_lock, self.lockfile as lockfile:
       cmd_list = command.split('\0')
       cmd_readable = ' '.join(cmd_list)
@@ -191,6 +202,8 @@ def main():
                       dest='timeout', type=int, default=3)
   parser.add_argument('--lockfile',
                       help="Path to the lock file created when a command is run")
+  parser.add_argument('--takeover-triggered-file-path', nargs=1, required=False,
+                      help="Path to the file created by takeover script to state that it has been triggered.")
   parser.add_argument('socket', help="Path to the unix socket")
 
   args = parser.parse_args()
