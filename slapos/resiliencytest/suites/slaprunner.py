@@ -33,6 +33,7 @@ import cookielib
 import json
 from lxml import etree
 import random
+import ssl
 import string
 import time
 import urllib2
@@ -48,8 +49,11 @@ class SlaprunnerTestSuite(ResiliencyTestSuite):
   def __init__(self, *args, **kwargs):
     # Setup urllib2 with cookie support
     cookie_jar = cookielib.CookieJar()
+    ssl_context = ssl._create_unverified_context()
+
     self._opener_director = urllib2.build_opener(
-        urllib2.HTTPCookieProcessor(cookie_jar)
+        urllib2.HTTPCookieProcessor(cookie_jar),
+        urllib2.HTTPSHandler(context=ssl_context)
     )
 
     ResiliencyTestSuite.__init__(self, *args, **kwargs)
