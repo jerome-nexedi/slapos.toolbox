@@ -1,3 +1,9 @@
+0.47.2 (2015-02-14)
+===================
+
+* equeue: prevent to run import script if takeover-triggered file exists.
+* Advertise development of new version.
+
 0.47.1 (2015-02-05)
 ===================
 
