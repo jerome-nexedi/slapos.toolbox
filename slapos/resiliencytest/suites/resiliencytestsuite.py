@@ -179,12 +179,14 @@ class ResiliencyTestSuite(object):
           os.path.dirname(sys.argv[0]),
           '..', '..', '..', 'slapos.cfg'
       )
+      # Output is huge and we don't want to store it in memory nor print it
+      devnull = open('/dev/null', 'w')
       command = ['/opt/slapos/bin/slapos', 'node', 'instance',
                  '--cfg=%s' % slapos_configuration_file_path,
                  '--pidfile=slapos.pid']
-      subprocess.Popen(command).wait()
-      subprocess.Popen(command).wait()
-      subprocess.Popen(command).wait()
+      subprocess.Popen(command, stdout=devnull, stderr=devnull).wait()
+      subprocess.Popen(command, stdout=devnull, stderr=devnull).wait()
+      subprocess.Popen(command, stdout=devnull, stderr=devnull).wait()
 
     success = self.checkDataOnCloneInstance()
     if success:
