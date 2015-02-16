@@ -115,10 +115,10 @@ class EqueueServer(SocketServer.ThreadingUnixStreamServer):
     return False
 
   def _runCommandIfNeeded(self, command, timestamp):
-    if self._hasTakeoverBeenTriggered():
-      self.logger.info('Takeover has been triggered, preventing to run import script.')
-      return
     with self.thread_lock as thread_lock, self.lockfile as lockfile:
+      if self._hasTakeoverBeenTriggered():
+        self.logger.info('Takeover has been triggered, preventing to run import script.')
+        return
       cmd_list = command.split('\0')
       cmd_readable = ' '.join(cmd_list)
       cmd_executable = cmd_list[0]
