@@ -1,3 +1,13 @@
+0.47.3 (2015-02-17)
+===================
+
+* resiliency tests: hide output of slapos node instance.
+* equeue: move takeover detection in thread lock.
+* add erp5 resiliency test suite.
+* harcode slaprunner request to use dev branch for erp5.
+* slaprunner resiliency test suite: compatibility with python 2.7.9.
+* resiliency test suite: do takeover from web interface.
+
 0.47.2 (2015-02-14)
 ===================
 
