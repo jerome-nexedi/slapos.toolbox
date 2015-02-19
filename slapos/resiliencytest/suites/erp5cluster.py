@@ -93,6 +93,31 @@ class ERP5ClusterTestSuite(ERP5TestSuite):
       data='project=workspace%2Fslapos&name=erp5-cluster&create=0'
     )
 
+  def _createRandomERP5Document(self):
+    """ Create a document with random content in erp5 site."""
+    # XXX currently only sets erp5 site title.
+    # XXX could be simplified to /erp5/setTitle?title=slapos
+
+    import rpdb
+    debugger = rpdb.Rpdb(port=12349)
+    debugger.set_trace()
+
+    erp5_site_title = self.slaprunner_user
+    url = "%s/erp5?__ac_name=zope&__ac_password=insecure" % self._getERP5Url()
+    form = 'title%%3AUTF-8:string=%s&manage_editProperties%%3Amethod=Save+Changes' % erp5_site_title
+    self._connectToERP5(url, form)
+    return erp5_site_title
+
+  def _getCreatedERP5Document(self):
+    """ Fetch and return content of ERP5 document created above."""
+
+    import rpdb
+    debugger = rpdb.Rpdb(port=12348)
+    debugger.set_trace()
+
+    url = "%s/erp5/getTitle" % self._getERP5Url()
+    return self._connectToERP5(url)
+
 
 def runTestSuite(*args, **kwargs):
   """
