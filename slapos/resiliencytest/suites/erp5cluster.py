@@ -43,7 +43,7 @@ class ERP5ClusterTestSuite(ERP5TestSuite):
     """
     self._connectToSlaprunner(
         resource='saveParameterXml',
-        data='software_type=create-erp5-site&parameter=%3C%3Fxml+version%3D%221.0%22+encoding%3D%22utf-8%22%3F%3E%0A%3Cinstance%3E%0A%3Cparameter+id%3D%22_%22%3E%7B%22zodb-zeo%22%3A+%7B%22backup-periodicity%22%3A+%22hourly%22%7D%2C+%22mariadb%22%3A+%7B%22backup-periodicity%22%3A+%22hourly%22%7D%7D%3C%2Fparameter%3E%0A%3C%2Finstance%3E%0A'
+        data='software_type=create-erp5-site&parameter=%3C%3Fxml+version%3D%221.0%22+encoding%3D%22utf-8%22%3F%3E%0A%3Cinstance%3E%0A%3Cparameter+id%3D%22_%22%3E%7B%22zodb-zeo%22%3A+%7B%22backup-periodicity%22%3A+%22minutely%22%7D%2C+%22mariadb%22%3A+%7B%22backup-periodicity%22%3A+%22minutely%22%7D%7D%3C%2Fparameter%3E%0A%3C%2Finstance%3E%0A'
     )
 
   def _getERP5Url(self):
@@ -55,9 +55,17 @@ class ERP5ClusterTestSuite(ERP5TestSuite):
     data = self._connectToSlaprunner(
         resource='getConnectionParameter/slappart7'
     )
-    url = json.loads(data)['_']['default']
+    url = json.loads(json.loads(data)['_'])['default-v6']
     self.logger.info('Retrieved erp5 url is:\n%s' % url)
     return url
+
+  def _getERP5Password(self):
+    data = self._connectToSlaprunner(
+        resource='getConnectionParameter/slappart0'
+    )
+    password = json.loads(json.loads(data)['_'])['inituser-password']
+    self.logger.info('Retrieved erp5 password is:\n%s' % password)
+    return password
 
   def _editHAProxyconfiguration(self):
     """
@@ -93,20 +101,21 @@ class ERP5ClusterTestSuite(ERP5TestSuite):
       data='project=workspace%2Fslapos&name=erp5-cluster&create=0'
     )
 
-  def _createRandomERP5Document(self):
-    """ Create a document with random content in erp5 site."""
-    # XXX currently only sets erp5 site title.
-    # XXX could be simplified to /erp5/setTitle?title=slapos
+
+  def _connectToERP5(self, url, data=None, password=None):
+    if password is None:
+      password = self._getERP5Password()
+    return ERP5TestSuite._connectToERP5(self, url, data, password)
+
+  def _createRandomERP5Document(self, password=None):
+    if password is None:
+      password = self._getERP5Password()
 
     import rpdb
     debugger = rpdb.Rpdb(port=12349)
     debugger.set_trace()
 
-    erp5_site_title = self.slaprunner_user
-    url = "%s/erp5?__ac_name=zope&__ac_password=insecure" % self._getERP5Url()
-    form = 'title%%3AUTF-8:string=%s&manage_editProperties%%3Amethod=Save+Changes' % erp5_site_title
-    self._connectToERP5(url, form)
-    return erp5_site_title
+    return ERP5TestSuite._createRandomERP5Document(self, password)
 
   def _getCreatedERP5Document(self):
     """ Fetch and return content of ERP5 document created above."""
