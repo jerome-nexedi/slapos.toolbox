@@ -101,7 +101,6 @@ class ERP5ClusterTestSuite(ERP5TestSuite):
       data='project=workspace%2Fslapos&name=erp5-cluster&create=0'
     )
 
-
   def _connectToERP5(self, url, data=None, password=None):
     if password is None:
       password = self._getERP5Password()
@@ -111,22 +110,12 @@ class ERP5ClusterTestSuite(ERP5TestSuite):
     if password is None:
       password = self._getERP5Password()
 
-    import rpdb
-    debugger = rpdb.Rpdb(port=12349)
-    debugger.set_trace()
-
     return ERP5TestSuite._createRandomERP5Document(self, password)
 
   def _getCreatedERP5Document(self):
     """ Fetch and return content of ERP5 document created above."""
-
-    import rpdb
-    debugger = rpdb.Rpdb(port=12348)
-    debugger.set_trace()
-
     url = "%s/erp5/getTitle" % self._getERP5Url()
     return self._connectToERP5(url)
-
 
 def runTestSuite(*args, **kwargs):
   """
