@@ -753,9 +753,7 @@ def runCommand():
     command = "timeout 600 " + command
     return jsonify(path=cwd, data=subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True, cwd=cwd, env={'PATH': app.config['path']}))
   except subprocess.CalledProcessError as e:
-    error = "Error : process exited with exit code " + str(e.returncode) + \
-            "\nProcess says :\n" + e.output
-    return error
+    return jsonify(path=cwd, data=e.output, returncode=e.returncode, error=True)
 
 
 def getMiniShellHistory():

@@ -45,8 +45,11 @@ $(document).ready(function () {
           timeout: 600000
       })
       .done( function (data) {
-          var data = "<p><span class=\"runned-command\">" + data.path + " >>> " + command + "</span></p><br/><pre>" + data.data + "</pre><br/>";
-          $("#shell-result").append(data);
+          var output = $("<pre>").text(data.data);
+          if (data.error) {
+            output.css({"color": "red"});
+          }
+          $("#shell-result").append("<p><span class=\"runned-command\">" + data.path + " >>> " + command + "</span></p><br/>").append(output);
           $("#shell-input").val("");
           $("#shell-result").scrollTop($("#shell-result")[0].scrollHeight);
           updateHistory();
