@@ -1,3 +1,9 @@
+0.48 (2015-04-09)
+=================
+
+* slaprunner: Support command exiting with non 0 status in minishell
+
+
 0.47.3 (2015-02-17)
 ===================
 
