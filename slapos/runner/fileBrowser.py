@@ -9,6 +9,7 @@ import re
 import shutil
 import urllib
 import zipfile
+import fnmatch
 
 import werkzeug
 from slapos.runner.utils import realpath, tail, isText
@@ -26,6 +27,20 @@ class FileBrowser(object):
       raise NameError('Could not load directory %s: Permission denied' % dir)
     return realdir
 
+  def _filterPathList(self, path_list):
+    """Filter out paths that matches a list ignored file patterns.
+    """
+    # This could be configurable ...
+    ignored_file_list = '''
+*.py[cod]
+*.o
+'''
+    for pattern in ignored_file_list.splitlines():
+      if pattern.strip():
+        path_list = [path for path in path_list if not fnmatch.fnmatch(path, pattern)]
+    return path_list
+
+
   def listDirs(self, dir, all=False):
     """List elements of directory 'dir' taken"""
     html = 'var gsdirs = [], gsfiles = [];'
@@ -37,7 +52,7 @@ class FileBrowser(object):
       raise NameError('Could not load directory %s: Permission denied' % dir)
 
     ldir = sorted(os.listdir(realdir), key=str.lower)
-    for f in ldir:
+    for f in self._filterPathList(ldir):
       if f.startswith('.') and not all:  # do not display this file/folder
         continue
       ff = os.path.join(dir, f)
@@ -67,7 +82,7 @@ class FileBrowser(object):
     dirList = []
     i = 0
     ldir = sorted(os.listdir(realdir), key=str.lower)
-    for f in ldir:
+    for f in self._filterPathList(ldir):
       if f.startswith('.') and not all:  # do not display this file/folder
         continue
       ff = os.path.join(dir, f)
