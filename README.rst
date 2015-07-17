@@ -1,7 +1,7 @@
 slapos.toolbox
 ==============
 
-`builder slapos/README.builder.rst                                                                                                              
+`builder slapos/README.builder.rst`_                                                                                                              
 
 `shacache`_.
 
